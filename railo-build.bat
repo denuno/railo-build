@@ -9,23 +9,17 @@ echo.
 echo       railo-build menu
 REM echo       usage: ${disstro.name}.bat [start|stop|{target}]
 echo.
-echo       1. Start server and open browser
-echo       2. Stop server
-echo       3. List available targets
-echo       4. Update project
-echo       5. Run Target
-echo       6. Quit
+echo       1. Build Railo from Source in GitHub
+echo       2. Run a specific target
+echo       3. Exit
 echo.
 set choice=
-set /p choice=      Enter option 1, 2, 3, 4, 5 or 6 :
+set /p choice=      Enter option 1, 2 or 3: 
 echo.
 if not '%choice%'=='' set choice=%choice:~0,1%
-if '%choice%'=='1' goto startServer
-if '%choice%'=='2' goto stopServer
-if '%choice%'=='3' goto listTargets
-if '%choice%'=='4' goto updateProject
-if '%choice%'=='5' goto runTarget
-if '%choice%'=='6' goto end
+if '%choice%'=='1' goto buildRailo
+if '%choice%'=='2' goto runTarget
+if '%choice%'=='3' goto end
 ::
 echo.
 echo.
@@ -34,14 +28,9 @@ echo.
 pause
 goto MENU
 ::
-:startServer
+:buildRailo
 cls
-call build\cfdistro\ant\bin\ant.bat -f build/build.xml build.start.launch
-echo to stop the server, run this again or run: railo-build.bat stop
-goto end
-::
-:stopServer
-call build\cfdistro\ant\bin\ant.bat -f build/build.xml server.stop
+call build\cfdistro\ant\bin\ant.bat -f build/build.xml build
 goto end
 ::
 :listTargets
