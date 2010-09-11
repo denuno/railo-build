@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<src>
+	<project>
+	<!--
+		<src dest="@src.dir@/../" type="svn" 
+		uri="http://subversion.assembla.com/svn/cfdistro/trunk/cfdistro" 
+		user="" password="" />
+	-->
+	</project>
+	<sources>
+<!-- 
+		<src dest="@src.dir@/mxunit" type="svn" 
+		uri="http://mxunit.googlecode.com/svn/mxunit/trunk"
+		user="" password="" />
+
+		<src dest="@src.dir@/cfwheels" type="svn" 
+		uri="http://cfwheels.googlecode.com/svn/trunk/" 
+		user="" password="" />
+				
+		<src dest="@src.dir@/ModelGlue" type="svn" 
+		uri="http://svn.model-glue.com/trunk/ModelGlue/" 
+		user="" password="" />
+
+		<src dest="@src.dir@/coldspring" type="git" 
+		uri="git://coldspring.git.sourceforge.net/gitroot/coldspring/coldspring" 
+		user="" password="" />
+ -->
+		
+	</sources>
+</src>

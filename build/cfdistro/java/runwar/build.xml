@@ -1,0 +1,156 @@
+<project name="runwar" default="runwar.compile" xmlns:antcontrib="antlib:net.sf.antcontrib">
+
+	<dirname property="runwar.basedir" file="${ant.file.runwar}" />
+
+	<antcontrib:if>
+		<equals arg1="${default.cfengine}" arg2="acf" />
+		<then>
+			<path id="runwar.lib.path">
+				<fileset dir="${cfdistro.basedir}/lib">
+					<include name="*.jar" />
+				</fileset>
+				<fileset dir="${war.target.dir}/WEB-INF/cfusion/lib">
+					<include name="*.jar" />
+				</fileset>
+			</path>
+		</then>
+		<else>
+			<path id="runwar.lib.path">
+				<fileset dir="${cfdistro.basedir}/lib">
+					<include name="*.jar" />
+				</fileset>
+				<fileset dir="${war.target.dir}/WEB-INF/lib">
+					<include name="*.jar" />
+				</fileset>
+			</path>
+		</else>
+	</antcontrib:if>
+	<property name="war.name" value="runwar" />
+	<property name="build.sysclasspath" value="last" />
+	
+	<property name="server.deploy.dir" value="${war.target.dir}/../"/>
+	<property name="server.log.dir" value="${log.dir}"/>
+	<property name="server.port" value="8080"/>
+	<property name="server.port.http" value="8080"/>
+	<property name="server.port.ajp" value="8009"/>
+	<property name="server.url" value="http://127.0.0.1:${server.port.http}${war.contextpath}index.cfm"/>
+	<property name="server.memory.max" value="256M"/>
+
+	<property name="runwar.war.path" location="${war.target.dir}" />
+	<property name="runwar.war.contextpath" value="${war.contextpath}" />
+	<property name="runwar.port" value="${server.port.http}" />
+	<property name="runwar.maxmemory" value="${server.memory.max}" />
+	<property name="runwar.log.dir" value="${server.log.dir}" />
+	<property name="runwar.stop.socket" value="8079" />
+	<property name="runwar.url" value="${server.url}" />
+
+	<target name="runwar.compile">
+		<delete dir="${runwar.basedir}/bin/runwar/"/>
+		<mkdir dir="${runwar.basedir}/bin/runwar/"/>
+		<!--
+		<javac srcdir="${runwar.basedir}/src/runwar" destdir="${runwar.basedir}/bin/runwar"
+    		classpathref="runwar.lib.path"/>
+    	-->
+		<javac-ecj srcdir="${runwar.basedir}/src/runwar" destdir="${runwar.basedir}/bin/runwar"
+			classpath="${toString:runwar.lib.path}"/>
+		    		
+	</target>
+
+	<target name="runwar.jar" depends="runwar.compile">
+		<jar destfile="${cfdistro.basedir}/lib/runwar.jar"
+         basedir="${runwar.basedir}/bin/runwar/" 
+         includes="**/*.class"
+         />
+		<delete dir="${runwar.basedir}/bin"/>
+	</target>
+
+	<target name="runembedded.jar" depends="runwar.compile" description="creates an jar with the WAR embedded">
+		<mkdir dir="${dist.dir}"/>
+		<echo file="${war.target.dir}/../runwar.properties" message="war.name=${war.name}"/>
+		<jar destfile="${dist.dir}/${war.name}.jar" filesetmanifest="mergewithoutmain">
+			<manifest>
+				<attribute name="Main-Class" value="runwar.RunEmbeddedWar" />
+				<attribute name="Class-Path" value="./${jetty-runner.jar}" />
+			</manifest>
+			<fileset dir="${cfdistro.basedir}/lib/" includes="${jetty-runner.jar}" />
+			<fileset dir="${war.target.dir}/../" />
+			<fileset dir="${runwar.basedir}/bin/runwar" />
+		</jar>
+	</target>
+	
+	
+	<target name="if.toolong.echo" if="toolong">
+		<loadfile property="errlog"
+		      srcFile="${runwar.log.dir}/runner.log.txt"/>
+		<echo message="${errlog}" />
+	</target>
+
+	<target name="runwar.start" depends="runwar.jar" description="starts jetty-runner server">
+		<echoproperties prefix="runwar"/>
+		<property name="background" value="true" />
+		<echo message="starting jetty-runner"/>
+		<sequential>
+			<java classname="runwar.Start" classpathref="runwar.lib.path" fork="true" spawn="${background}" maxmemory="${runwar.maxmemory}">
+				<arg value="${runwar.war.path}" />
+				<arg value="${runwar.war.contextpath}" />
+				<arg value="${runwar.port}" />
+				<arg value="${runwar.stop.socket}" />
+				<arg value="${runwar.log.dir}" />
+				<!--
+				<jvmarg value="-Djetty.logs=${runwar.log.dir}" />
+				<jvmarg value="-Dorg.eclipse.jetty.util.log.DEBUG=true" />
+				<jvmarg value="-Xdebug"/>
+				-->
+			</java>
+			<echo message="waiting for jetty-runner"/>
+			<sleep seconds="3" />
+			<waitfor maxwait="21" maxwaitunit="second" checkevery="7" checkeveryunit="second" timeoutproperty="toolong">
+				<and>
+					<socket server="127.0.0.1" port="${runwar.port}" />
+					<!--
+					<http url="http://127.0.0.1:${runwar.port}/" />
+					<http url="http://127.0.0.1:${runwar.port}/${runwar.war.contextpath}build.cfc" />
+					-->
+				</and>
+			</waitfor>
+			<antcontrib:runtarget target="if.toolong.echo" />
+			<echo message="stop server by typing: ant ${server.type}.stop"/>
+		</sequential>
+	</target>
+	
+	<target name="runwar.stop" description="stops jetty-runner server">
+		<echo message="stopping jetty-runner.  peace out bro!"/>
+		<java classname="runwar.Stop" classpathref="runwar.lib.path">
+			<arg value="${runwar.stop.socket}" />
+		</java>
+	</target>
+
+	<target name="server.openUrl" description="launches a browser pointing at ${runwar.url}">
+		<java classname="runwar.BrowserOpener" classpathref="runwar.lib.path" failonerror="true" fork="true">
+			<arg value="${runwar.url}" />
+		</java>			
+	</target>
+	
+	
+	<target name="runwar.start.stop" description="starts and then stops jetty-runner server for some odd reason.  generation of stuff maybe?">
+		<parallel>
+			<sequential>
+				<antcall target="runwar.start"/>
+				<sleep seconds="5" />
+				<antcall target="runwar.stop"/>
+			</sequential>
+		</parallel>
+	</target>
+
+	<target name="runwar.stop.start" description="starts and then stops jetty-runner server for some odd reason.  generation of stuff maybe?">
+		<parallel>
+			<sequential>
+				<antcall target="runwar.stop"/>
+				<sleep seconds="5" />
+				<antcall target="runwar.start"/>
+			</sequential>
+		</parallel>
+	</target>
+
+
+</project>

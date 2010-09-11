@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<languages>
+	<language key="de">
+		<title>CFDocument Sfontzez</title>
+		<description>Analysieren Sie ihre Sfontz</description>
+		<custom key="fontname">Font Name (CSS font-family)</custom>
+		<custom key="fontfile">Font File</custom>
+		<custom key="add_font_header">Add Font</custom>
+		<custom key="remove_font_header">Remove Font</custom>
+		<custom key="fontname_label">Font Name:</custom>
+		<custom key="fontfile_label">Font File:</custom>
+		<custom key="restart_railo">Railo must be restarted for den changes to take effect.  Some containers (Resin) will restart automatically after a change</custom>
+		<custom key="fontsjar_label">Location of fonts.jar file:</custom>
+	</language>
+	<language key="en">
+		<title>CFDocument PDF Fonts</title>
+		<description>Manage the installed cfdocument pdf fonts</description>
+		<custom key="fontname">Font Name (CSS font-family)</custom>
+		<custom key="fontfile">Font File (click to test)</custom>
+		<custom key="add_font_header">Add Font</custom>
+		<custom key="remove_font_header">Remove Font</custom>
+		<custom key="fontname_label">Font Name:</custom>
+		<custom key="fontfile_label">Font File:</custom>
+		<custom key="restart_railo">Railo must be restarted for den changes to take effect.  Some containers (Resin) will restart automatically after a change</custom>
+		<custom key="fontsjar_label">Location of fonts.jar file:</custom>
+	</language>
+</languages>
+

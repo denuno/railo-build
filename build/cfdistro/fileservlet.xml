@@ -1,0 +1,63 @@
+<project name="fileservelet" default="fileservelet.servlet.install"
+	basedir="./" xmlns:antcontrib="antlib:net.sf.antcontrib">
+
+	<target name="fileservelet.servlet.install">
+		<mkdir dir="${war.target.dir}/WEB-INF/classes"/>
+		<javac-ecj srcdir="${cfdistro.basedir}/java/src/servlet" destdir="${war.target.dir}/WEB-INF/classes" 
+			classpath="${cfdistro.basedir}/lib/${jetty-runner.jar}" />
+
+		<xmltask source="${war.target.dir}/WEB-INF/web.xml" dest="${war.target.dir}/WEB-INF/web.xml">
+			<insert path="web-app/servlet[1]" position="before">
+				<![CDATA[
+				<servlet>
+				    <servlet-name>fileServlet</servlet-name>
+				    <servlet-class>servlet.FileServlet</servlet-class>
+				</servlet>
+				<init-param>
+					<param-name>filePath</param-name>
+					<param-value></param-value>
+				</init-param>
+				<init-param>
+					<param-name>defaultFileNames</param-name>
+					<param-value>index.cfm default.cfm</param-value>
+				</init-param>
+				<servlet-mapping>
+				    <servlet-name>fileServlet</servlet-name>
+				    <url-pattern>/docs/*</url-pattern>
+				</servlet-mapping>
+				]]>
+			</insert>
+		</xmltask>
+	</target>
+
+	<macrodef name="fileservlet">
+		<attribute name="servletname" default="fileServlet" />
+		<attribute name="directory" />
+		<attribute name="urlpattern" default="" />
+		<element name="args" optional="true" />
+		<sequential>
+			<mkdir dir="${war.target.dir}/WEB-INF/classes"/>
+			<javac-ecj srcdir="${cfdistro.basedir}/java/fileservlet/src/servlet" destdir="${war.target.dir}/WEB-INF/classes" classpath="${cfdistro.basedir}/lib/${jetty-runner.jar}"/>
+			
+			<xmltask source="${war.target.dir}/WEB-INF/web.xml" dest="${war.target.dir}/WEB-INF/web.xml">
+				<insert path="web-app/servlet[1]" position="before">
+					<![CDATA[
+					<servlet>
+					    <servlet-name>@{servletname}</servlet-name>
+					    <servlet-class>servlet.FileServlet</servlet-class>
+						<init-param>
+							<param-name>filePath</param-name>
+							<param-value>@{directory}</param-value>
+						</init-param>
+					</servlet>
+					<servlet-mapping>
+					    <servlet-name>@{servletname}</servlet-name>
+					    <url-pattern>@{urlpattern}</url-pattern>
+					</servlet-mapping>
+					]]>
+				</insert>
+			</xmltask>
+		</sequential>
+	</macrodef>
+
+</project>

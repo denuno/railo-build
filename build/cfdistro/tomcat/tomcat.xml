@@ -1,0 +1,303 @@
+<project name="tomcat" basedir="./" xmlns:antcontrib="antlib:net.sf.antcontrib">
+
+	<property name="server.deploy.dir" location="${tomcat.dir}/webapps"/>
+	<property name="server.log.dir" value="${tomcat.dir}/logs/"/>
+	<property name="server.host" value="localhost"/>
+	<property name="server.port" value="8080"/>
+	<property name="server.port.http" value="8080"/>
+	<property name="server.port.ajp" value="8009"/>
+	<property name="server.maxmemory" value="256M"/>
+
+	<property name="ext.tomcat.version" value="6" />
+	<property name="ext.tomcat.version.minor" value="0.29" />
+	<property name="ext.tomcat.dir" location="${ext.dir}/tomcat/${ext.tomcat.version}x" />
+	<property name="tomcat.version.long" value="${ext.tomcat.version}.${ext.tomcat.version.minor}" />
+	<property name="ext.tomcat.zip.uri" value="http://mirror.cc.columbia.edu/pub/software/apache/tomcat/tomcat-${ext.tomcat.version}/v${tomcat.version.long}/bin/apache-tomcat-${tomcat.version.long}.zip" />
+	<property name="ext.tomcat.zip" location="${ext.tomcat.dir}/apache-tomcat-${tomcat.version.long}.zip" />
+	<property name="tomcat.dir" location="${temp.dir}/server/tomcat${ext.tomcat.version}" />
+	<property name="tomcat.port.http" value="${server.port.http}"/>
+	<property name="tomcat.port.ajp" value="${server.port.ajp}"/>
+	<property name="tomcat.deploy.dir" value="${server.deploy.dir}"/>
+	<property name="tomcat.server.log.dir" value="${server.log.dir}"/>
+
+	<antcontrib:if>
+		<equals arg1="1" arg2="1" />
+		<then>
+			<path id="tomcat.ant.lib.path">
+				<fileset dir="${cfdistro.basedir}/ext/containers/tomcat/lib">
+					<include name="*.jar" />
+				</fileset>
+			</path>
+		</then>
+	</antcontrib:if>
+	
+	<target name="tomcat.uninstall" depends="tomcat.stop">
+		<delete dir="${tomcat.dir}" />
+	</target>
+
+	<target name="tomcat.server.log.dir">
+		<property name="server.log.dir" value="${tomcat.server.log.dir}"/>
+	</target>
+
+	<target name="tomcat.install">
+		<mkdir dir="${ext.tomcat.dir}"/>
+		<sequential>
+		<antcontrib:if>
+			<available file="${tomcat.dir}" />
+			<then>
+			<echo message="server dir ${tomcat.dir} already exists, not installing!  Remove with: ant server.uninstall"/> 
+			</then>
+			<else>
+				<antcontrib:if>
+					<available file="${ext.tomcat.zip}" />
+					<then/>
+					<else>
+						<get src="${ext.tomcat.zip.uri}" dest="${ext.tomcat.zip}" verbose="true" ignoreerrors="false" />
+					</else>
+				</antcontrib:if>
+				<unzip src="${ext.tomcat.zip}"						
+				       dest="${tomcat.dir}">
+					<regexpmapper from="apache-tomcat-${tomcat.version.long}/(.*)$" to="\1"/>
+				</unzip>
+			</else>
+		</antcontrib:if>
+		<antcontrib:runtarget target="tomcat.configure" />
+		</sequential>
+	</target>
+
+	<target name="tomcat.configure">
+		<echo message="export JAVA_OPTS=-Xms256m -Xmx${server.maxmemory} -XX:MaxPermSize=128m -XX:+UseParallelGC"
+			file="${tomcat.dir}/bin/setenv.sh"/>
+		<chmod dir="${tomcat.dir}/bin" perm="ugo+rx" 
+		       includes="**/*.sh"/>
+		<xmltask source="${tomcat.dir}/conf/tomcat-users.xml" dest="${tomcat.dir}/conf/tomcat-users.xml">
+				<insert path="tomcat-users" position="under">
+					<![CDATA[
+					<role rolename="manager"/>
+					<user username="admin" password="${cfadmin.password}" roles="manager"/>
+					]]>
+				</insert>
+		</xmltask>
+		<property name="war.target.dir.absolute" location="${war.target.dir}" />
+		<antcontrib:var name="server.host.exists" unset="true"/>
+		<xmltask source="${tomcat.dir}/conf/server.xml" dest="${tomcat.dir}/conf/server.xml">
+			<replace path="Server/Service/Connector[@protocol='HTTP/1.1']/@port" withText="${tomcat.port.http}"/>
+			<replace path="Server/Service/Connector[@protocol='AJP/1.3']/@port" withText="${tomcat.port.ajp}"/>
+			<!-- <replace path="Server/Service/Engine/Host[@name='${server.host}']/@appBase" withText="${tomcat.deploy.dir}"/> -->
+			<copy path="Server/Service/Engine/Host[@name='${server.host}']/@name" attrValue="true" property="server.host.exists"/>
+			<print path="Server/Service/Engine/Host[@name='${server.host}']/@name"/>
+			<replace path="Server/Service/Engine/Host[@name='${server.host}']" if="server.host.exists">
+			<![CDATA[
+	<Host appBase="${war.target.dir.absolute}" autoDeploy="true" name="${server.host}" unpackWARs="true" xmlNamespaceAware="false" xmlValidation="false">
+		<Context path="${war.contextpath}" docBase="./"/>
+	</Host>
+			]]>
+			</replace>
+			<insert path="Server/Service/Engine" position="under" unless="server.host.exists">
+			<![CDATA[
+	<Host appBase="${war.target.dir.absolute}" autoDeploy="true" name="${server.host}" unpackWARs="true" xmlNamespaceAware="false" xmlValidation="false">
+		<Context path="${war.contextpath}" docBase="./"/>
+	</Host>
+			]]>
+			</insert>
+		</xmltask>
+		<fixcrlf srcdir="${tomcat.dir}/conf" includes="**/*.xml" eol="crlf" />
+		<echo message="${tomcat.deploy.dir}"/>
+		<echo message="${server.deploy.dir}"/>
+	</target>
+
+	<target name="tomcat.start" depends="tomcat.install">
+		<echoproperties prefix="tomcat"/>
+		<echo message="starting tomcat"/>
+		<property name="background" value="true"/>
+		<sequential>
+			<!-- <echoproperties prefix="runwar"/> -->
+		    <java jar="${tomcat.dir}/bin/bootstrap.jar" fork="true" spawn="${background}" maxmemory="${runwar.maxmemory}">
+		        <jvmarg value="-Dcatalina.base=${tomcat.dir}"/>
+		        <jvmarg value="-Dcatalina.home=${tomcat.dir}"/>
+		        <jvmarg value="-Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager"/>
+		    	<jvmarg value="-Djava.util.logging.config.file=${tomcat.dir}/conf/logging.properties"/>
+		    </java>
+			<echo message="waiting for tomcat"/>
+			<sleep seconds="3" />
+			<waitfor maxwait="21" maxwaitunit="second" checkevery="7" checkeveryunit="second" timeoutproperty="toolong">
+				<and>
+					<socket server="127.0.0.1" port="${tomcat.port.http}" />
+					<!--
+					<http url="http://127.0.0.1:${runwar.port}/" />
+					<http url="http://127.0.0.1:${runwar.port}/${runwar.war.contextpath}build.cfc" />
+					-->
+				</and>
+			</waitfor>
+			<sleep seconds="5" />
+			<antcontrib:runtarget target="if.toolong.echo" />
+			<echo message="stop tomcat by typing: ant tomcat.stop"/>
+		</sequential>
+	</target>	
+
+	<target name="tomcat.stop">
+	    <java jar="${tomcat.dir}/bin/bootstrap.jar" fork="true">
+	        <jvmarg value="-Dcatalina.home=${tomcat.dir}"/>
+	        <arg line="stop"/>
+	    </java>
+		<sleep seconds="10"/>
+	    <kill-java name="bootstrap.jar" jps="${jps.executable}"/>
+	</target>	
+
+	<target name="deploy.tomcat" depends="tomcat.install">
+		<copy todir="${tomcat.deploy.dir}/${war.name}" overwrite="true">
+			<fileset dir="${war.target.dir}"/>
+		</copy>
+	</target>	
+
+	<property name="manager.url"   value="http://localhost:8080/manager"/>
+    <property name="manager.username" value="admin"/>
+    <property name="manager.password" value="${cfadmin.password}"/>
+
+    <!-- uses settings from deploy.xml stuff -->
+    <target name="tomcat.war.deploy" description="Install application to servlet container">
+		<requires-ext resource="/ext/containers/tomcat/" />
+	    <taskdef name="deploy" classname="org.apache.catalina.ant.DeployTask" classpathref="tomcat.ant.lib.path"/>
+
+    </target>
+	
+    <!-- uses settings from deploy.xml stuff -->
+    <target name="tomcat.war.list" description="Install application to servlet container">
+		<tomcat-ant action="list"/>
+    </target>
+
+	<!-- uses settings from deploy.xml stuff -->
+    <target name="war.deploy" description="Install application to servlet container">
+		<requires-ext resource="/ext/containers/tomcat/" />
+		<antcontrib:runtarget target="check.creds" />
+    	<sshsession host="${deploy.remote.host}"
+    	    localtunnels="8080:localhost:8080"
+			username="${deploy.remote.user}"
+			passphrase="${deploy.remote.keyfile.pass}"
+    		keyfile="${deploy.remote.keyfile}" trust="true" port="${deploy.remote.host.port}">
+    	    <sequential>
+    			<tomcat-ant action="deploy"/>
+    	    </sequential>
+    	</sshsession>
+    </target>
+
+	<target name="war.list" description="List installed applications on servlet container">
+		<requires-ext resource="/ext/containers/tomcat/" />
+		<antcontrib:runtarget target="check.creds" />
+    	<sshsession host="${deploy.remote.host}"
+    	    localtunnels="8080:localhost:8080"
+			username="${deploy.remote.user}"
+			passphrase="${deploy.remote.keyfile.pass}"
+			keyfile="${deploy.remote.keyfile}" trust="true" port="${deploy.remote.host.port}">
+    	    <sequential>
+    			<tomcat-ant action="list"/>
+    	    </sequential>
+    	</sshsession>
+    </target>
+
+	<target name="war.reload" description="Reload application on servlet container">
+		<requires-ext resource="/ext/containers/tomcat/" />
+    	<reload url="${manager.url}"
+			username="${manager.username}"
+			password="${manager.password}"
+			path="${app.path}"/>
+    </target>
+    <target name="war.remove" description="Remove application on servlet container">
+		<requires-ext resource="/ext/containers/tomcat/" />
+    	<undeploy url="${manager.url}"
+			username="${manager.username}"
+			password="${manager.password}"
+			path="${app.path}"/>
+    </target>
+
+	<macrodef name="tomcat-ant"
+	          description="runs tomcat ant tasks">
+	 	<attribute name="action"/>
+		 <sequential>
+		    <taskdef name="deploy" classname="org.apache.catalina.ant.DeployTask" classpathref="tomcat.ant.lib.path"/>
+	        <taskdef name="undeploy" classname="org.apache.catalina.ant.UndeployTask" classpathref="tomcat.ant.lib.path"/>
+	        <taskdef name="reload"   classname="org.apache.catalina.ant.ReloadTask" classpathref="tomcat.ant.lib.path"/>
+	        <taskdef name="list" classname="org.apache.catalina.ant.ListTask" classpathref="tomcat.ant.lib.path"/>
+	    	<echoproperties prefix="manager"/>
+			<antcontrib:switch value="@{action}">
+			  <case value="list">
+			    <list url="${manager.url}"
+					username="${manager.username}"
+					password="${manager.password}"/>
+			  </case>
+			  <case value="deploy">
+		    	<deploy url="${manager.url}"
+		    			username="${manager.username}"
+		    			password="${manager.password}"
+		    			path="${war.contextpath}"
+		    			update="true"
+		    			war="file://${dist.dir}/${war.name}.war"/>
+			  </case>
+			  <case value="qa">
+			  	<property name="copy.mappings.to.src" value="true" />
+			  </case>
+			  <case value="prod">
+			  	<property name="copy.mappings.to.src" value="true" />
+			  </case>
+			  <default>
+			  	<fail message="Um, the build type '${build.type}' is unknown to me, esse!" />
+			  </default>
+			</antcontrib:switch>
+		 </sequential>
+	</macrodef>
+	
+	
+	<macrodef name="kill-java"
+	          description="Forcefully stop tomcat....">
+	 <attribute name="name"/>
+	 <attribute name="jps" default="${java.home}/bin/jps" />
+	 <sequential>
+	  <!-- Execute the jps and check for any Java process with the provided @{name} attribute -->
+	  <exec executable="@{jps}" output="pid.out.file" />
+	  <!-- Load in the name / pid file and strip all information except the PID -->
+	  <loadfile srcfile="pid.out.file" property="pid.out">
+	   <filterchain>
+	     <linecontains>
+	      <contains value="@{name}"/>
+	     </linecontains>
+	    <tokenfilter>
+	    <deletecharacters chars="@{name}"/>
+	    <trim/>
+	    <ignoreblank/>
+	    </tokenfilter>
+	    <striplinebreaks/>
+	   </filterchain>
+	  </loadfile>
+	  <echo message="Killing java process with pid ${pid.out}"/>
+		<antcontrib:switch value="${os.name}">
+		  <case value="Mac OS X">
+			  <exec spawn="true" executable="kill">
+			   <arg line="-9" />
+			   <arg line="${pid.out}" />
+			  </exec>
+		  </case>
+		  <case value="Linux">
+		  </case>
+		  <case value="Windows">
+			  <exec spawn="true" executable="taskkill">
+			   <arg line="/PID ${pid.out}" />
+			   <arg line="/F" />
+			  </exec>
+		  </case>
+		  <case value="Windows 7">
+			  <exec spawn="true" executable="taskkill">
+			   <arg line="/PID ${pid.out}" />
+			   <arg line="/F" />
+			  </exec>
+		  </case>
+		  <default>
+		  	<fail message="Um, the os '${os.name}' is unknown to me, esse!" />
+		  </default>
+		</antcontrib:switch>
+	  <!--  
+	  <delete file="pid.out.file" />
+	  -->
+	 </sequential>
+	</macrodef>
+	
+</project>

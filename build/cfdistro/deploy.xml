@@ -1,0 +1,35 @@
+<project name="deploy" basedir="./" xmlns:antcontrib="antlib:net.sf.antcontrib">
+
+	<import file="sshtunnel.xml"/>
+
+	<target name="get.server.log.dir">
+		<antcontrib:runtarget target="${server.type}.server.log.dir" />
+	</target>
+		
+	<target name="deploy.remote.start">
+		<sequential>
+			<antcontrib:runtarget target="check.creds" />
+			<echoproperties prefix="deploy"/>
+			<sshexec verbose="true"
+				command="${distro.name}/${distro.name}.sh tomcat.start"
+				host="${deploy.remote.host}"
+				username="${deploy.remote.user}"
+				passphrase="${deploy.remote.keyfile.pass}"
+				keyfile="${deploy.remote.keyfile}" trust="true" port="${deploy.remote.host.port}" />
+		</sequential>
+	</target>
+	
+	<target name="deploy.remote.stop">
+		<sequential>
+			<antcontrib:runtarget target="check.creds" />
+			<echoproperties prefix="deploy"/>
+			<sshexec verbose="true"
+				command="${distro.name}/${distro.name}.sh tomcat.stop"
+				host="${deploy.remote.host}"
+				username="${deploy.remote.user}"
+				passphrase="${deploy.remote.keyfile.pass}"
+				keyfile="${deploy.remote.keyfile}" trust="true" port="${deploy.remote.host.port}" />
+		</sequential>
+	</target>
+		
+</project>

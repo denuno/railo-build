@@ -1,0 +1,207 @@
+<project name="scm-git" basedir="./" xmlns:antcontrib="antlib:net.sf.antcontrib">
+
+	<macrodef name="git">
+		<attribute name="command" />
+		<attribute name="dir" default="${basedir}/../" />
+		<element name="args" optional="true" />
+		<sequential>
+			<antcontrib:var name="git.results" unset="true" />
+			<antcontrib:if>
+				<or>
+					<equals arg1="@{command}" arg2="archive" />
+					<equals arg1="@{command}" arg2="pull" />
+				</or>
+				<then>
+					<echo message="Using system Git - command: @{command}" />
+					<exec executable="git" dir="@{dir}" outputproperty="git.results" failifexecutionfails="false">
+						<arg value="@{command}" />
+						<args />
+					</exec>
+				</then>
+				<else>
+					<echo message="JGit - command: @{command}" />
+		            <java classname="org.eclipse.jgit.pgm.Main" classpathref="build.lib.path" fork="true" dir="@{dir}" outputproperty="git.results">
+						<arg value="@{command}" />
+						<args />
+		            </java>
+				</else>
+			</antcontrib:if>
+			<echo message="${git.results}" />
+		</sequential>
+	</macrodef>
+	
+	<macrodef name="git-export">
+		<attribute name="repository" />
+		<attribute name="dest" />
+		<sequential>
+			<mkdir dir="@{dest}" />
+			<git command="archive" dir="@{dest}">
+				<args>
+					<!-- <arg value="-a" /> -->
+					<arg value="--format" />
+					<arg value="zip" />
+					<arg value="--output" />
+					<arg value="src.zip" />
+					<arg value="--remote" />
+					<arg value="@{repository}" />
+					<arg value="HEAD" />
+					<arg value="-0" />
+				</args>
+			</git>
+			<unzip src="@{dest}/src.zip" dest="@{dest}" />
+			<delete file="@{dest}/src.zip"/>
+		</sequential>
+	</macrodef>
+
+	<macrodef name="git-clone">
+		<attribute name="repository" />
+		<attribute name="dest" />
+		<sequential>
+			<git command="clone">
+				<args>
+					<arg value="@{repository}" />
+					<arg value="@{dest}" />
+				</args>
+			</git>
+		</sequential>
+	</macrodef>
+
+	<macrodef name="git-checkout">
+		<attribute name="repository" />
+		<attribute name="branch" />
+		<sequential>
+			<git command="branch" dir="@{repository}">
+				<args>
+					<arg value="-r" />
+					<arg value="@{branch}" />
+				</args>
+			</git>
+		</sequential>
+	</macrodef>
+
+	<macrodef name="git-clone-pull">
+		<attribute name="repository" />
+		<attribute name="dest" />
+		<sequential>
+			<git command="clone">
+				<args>
+					<arg value="@{repository}" />
+					<arg value="@{dest}" />
+				</args>
+			</git>
+			<git command="pull" dir="@{dest}" />
+		</sequential>
+	</macrodef>
+
+	<target name="src.import.git" depends="exists.src.xml">
+		<xmltask sourcebuffer="src.buff">
+			<call path="src/sources/src[@type='git']">
+				<param name="dest" path="@dest" default="NONE" />
+				<param name="type" path="@type" default="NONE" />
+				<param name="uri" path="@uri" default="NONE" />
+				<actions>
+					<echo message="importing @{uri} to src: ${src.dir}/@{dest}" />
+					<git-export repository="@{uri}" dest="${src.dir}/@{dest}" />
+				</actions>
+			</call>
+		</xmltask>
+	</target>
+
+	<target name="project.update.git">
+		<property name="temp.dir.absolute" location="${temp.dir}" />
+		<antcontrib:var name="temp.dir" unset="true" />
+		<property name="temp.dir" location="${temp.dir.absolute}" />				
+		<xmltask sourcebuffer="src.buff">
+			<call path="src/project/src[@type='git']">
+				<param name="dest" path="@dest" default="NONE" />
+				<param name="type" path="@type" default="NONE" />
+				<param name="uri" path="@uri" default="NONE" />
+				<param name="branch" path="@branch" default="NONE" />
+				<actions>
+					<available file="@dest/.git" type="dir" property="exists.git.dir" />
+					<antcontrib:if>
+						<or>
+							<equals arg1="${exists.git.dir}" arg2="true" />
+							<equals arg1="${project.overwrite}" arg2="true" />
+						</or>
+						<then>
+							<echo message="updating src: @{dest}" />
+							<git-clone-pull repository="@{uri}" dir="${basedir}" dest="${temp.dir}/git-temp" />
+						</then>
+						<else>
+							<echo message="no .git dir, let us try to get one- this may take a bit..." />
+							<delete dir="${temp.dir}/git-temp"/>
+							<git-clone repository="@{uri}" dest="${temp.dir}/git-temp" />
+							<git-checkout repository="${temp.dir}/git-temp" branch="@{branch}"/>
+							<copy todir="@{dest}">
+								<fileset dir="${temp.dir}/git-temp" excludes="${temp.dir}/git-temp/build/**" />
+							</copy>
+							<delete dir="${temp.dir}/git-temp"/>
+						</else>
+					</antcontrib:if>
+				</actions>
+			</call>
+		</xmltask>
+	</target>
+	
+	<target name="check.project.for.newrevision.git">
+		<!-- check for local commits -->
+		<xmltask sourcebuffer="src.buff">
+			<call path="src/project/src[@type='git']">
+				<param name="dest" path="@dest" default="NONE" />
+				<param name="type" path="@type" default="NONE" />
+				<param name="uri" path="@uri" default="NONE" />
+				<actions>
+					<git command="log" dir="@{dest}">
+						<args>
+							<arg value="-n" />
+							<arg value="1" />
+						</args>
+					</git>
+				</actions>
+			</call>
+		</xmltask>
+		<echo message="${git.results}" file="./git.current.rev.txt" />
+		<condition property="revisions.are.same">
+			<filesmatch file1="./git.current.rev.txt" file2="./git.last.rev.txt" textfile="true" />
+		</condition>
+		<antcontrib:if>
+			<equals arg1="${revisions.are.same}" arg2="true" />
+			<then>
+				<echo message="Local revision is unchanged" />
+			</then>
+			<else>
+				<property name="revisions.local.differ" value="true" />
+				<echo message="Local revision differs" />
+			</else>
+		</antcontrib:if>
+		<echo message="${git.results}" file="./git.last.rev.txt" />
+		<!-- check for remote commits (defaults to origin) -->
+		<git command="fetch"/>
+		<git command="log">
+			<args>
+				<arg value="-n" />
+				<arg value="1" />
+				<arg value="--" />
+				<arg value="HEAD..origin/master" />
+			</args>
+		</git>
+		<antcontrib:if>
+			<equals arg1="${git.results}" arg2="" />
+			<then>
+				<echo message="Remote revision is the same" />
+			</then>
+			<else>
+				<property name="revisions.remote.differ" value="true" />
+				<echo message="Remote revision differs" />
+			</else>
+		</antcontrib:if>
+
+	</target>
+
+	<target name="exists.src.xml">
+		<antcall target="cfdistro.exists.src.xml" />
+	</target>
+	
+	
+</project>

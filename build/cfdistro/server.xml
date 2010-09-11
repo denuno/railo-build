@@ -1,0 +1,295 @@
+<project name="server" basedir="./" xmlns:antcontrib="antlib:net.sf.antcontrib">
+
+	<target name="get.server.log.dir">
+		<antcontrib:runtarget target="${server.type}.server.log.dir" />
+	</target>
+	
+	<property name="server.deploy.dir" location="${war.target.dir}/../"/>
+	<property name="server.host" value="localhost"/>
+	<property name="server.ip" value="127.0.0.1"/>
+	<property name="server.port" value="8080"/>
+	<property name="server.port.http" value="8080"/>
+	<property name="server.port.ajp" value="8009"/>
+	<property name="server.log.dir" value="${log.dir}"/>
+	<property name="server.type" value="runwar" />
+	<property name="server.url" value="http://${server.host}:${server.port.http}${war.contextpath}/index.cfm" />
+	<property name="deploy.remote.unzip.cmd" value="/usr/bin/unzip"/>
+	<property name="deploy.remote.keyfile" value=""/>
+	<property name="deploy.remote.dir" value="./"/>
+
+	<import file="tomcat/tomcat.xml" />
+	<import file="java/runwar/build.xml" />
+
+
+	<target name="server.etc.hosts">
+		<antcontrib:switch value="${os.name}">
+		  <case value="Mac OS X">
+		  	<property name="etc.hosts.file" value="/etc/hosts"/>
+		  </case>
+		  <case value="Linux">
+		  	<property name="etc.hosts.file" value="/etc/hosts"/>
+		  </case>
+		  <case value="Windows">
+			<property environment="env"/>
+		  	<property name="etc.hosts.file" value="${env.SystemRoot}\System32\drivers\etc\hosts" />
+			<echo message="${etc.hosts.file}" />
+		  </case>
+		  <case value="Windows 7">
+			<property environment="env"/>
+		  	<property name="etc.hosts.file" value="${env.SystemRoot}\System32\drivers\etc\hosts" />
+			<echo message="${etc.hosts.file}" />
+		  </case>
+		  <default>
+		  	<fail message="Um, the os '${os.name}' is unknown to me, esse!" />
+		  </default>
+		</antcontrib:switch>
+		<replaceregexp byline="false" file="${etc.hosts.file}" flags="msi">
+			<regexp pattern="^${server.ip}[\s]+${server.host}[\s]?$" />
+			<substitution expression="" />
+		</replaceregexp>
+		<echo file="${etc.hosts.file}" append="true"><![CDATA[${server.ip}	${server.host}]]>${line.separator}</echo>
+	</target>
+
+	<target name="server.processes">
+		<sequential>
+			<requires-ext resource="/ext/containers/util/" />
+			<antcontrib:runtarget target="check.creds" />
+			<echoproperties prefix="deploy"/>
+			  <exec executable="sh" osfamily="unix">
+			    <arg value="-c"/>
+			    <arg value="ps aux | grep 'java\|tomcat\|jetty'"/>
+			  </exec>
+			  <exec executable="tasklist" osfamily="windows">
+			    <arg value="/FI"/>
+			    <arg value="IMAGENAME eq java.exe"/>
+			  </exec>
+		</sequential>
+	</target>
+	
+	<macrodef name="scp-server">
+		<attribute name="file" />
+		<attribute name="todir" />
+		<attribute name="passphrase" default=""/>
+		<attribute name="password" default=""/>
+		<attribute name="keyfile" default=""/>
+		<attribute name="port" />
+		<sequential>
+			<antcontrib:if>
+				<equals arg1="@{keyfile}" arg2="" />
+				<then>
+					<scp file="@{file}" sftp="true" verbose="true" 
+						toDir="@{todir}" password="@{passphrase}"
+						trust="true" port="@{port}" />
+				</then>
+				<else>
+					<scp file="@{file}" sftp="true" verbose="false" 
+						toDir="@{todir}" passphrase="@{passphrase}"
+						keyfile="@{keyfile}" trust="true" port="@{port}" />
+				</else>
+			</antcontrib:if>
+			
+		</sequential>
+	</macrodef>
+
+	<macrodef name="sshexec-server">
+		<attribute name="command" />
+		<attribute name="host" />
+		<attribute name="username" />
+		<attribute name="passphrase"/>
+		<attribute name="keyfile" default=""/>
+		<attribute name="port" />
+		<sequential>
+			<echo message="com: @{command}" />
+			<sshexec verbose="false"
+				command="@{command}"
+				host="@{host}"
+				username="@{username}"
+				passphrase="@{passphrase}"
+				keyfile="@{keyfile}" trust="true" port="@{port}" />
+		</sequential>
+	</macrodef>
+
+	<target name="server.log.tail" depends="get.server.log.dir">
+		<antcontrib:for param="file">
+		    <fileset dir="${server.log.dir}" includes="*.log"/>
+		    <sequential>
+		    	<echo message="*** last 25 lines from @{file} ***" />
+				<antcontrib:var name="logfile.tail" unset="true" />
+				<loadfile srcfile="@{file}" property="logfile.tail">
+				  <filterchain>
+				    <tailfilter lines="25"/>
+				  </filterchain>
+				</loadfile>
+				<echo message="${logfile.tail}"/>
+			</sequential>
+		</antcontrib:for>
+	</target>
+
+	<target name="server.install" description="installs ${server.type} server">
+		<antcontrib:runtarget target="${server.type}.install" />
+	</target>
+	
+	<target name="server.uninstall" description="uninstalls ${server.type} server">
+		<antcontrib:runtarget target="${server.type}.uninstall" />
+	</target>
+	
+	<target name="server.configure" description="configure ${server.type} server">
+		<antcontrib:runtarget target="${server.type}.configure" />
+	</target>
+
+	<target name="server.start.fg" description="starts ${server.type} server in foreground">
+		<antcontrib:var name="background" value="false" />
+		<antcontrib:runtarget target="${server.type}.start" />
+	</target>
+
+	<target name="server.start" description="starts ${server.type} server">
+		<antcontrib:runtarget target="${server.type}.start" />
+	</target>
+	
+	<target name="server.stop" description="stop ${server.type} server">
+		<antcontrib:runtarget target="${server.type}.stop" />
+	</target>
+		
+	<target name="server.restart" description="restarts ${server.type} server">
+		<antcontrib:runtarget target="${server.type}.stop" />
+		<antcontrib:runtarget target="${server.type}.start" />
+	</target>
+		
+	<target name="server.deploy" description="deploys war to ${server.type} server">
+		<copy todir="${server.deploy.dir}/${war.name}.war">
+			<fileset dir="${war.target.dir}">
+				<include name="**" />
+			</fileset>
+		</copy>
+	</target>
+		
+	<target name="remote.server.deploy">
+		<sequential>
+			<antcontrib:runtarget target="check.creds" />
+			<echoproperties prefix="deploy"/>
+			<scp-server file="${dist.zip.file}" 
+				toDir="${deploy.remote.user}@${deploy.remote.host}:." passphrase="${deploy.remote.keyfile.pass}"
+				keyfile="${deploy.remote.keyfile}" port="${deploy.remote.host.port}" />
+			<sshexec-server
+				command="${deploy.remote.unzip.cmd} -o ${distro.name}.zip"
+				host="${deploy.remote.host}"
+				username="${deploy.remote.user}"
+				passphrase="${deploy.remote.keyfile.pass}"
+				keyfile="${deploy.remote.keyfile}" port="${deploy.remote.host.port}" />
+			<sshexec-server
+				command="mv ${distro.name} ${deploy.remote.dir}"
+				host="${deploy.remote.host}"
+				username="${deploy.remote.user}"
+				passphrase="${deploy.remote.keyfile.pass}"
+				keyfile="${deploy.remote.keyfile}" port="${deploy.remote.host.port}" />
+		</sequential>
+	</target>
+
+	<target name="remote.cfdistro.install">
+		<sequential>
+			<antcontrib:runtarget target="check.creds" />
+			<echoproperties prefix="deploy"/>
+			<scp-server file="${dist.zip.file}" 
+				toDir="${deploy.remote.user}@${deploy.remote.host}:." passphrase="${deploy.remote.keyfile.pass}"
+				keyfile="${deploy.remote.keyfile}" port="${deploy.remote.host.port}" />
+			<sshexec-server 
+				command="${deploy.remote.unzip.cmd} -o ${distro.name}.zip > /dev/null"
+				host="${deploy.remote.host}"
+				username="${deploy.remote.user}"
+				passphrase="${deploy.remote.keyfile.pass}"
+				keyfile="${deploy.remote.keyfile}" port="${deploy.remote.host.port}" />
+		</sequential>
+	</target>
+	
+	<target name="remote.server.install" depends="remote.cfdistro.install">
+		<sequential>
+			<echoproperties prefix="deploy"/>
+			<sshexec-server
+				command="${distro.name}/${distro.name}.sh ${server.type}.install"
+				host="${deploy.remote.host}"
+				username="${deploy.remote.user}"
+				passphrase="${deploy.remote.keyfile.pass}"
+				keyfile="${deploy.remote.keyfile}" port="${deploy.remote.host.port}" />
+		</sequential>
+	</target>
+
+	<target name="remote.cfdistro.update">
+		<sequential>
+			<antcontrib:runtarget target="check.creds" />
+			<echoproperties prefix="deploy"/>
+			<sshexec verbose="false"
+				command="${distro.name}/${distro.name}.sh cfdistro.update"
+				host="${deploy.remote.host}"
+				username="${deploy.remote.user}"
+				passphrase="${deploy.remote.keyfile.pass}"
+				keyfile="${deploy.remote.keyfile}" trust="true" port="${deploy.remote.host.port}" />
+		</sequential>
+	</target>
+
+	<target name="remote.runtarget">
+		<sequential>
+			<antcontrib:runtarget target="check.creds" />
+			<property name="target" value="build" />
+			<sshexec verbose="false"
+				command="${distro.name}/${distro.name}.sh ${target}"
+				host="${deploy.remote.host}"
+				username="${deploy.remote.user}"
+				passphrase="${deploy.remote.keyfile.pass}"
+				keyfile="${deploy.remote.keyfile}" trust="true" port="${deploy.remote.host.port}" />
+		</sequential>
+	</target>
+	
+	
+	<target name="remote.server.start">
+		<sequential>
+			<antcontrib:runtarget target="check.creds" />
+			<echoproperties prefix="deploy"/>
+			<sshexec verbose="true"
+				command="${distro.name}/${distro.name}.sh ${server.type}.start"
+				host="${deploy.remote.host}"
+				username="${deploy.remote.user}"
+				passphrase="${deploy.remote.keyfile.pass}"
+				keyfile="${deploy.remote.keyfile}" trust="true" port="${deploy.remote.host.port}" />
+		</sequential>
+	</target>
+	
+	<target name="remote.server.stop">
+		<sequential>
+			<antcontrib:runtarget target="check.creds" />
+			<echoproperties prefix="deploy"/>
+			<sshexec verbose="true"
+				command="${distro.name}/${distro.name}.sh ${server.type}.stop"
+				host="${deploy.remote.host}"
+				username="${deploy.remote.user}"
+				passphrase="${deploy.remote.keyfile.pass}"
+				keyfile="${deploy.remote.keyfile}" trust="true" port="${deploy.remote.host.port}" />
+		</sequential>
+	</target>
+
+	<target name="remote.server.processes">
+		<sequential>
+			<antcontrib:runtarget target="check.creds" />
+			<echoproperties prefix="deploy"/>
+			<sshexec verbose="false"
+				command="ps aux | grep 'java\|tomcat\|jetty'"
+				host="${deploy.remote.host}"
+				username="${deploy.remote.user}"
+				passphrase="${deploy.remote.keyfile.pass}"
+				keyfile="${deploy.remote.keyfile}" trust="true" port="${deploy.remote.host.port}" />
+		</sequential>
+	</target>
+
+	<target name="remote.server.log.tail">
+		<sequential>
+			<antcontrib:runtarget target="check.creds" />
+			<echoproperties prefix="deploy"/>
+			<sshexec verbose="false"
+				command="${distro.name}/${distro.name}.sh server.log.tail"
+				host="${deploy.remote.host}"
+				username="${deploy.remote.user}"
+				passphrase="${deploy.remote.keyfile.pass}"
+				keyfile="${deploy.remote.keyfile}" trust="true" port="${deploy.remote.host.port}" />
+		</sequential>
+	</target>
+	
+</project>
