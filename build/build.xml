@@ -1,0 +1,67 @@
+<project name="distro.build" default="build" basedir="./" xmlns:antcontrib="antlib:net.sf.antcontrib">
+
+	<loadproperties srcfile="build.properties"/>
+	<import file="${cfdistro.build.file}"/>
+
+	<target name="build" depends="src.to.mappings.xml,startscripts.create,cfdistro.build">
+		<!-- add mappings -->
+		<mapping physical="${src.dir}/railo-cfml" virtual="/railo-cfml"/>
+		<!--
+		<mapping physical="${basedir}/../test" virtual="/test"/>
+		-->
+		<!-- add custom tags example
+		<customtag physical="${src.dir}/cfdistro/ext/cfmltags/cfantrunner" virtual="/cfantrunner"/>
+		 -->
+		<!-- use fileServlet to map external resources (css, images, etc.) -->
+		<!--
+		<fileservlet servletname="fileServlet" directory="${src.dir}/../pub" urlpattern="/pub/*"/>
+		<mapping physical="${basedir}/../pub" virtual="/pub"/>
+		-->
+		<!-- add urlrewrite filter and rewrite rules -->
+		<!-- getting "Failed to specify text in replace" means you need to escape & like so:  &amp;amp;-->
+		<!--
+		<antcontrib:runtarget target="urlrewritefilter.servlet.install" />
+		<urlrewrite name="root" note="MAP / TO DEFAULT VIEW" 
+			from="^/$" to="/index.cfm" type="forward"/>
+		<urlrewrite name="rootToPub" note="SERVE EVERYTHING FROM PUB"
+			from="/(.*)" to="/pub/$1" type="forward"/>
+		<urlrewriteout name="pubToRoot" from="^/pub/(.*)" to="/$1"/>
+		<urlrewriteout name="rootToContextPath" from="/(.*)" to="%{context-path}/$1" type="forward"/>
+		-->
+		<property name="railo.build.number" value="3.1.2.021" />
+		<property name="railo.password" value="${cfadmin.password}"/>
+		<antcontrib:inifile source="${src.dir}/railo-java/railo-core/src/railo/runtime/Info.ini" 
+			dest="${src.dir}/railo-java/railo-core/src/railo/runtime/Info.ini">
+			   <set section="version" property="release-date" value="${todays.date}" />
+			   <set section="version" property="number" value="${railo.build.number}" />
+		   <!--<set section="Section1" property="number" operation="+" /> -->
+		</antcontrib:inifile>		
+		<property name="railo.url" value="http://${server.host}:${server.port.http}/railo-cfml/compileAdmin.cfm" />
+		<echoproperties destfile="${temp.dir}/railo.properties" prefix="railo" />
+		<property name="jdk5.home" value="/System/Library/Frameworks/JavaVM.framework/Versions/1.5.0/Home/" />
+		
+		<sequential>
+			<antcontrib:runtarget target="server.start"/>
+			<exec dir="${src.dir}/railo-java/railo-master/"
+	              executable="ant" failonerror="false" newenvironment="yes">
+	            <arg line="-buildfile build.xml -propertyfile ${temp.dir}/railo.properties"/>
+	          <env key="JAVA_HOME" path="${jdk5.home}"/>
+	        </exec>
+			<antcontrib:runtarget target="server.stop"/>
+		</sequential>
+	</target>	
+
+	<!-- these are just here for the Eclipse Ant UI ordering -->
+	<target name="build.start.launch">
+		<antcontrib:runtarget target="cfdistro.build.start.launch" />
+	</target>	
+
+	<target name="build.start" depends="build">
+		<antcontrib:runtarget target="runwar.start" />
+	</target>	
+
+	<target name="build.stop">
+		<antcontrib:runtarget target="runwar.stop" />
+	</target>	
+	
+</project>
