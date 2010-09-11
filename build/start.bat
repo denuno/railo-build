@@ -1,0 +1,1 @@
+java -Xmx200m -jar "/workspace/railo-build/build/cfdistro/lib/jetty-runner-7.1.0.v20100505.jar" --port 8181 --path / %1 "/workspace/railo-build/build/temp/railo-build.war"
