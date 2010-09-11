@@ -81,7 +81,7 @@
 	
 	<target name="if.toolong.echo" if="toolong">
 		<loadfile property="errlog"
-		      srcFile="${runwar.log.dir}/runner.log.txt"/>
+		      srcFile="${runwar.log.dir}/runner.log.txt" failonerror="false"/>
 		<echo message="${errlog}" />
 	</target>
 
@@ -103,7 +103,7 @@
 				-->
 			</java>
 			<echo message="waiting for jetty-runner"/>
-			<sleep seconds="3" />
+			<sleep seconds="7" />
 			<waitfor maxwait="21" maxwaitunit="second" checkevery="7" checkeveryunit="second" timeoutproperty="toolong">
 				<and>
 					<socket server="127.0.0.1" port="${runwar.port}" />

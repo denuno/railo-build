@@ -3,6 +3,8 @@
 <!--
 	<property name="jdk5.home" value="/System/Library/Frameworks/JavaVM.framework/Versions/1.5.0/Home/" />
 -->
+	<property name="railo.build.number" value="3.1.2.021" />
+
 	<loadproperties srcfile="build.properties"/>
 	<import file="${cfdistro.build.file}"/>
 	
@@ -43,7 +45,6 @@
 	<target name="build" depends="get.jdk5.location,src.to.mappings.xml,cfdistro.build">
 		<!-- add mappings -->
 		<mapping physical="${src.dir}/railo-cfml" virtual="/railo-cfml"/>
-		<property name="railo.build.number" value="3.1.2.021" />
 		<property name="railo.password" value="${cfadmin.password}"/>
 		<antcontrib:inifile source="${src.dir}/railo-java/railo-core/src/railo/runtime/Info.ini" 
 			dest="${src.dir}/railo-java/railo-core/src/railo/runtime/Info.ini">
