@@ -1,0 +1,19 @@
+You can theoretically just click the "download source" button to download the 
+project (14M).
+
+If you don't have a 1.5 JDK already (1.6 is the default now), you'll need to 
+install one.  
+For OS X this is easy: http://wiki.oneswarm.org/index.php/OS_X_10.6_Snow_Leopard
+
+The script has a rudimentary search for the JDK1.5 location, but if it can't 
+find it, set the jdk5.home property in build/build.xml to the location of the 
+1.5 JDK.
+
+Then run the batch or sh script.  Or go into the build directory and type: ant
+
+With a little luck, you'll end up with a new .rc file.
+
+There's a property in the build/build.xml file called railo.build.number that 
+controls the version number.  It is easy enough to increment it with each build,
+but I haven't bothered.  Uncomment the increment line in the build file if you 
+want that behavior.
