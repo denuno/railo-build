@@ -345,7 +345,6 @@
 		  </default>
 		</antcontrib:switch>
 		<antcontrib:runtarget target="servlet.mappings.update" />
-		<antcontrib:var name="startscripts.create" value="true" />
 		<antcontrib:runtarget target="startscripts.create" />
 	</target>
 
@@ -1011,6 +1010,7 @@
 		</copy>
 		<antcontrib:var name="dist.script.sh" value="${dist.dir}/${distro.name}/${distro.name}.sh" />
 		<antcontrib:var name="dist.script.bat" value="${dist.dir}/${distro.name}/${distro.name}.bat" />
+		<antcontrib:var name="startscripts.create" value="true" />
 		<antcontrib:runtarget target="startscripts.create" />
 		<fixcrlf srcdir="${dist.dir}" includes="**/*.bat" eol="crlf" />
 		<fixcrlf srcdir="${dist.dir}/${distro.name}/build" includes="**/*.xml" eol="crlf" />
