@@ -12,6 +12,7 @@
 	<property name="server.port.ajp" value="8009"/>
 	<property name="server.log.dir" value="${log.dir}"/>
 	<property name="server.type" value="runwar" />
+	<property name="server.charset" value="UTF-8" />
 	<property name="server.url" value="http://${server.host}:${server.port.http}${war.contextpath}/index.cfm" />
 	<property name="deploy.remote.unzip.cmd" value="/usr/bin/unzip"/>
 	<property name="deploy.remote.keyfile" value=""/>

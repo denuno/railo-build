@@ -69,6 +69,12 @@
 		<xmltask source="${railo.web.config.file}" dest="${railo.web.config.file}">
 			<attr path="/railo-configuration" attr="password" value="1546d179736e1235bc0c0977347784ef7e89f52d04c0d0dce23f18848a638be0" />
 		</xmltask>
+		<xmltask source="${railo.web.config.file}" dest="${railo.web.config.file}">
+			<insert path="//railo-configuration" position="under" xml="&lt;charset/&gt;" />
+			<attr path="/railo-configuration/charset" attr="resource-charset" value="${railo.charset.resource}" />
+			<attr path="/railo-configuration/charset" attr="template-charset" value="${railo.charset.template}" />
+			<attr path="/railo-configuration/charset" attr="web-charset" value="${railo.charset.web}" />
+		</xmltask>
 	</target>
 
 	<target name="railo.build">

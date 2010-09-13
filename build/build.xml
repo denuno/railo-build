@@ -4,6 +4,7 @@
 	<property name="jdk5.home" value="/System/Library/Frameworks/JavaVM.framework/Versions/1.5.0/Home/" />
 -->
 	<property name="railo.build.number" value="3.1.2.021" />
+	<property name="server.charset" value="iso-8859-1" />
 
 	<loadproperties srcfile="build.properties"/>
 	<import file="${cfdistro.build.file}"/>
