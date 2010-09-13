@@ -351,7 +351,6 @@
 	<target name="build" depends="build.init">
 		<antcontrib:runtarget target="war.init" />
 		<antcontrib:runtarget target="servlet.mappings.update" />
-		<antcontrib:runtarget target="startscripts.create" />
 		<requires-ext resource="${ext.railo.dir}/error.cfm"/>
 		<antcontrib:switch value="${build.type}">
 		  <case value="localdev">
@@ -431,6 +430,7 @@
 			<path>
 				<dirset dir="${src.dir}">
 					<include name="*" />
+					<exclude name="**/.git/**"/>
 				</dirset>
 			</path>
 			<sequential>
@@ -711,7 +711,7 @@
 			</else>
 		</antcontrib:if>
 	</target>
-
+	
 	<target name="exists.mappings.xml">
 		<sanitizeContextPath/>
 		<property name="src.dir.absolute" location="${src.dir}" />
@@ -1052,28 +1052,6 @@
 		<chmod file="${dist.dir}/${distro.name}/build/cfdistro/ant/bin/ant" perm="ugo+rx"/>
 		<!-- use our macrodef that uses OS zip executable so we retain file permissions -->
 		<zipdir destfile="${dist.dir}/${distro.name}.zip" sourcedir="${dist.dir}/"/>
-	</target>
-
-	<target name="cfdistro.executable">
-		<echo file="${basedir}/cfdistro.sh"><![CDATA[#! /bin/sh
-export ANT_HOME="${cfdistro.basedir}/ant/"
-${cfdistro.basedir}/ant/bin/ant -f build.xml $*
-		]]>
-		</echo>
-		<chmod file="${basedir}/cfdistro.sh" perm="ugo+rx"/>
-		<echo file="${basedir}/cfdistro.bat"><![CDATA[@echo off
-if "%1" == "" goto error
-set ANT_HOME=%CD%\cfdistro\ant\
-call %CD%\cfdistro\ant\bin\ant.bat -f %CD%\build.xml %1
-goto end
-:error
-echo usage:
-echo cfdistro.bat start
-echo cfdistro.bat stop
-:end
-		]]>
-		</echo>
-
 	</target>
 
 </project>

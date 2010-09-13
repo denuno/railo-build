@@ -24,7 +24,7 @@ exec $JAVA_EXE -Xmx200m -jar ${cfdistro.basedir}/lib/${jetty-runner.jar} --port 
 	<sanitizeContextPath />
 	<property name="dist.script.sh" value="${dist.root.dir}/${distro.name}.sh" />
 	<property name="dist.script.bat" value="${dist.root.dir}/${distro.name}.bat" />
-	<echo file="${dist.script.sh}"><![CDATA[#! /bin/sh
+	<echo file="${dist.script.sh}"><![CDATA[#! /bin/bash
 export ANT_HOME="build/cfdistro/ant/"
 if [ -z "$1" ]; then
 echo "${distro.name} control script"
@@ -51,7 +51,7 @@ fi
 done
 fi
 reldir=`dirname $0`
-$reldir/build/cfdistro/ant/bin/ant -f $reldir/build/build.xml $*
+/bin/sh $reldir/build/cfdistro/ant/bin/ant -f $reldir/build/build.xml $*
 	]]>
 	</echo>
 	<echo file="${dist.script.bat}"><![CDATA[@echo off
@@ -130,5 +130,29 @@ REM EXIT
 	<fixcrlf file="${dist.script.bat}" eol="crlf" />
 	<chmod file="${dist.script.sh}" perm="ugo+rx"/>
 </target>
+
+	<target name="cfdistro.executable">
+		<echo file="${basedir}/cfdistro.sh"><![CDATA[#! /bin/sh
+reldir=`dirname $0`
+export ANT_HOME="$reldir/cfdistro/ant/"
+/bin/sh $reldir/cfdistro/ant/bin/ant -f $reldir/build.xml $*
+		]]>
+		</echo>
+		<chmod file="${basedir}/cfdistro.sh" perm="ugo+rx"/>
+		<echo file="${basedir}/cfdistro.bat"><![CDATA[@echo off
+if "%1" == "" goto error
+set ANT_HOME=%CD%\cfdistro\ant\
+call %CD%\cfdistro\ant\bin\ant.bat -f %CD%\build.xml %1
+goto end
+:error
+echo usage:
+echo cfdistro.bat start
+echo cfdistro.bat stop
+:end
+		]]>
+		</echo>
+
+	</target>
+
 </project>
 
