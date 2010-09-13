@@ -1,4 +1,4 @@
-#! /bin/sh
+#! /bin/bash
 export ANT_HOME="build/cfdistro/ant/"
 if [ -z "$1" ]; then
 echo "railo-build control script"
@@ -27,6 +27,6 @@ fi
 done
 fi
 reldir=`dirname $0`
-$reldir/build/cfdistro/ant/bin/ant -f $reldir/build/build.xml $*
+sh $reldir/build/cfdistro/ant/bin/ant -f $reldir/build/build.xml $*
 	
 	
