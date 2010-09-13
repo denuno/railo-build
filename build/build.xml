@@ -8,40 +8,6 @@
 	<loadproperties srcfile="build.properties"/>
 	<import file="${cfdistro.build.file}"/>
 	
-	<target name="get.jdk5.location">
-		<antcontrib:for list="C:/Program Files/Java/jdk1.5.0_22/,/System/Library/Frameworks/JavaVM.framework/Versions/1.5.0/Home/,/opt/java/jdk1.5" param="confdir">
-		  <sequential>
-			<antcontrib:if>
-				<available file="@{confdir}" type="dir"/>
-				<then>
-					<property name="jdk5.home" value="@{confdir}" />
-				</then>
-			</antcontrib:if>
-		  </sequential>
-		</antcontrib:for>
-		<antcontrib:if>
-			<isset property="jdk5.home"/>
-			<then>
-				<echo message="jdk5.home: ${jdk5.home}" />
-			</then>
-			<else>
-				<echo message="jdk5.home not set, and couldn't be determined.  If you are on OS X Snow Leopard, or Windows 7, you may need to install it esspecial, as the default is now 1.6." />
-			</else>
-		</antcontrib:if>
-		<input message="Please enter path to 1.5 JDK: " addproperty="jdk5.home" />
-		<antcontrib:if>
-			<or>
-				<available file="${jdk5.home}/bin/javac" type="file"/>
-				<available file="${jdk5.home}/bin/javac.exe" type="file"/>
-			</or>
-			<then>
-			</then>
-			<else>
-				<fail message="jdk5.home not set, and couldn't be determined.  If you are on OS X Snow Leopard, or Windows 7, you may need to install it esspecial, as the default is now 1.6." />
-			</else>
-		</antcontrib:if>
-	</target>
-
 	<target name="build" depends="get.jdk5.location,src.to.mappings.xml,cfdistro.build">
 		<!-- add mappings -->
 		<mapping physical="${src.dir}/railo-cfml" virtual="/railo-cfml"/>
