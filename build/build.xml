@@ -1,12 +1,12 @@
 <project name="distro.build" default="build" basedir="./" xmlns:antcontrib="antlib:net.sf.antcontrib">
 
+	<tstamp>
+		<format property="todays.date" pattern="yyyy/MM/dd hh:mm:ss"/>
+	</tstamp>
 <!--
 	
 	<property name="jdk5.home" value="/System/Library/Frameworks/JavaVM.framework/Versions/1.5.0/Home/" />
 -->
-	<tstamp>
-		<format property="todays.date" pattern="yyyy/MM/dd hh:mm:ss"/>
-	</tstamp>
 	<loadproperties srcfile="build.properties"/>
 	<echo message="${todays.date}"/>
 
@@ -16,11 +16,14 @@
 	<property name="railo.build.name" value="cfdistro-built"/>
 	<property name="railo.build.name-explanation" value="http://en.wikipedia.org/wiki/Barry_(dog)"/>
 	<property name="move.rc.file.to.dir" value="../dist"/>
+	<property name="railo.build.number" value="3.1.2.021" />
 	
 	<!-- don't change the password or charset! -->
 	<property name="railo.password" value="testtest"/>
 	<property name="server.charset" value="iso-8859-1" />
-
+	<property name="server.host" value="localhost" />
+	<property name="server.port.http" value="8181" />
+	<property name="server.url" value="http://${server.host}:${server.port.http}/index.cfm" />
 	<import file="${cfdistro.build.file}"/>
 	
 	<target name="build" depends="get.jdk5.location,src.to.mappings.xml,cfdistro.build">
@@ -59,8 +62,12 @@
 				
 	<target name="build.and.test" depends="build">
 		<copy file="${move.rc.file.to.dir}/${railo.build.number}.rc" todir="${war.target.dir}/WEB-INF/lib/railo-server/patches/" />
+		<echo message="The admin password is: testtest" />
 		<antcontrib:runtarget target="server.start"/>
-		<antcontrib:runtarget target="server.openUrl"/>		
+		<antcontrib:runtarget target="server.openUrl"/>
+		<echo message="to stop server, run: ./cfdistro.sh server.stop" />
+		<echo message="or on windows run: cfdistro.bat server.stop" />
+		<echo message="or just: ant server.stop" />
 	</target>
 	
 </project>
