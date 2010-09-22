@@ -1,12 +1,16 @@
 <project name="startscripts" basedir="./" xmlns:antcontrib="antlib:net.sf.antcontrib">
 <property name="startscripts.create" value="true" />
-<target name="startscripts.create" if="startscripts.create">
-	<antcontrib:runtarget target="cfdistro.executable" />
-	<!-- the sane context path always ends with /, which isn't right but makes links to it standard 
-		 so we correct the correction and then recorrect it -->
-	<sanitizeContextPath />
-	<antcontrib:propertyregex property="war.contextpath" input="${war.contextpath}" regexp="^/?([^/]+)" select="/\1" global="false"  override="yes" />
-	<echo file="${basedir}/start.sh"><![CDATA[#start script
+
+<target name="startscripts.create">
+	<antcontrib:if>
+		<equals arg1="${startscripts.create}" arg2="true" />
+		<then>
+			<antcontrib:runtarget target="cfdistro.executable" />
+			<!-- the sane context path always ends with /, which isn't right but makes links to it standard 
+				 so we correct the correction and then recorrect it -->
+			<sanitizeContextPath />
+			<antcontrib:propertyregex property="war.contextpath" input="${war.contextpath}" regexp="^/?([^/]+)" select="/\1" global="false"  override="yes" />
+			<echo file="${basedir}/start.sh"><![CDATA[#start script
 if test -n "${JAVA_HOME}"; then
   if test -z "${JAVA_EXE}"; then
     JAVA_EXE=$JAVA_HOME/bin/java
@@ -19,13 +23,13 @@ fi
 cd $(dirname $0)
 #exec $JAVA_EXE -jar ./lib/jetty-runner-7.0.0.RC5.jar $* > /dev/null 2>&1 &
 exec $JAVA_EXE -Xmx200m -jar ${cfdistro.basedir}/lib/${jetty-runner.jar} --port ${server.port.http} --path ${war.contextpath} $* ${war.target.dir}]]>
-	</echo>
-	<chmod file="${basedir}/start.sh" perm="ugo+rx"/>
-	<echo file="${basedir}/start.bat"><![CDATA[java -Xmx200m -jar "${cfdistro.basedir}/lib/${jetty-runner.jar}" --port ${server.port.http} --path ${war.contextpath} %1 "${war.target.dir}"]]></echo>
-	<sanitizeContextPath />
-	<property name="dist.script.sh" value="${dist.root.dir}/${distro.name}.sh" />
-	<property name="dist.script.bat" value="${dist.root.dir}/${distro.name}.bat" />
-	<echo file="${dist.script.sh}"><![CDATA[#! /bin/bash
+			</echo>
+			<chmod file="${basedir}/start.sh" perm="ugo+rx"/>
+			<echo file="${basedir}/start.bat"><![CDATA[java -Xmx200m -jar "${cfdistro.basedir}/lib/${jetty-runner.jar}" --port ${server.port.http} --path ${war.contextpath} %1 "${war.target.dir}"]]></echo>
+			<sanitizeContextPath />
+			<property name="dist.script.sh" value="${dist.root.dir}/${distro.name}.sh" />
+			<property name="dist.script.bat" value="${dist.root.dir}/${distro.name}.bat" />
+			<echo file="${dist.script.sh}"><![CDATA[#! /bin/bash
 export ANT_HOME="build/cfdistro/ant/"
 if [ -z "$1" ]; then
 echo "${distro.name} control script"
@@ -54,8 +58,8 @@ fi
 reldir=`dirname $0`
 /bin/sh $reldir/build/cfdistro/ant/bin/ant -f $reldir/build/build.xml $*
 	]]>
-	</echo>
-	<echo file="${dist.script.bat}"><![CDATA[@echo off
+			</echo>
+			<echo file="${dist.script.bat}"><![CDATA[@echo off
 set ANT_HOME=%CD%\build\cfdistro\ant\
 if "%1" == "" goto MENU
 call build\cfdistro\ant\bin\ant.bat -f build/build.xml %*
@@ -127,9 +131,11 @@ echo       press any key ...
 pause
 REM EXIT
 	]]>
-	</echo>
-	<fixcrlf file="${dist.script.bat}" eol="crlf" />
-	<chmod file="${dist.script.sh}" perm="ugo+rx"/>
+			</echo>
+			<fixcrlf file="${dist.script.bat}" eol="crlf" />
+			<chmod file="${dist.script.sh}" perm="ugo+rx"/>
+		</then>
+	</antcontrib:if>
 </target>
 
 	<target name="cfdistro.executable">
