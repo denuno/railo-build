@@ -65,15 +65,17 @@
 	</target>
 
 	<target name="runembedded.jar" depends="runwar.compile" description="creates an jar with the WAR embedded">
-		<mkdir dir="${dist.dir}"/>
-		<echo file="${war.target.dir}/../runwar.properties" message="war.name=${war.name}"/>
-		<jar destfile="${dist.dir}/${war.name}.jar" filesetmanifest="mergewithoutmain">
+		<delete dir="${dist.dir}/embedded"/>
+		<mkdir dir="${dist.dir}/embedded"/>
+		<echo file="${dist.dir}/embedded/runwar.properties" message="war.name=${war.name}"/>
+		<jar destfile="${dist.dir}/embedded/${war.name}.jar" filesetmanifest="mergewithoutmain">
 			<manifest>
 				<attribute name="Main-Class" value="runwar.RunEmbeddedWar" />
 				<attribute name="Class-Path" value="./${jetty-runner.jar}" />
 			</manifest>
 			<fileset dir="${cfdistro.basedir}/lib/" includes="${jetty-runner.jar}" />
-			<fileset dir="${war.target.dir}/../" />
+			<fileset dir="${dist.dir}/compressed/" />
+			<fileset dir="${dist.dir}/embedded/" />
 			<fileset dir="${runwar.basedir}/bin/runwar" />
 		</jar>
 	</target>
@@ -126,11 +128,18 @@
 	</target>
 
 	<target name="server.openUrl" description="launches a browser pointing at ${runwar.url}">
-		<java classname="runwar.BrowserOpener" classpathref="runwar.lib.path" failonerror="true" fork="true">
-			<arg value="${runwar.url}" />
-		</java>			
+		<open-url url="${runwar.url}" />			
 	</target>
-	
+
+	<macrodef name="open-url">
+		<attribute name="url" />
+		<sequential>
+			<java classname="runwar.BrowserOpener" classpathref="runwar.lib.path" failonerror="true" fork="true">
+				<arg value="@{url}" />
+			</java>			
+		</sequential>
+	</macrodef>	
+
 	
 	<target name="runwar.start.stop" description="starts and then stops jetty-runner server for some odd reason.  generation of stuff maybe?">
 		<parallel>

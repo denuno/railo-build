@@ -1,10 +1,10 @@
 <project name="build-railo" basedir="./" xmlns:antcontrib="antlib:net.sf.antcontrib">
 
 	<dirname property="build-railo.basedir" file="${ant.file.build-railo}" />
+	<property file="${build-railo.basedir}/build-railo.properties" />
 	
 	<target name="railo.requires">
 		<load-buildtype-properties buildtype="${build.type}" />
-		<property file="${build-railo.basedir}/build-railo.properties" />
 		<mkdir dir="${ext.railo.dir}"/>
 		<mkdir dir="${ext.railo.dir}/patches"/>
 		<antcontrib:if>
@@ -405,31 +405,62 @@
 		<copy file="scheduledtasks.xml" toFile="${war.target.dir}/WEB-INF/railo/scheduler/scheduler.xml" filtering="true"/>
 	</target>
 	
-
 	<target name="railo.compile-cf">
-		<mkdir dir="${war.target.dir}" />
+		<antcontrib:runtarget target="railo.mappings.xml.build" />
+		<property name="build.cfc.url" value="http://${server.host}:${server.port.http}${war.contextpath}/_cfd_compile_temp/Build.cfc" />
+		<property name="compile.results.file" location="compile-results.txt" />
+		<mkdir dir="${war.target.dir}/_cfd_compile_temp" />
+		<railo-mapping virtual="/_cfd_compile_temp" physical="${war.target.dir}/_cfd_compile_temp" />
+		<copy file="${cfdistro.basedir}/Build.cfc" todir="${war.target.dir}/_cfd_compile_temp" />
 		<sequential>
 			<antcontrib:runtarget target="runwar.start" />
-			<antcontrib:for param="file">
-				<path>
-					<dirset dir="${src.dir}">
-						<include name="*" />
-					</dirset>
-				</path>
-				<sequential>
-					<antcontrib:propertyregex override="yes" property="mappingName" input="@{file}" regexp=".*/|.*\\([^\.]*)" replace="\1" />
-					<echo message="Compiling mapping - ${mappingName} - @{file}" />
-					<get src="http://localhost:${runwar.port}${runwar.war.contextpath}Build.cfc?method=compile-mapping&amp;mapping=${mappingName}" dest="${mappingName}.compile.results.properties" verbose="true" ignoreerrors="true" />
-					<copy todir="${war.target.dir}" verbose="true">
-						<fileset dir="${war.target.dir}/WEB-INF/railo/cfclasses/" />
-						<chainedmapper>
-							<regexpmapper from="^CF_.+_(${mappingName})\d{4}/+(.*)" to="\1/\2" />
-							<regexpmapper from="(.*)_cf(.).+\.class$$" to="\1.cf\2" />
-						</chainedmapper>
-					</copy>
-				</sequential>
-			</antcontrib:for>
+			<echo file="${compile.results.file}" message="Compile results (${todays.date}): ${line.separator}${line.separator}"/>
+			<xmltask sourcebuffer="mappings.buff">
+			<call path="mappings/*">
+				<param name="virtual" path="@virtual" default="NONE" />
+				<param name="physical" path="@physical" default="NONE" />
+				<actions>
+					<sequential>
+						<echo message="@{virtual} @{physical}/"/>
+						<copy todir="${war.target.dir}@{virtual}" verbose="${cfdistro.debug}">
+							<fileset dir="@{physical}" />
+						</copy>
+						<echo message="Compiling mapping - @{virtual} - @{physical}" />
+						<get src="${build.cfc.url}?method=compile-mapping&amp;mapping=@{virtual}&amp;cfadminpassword=${cfadmin.password}" 
+							dest="compile.results.temp" retries="1" verbose="true" ignoreerrors="true" />
+						<antcontrib:var name="compile.results" unset="true" />
+						<loadfile srcFile="compile.results.temp" property="compile.results" failonerror="false"/>
+						<property name="compile.results" value="&lt;a href=&quot;${build.cfc.url}?method=compile-mapping&amp;mapping=@{virtual}&amp;cfadminpassword=${cfadmin.password}&quot;&gt;Compile /@{virtual}&lt;/a&gt;" />
+						<echo file="${compile.results.file}" append="true" message="${line.separator}${line.separator}*** mapping @{virtual} compile results: ${compile.results}"/>
+						<delete file="compile.results.temp"/>
+						<antcontrib:propertyregex override="yes" property="mappingName" input="@{virtual}" regexp=".*/|.*\\([^\.]*)" replace="\1" />
+						<copy todir="${war.target.dir}" verbose="${cfdistro.debug}" overwrite="true">
+							<fileset dir="${war.target.dir}/WEB-INF/railo/cfclasses/" />
+							<chainedmapper>
+								<regexpmapper from="^CF_.+_(${mappingName})\d{4}/+(.*)" to="\1/\2" />
+								<regexpmapper from="(.*)_cf(.).+\.class$$" to="\1.cf\2" />
+							</chainedmapper>
+						</copy>
+					</sequential>
+				</actions>
+			</call>
+			</xmltask>
+			<open-url url="${build.cfc.url}?method=show-results&amp;resultsfile=${compile.results.file}" />
+			<sleep seconds="3" />
+			<!-- remove the mappings now that they're compiled -->
+			<xmltask sourcebuffer="mappings.buff">
+				<call path="mappings/*">
+					<param name="virtual" path="@virtual" default="NONE" />
+					<param name="physical" path="@physical" default="NONE" />
+					<actions>
+						<railo-mapping-remove virtual="@{virtual}" />
+					</actions>
+				</call>
+			</xmltask>
 			<antcontrib:runtarget target="runwar.stop" />
+			<delete file="${war.target.dir}/Build.cfc" />
+			<delete dir="${war.target.dir}/_cfd_compile_temp"/>
+			<railo-mapping-remove virtual="/_cfd_compile_temp" />
 		</sequential>
 	</target>
 
@@ -481,6 +512,12 @@
 			<attr path="/railo-configuration/debugging" attr="memory-log" value="${log.dir}/memory.log" />
 			<attr path="/railo-configuration/debugging" attr="debug" value="no" />
 		</xmltask>
+	</target>
+
+	<target name="railo.add.build.cfc">
+		<mkdir dir="${war.target.dir}/_cfd_compile_temp" />
+		<railo-mapping virtual="/_cfd_compile_temp" physical="${war.target.dir}/_cfd_compile_temp" />
+		<copy file="${cfdistro.basedir}/Build.cfc" todir="${war.target.dir}/_cfd_compile_temp" />
 	</target>
 
 	<macrodef name="railo-mapping">
@@ -535,6 +572,28 @@
 				</antcontrib:if>
 		</sequential>
 	</macrodef>	
+
+	<macrodef name="railo-mapping-remove">
+		<attribute name="virtual" />
+		<sequential>
+			<antcontrib:var name="mapping.exists" unset="true" />
+			<xmltask source="${railo.config.file}" dest="${railo.config.file}">
+				<copy path="/railo-configuration/mappings/mapping[@virtual='@{virtual}']/@virtual" attrValue="true" property="mapping.exists" />
+				<replace path="/railo-configuration/mappings/mapping[@virtual=@{virtual}]/text()" if="mapping.exists">
+					<![CDATA[]]>
+				</replace>
+			</xmltask>
+			<antcontrib:switch value="${mapping.exists}">
+				<case value="@{virtual}">
+					<echo message="Removed Mapping - @{virtual}" />
+				</case>
+				<default>
+					<echo message="Didn't find Mapping to remove - @{virtual} 	@{physical}" />
+				</default>
+			</antcontrib:switch>
+		</sequential>
+	</macrodef>	
+	
 	
 	<macrodef name="railo-cache-template">
 		<attribute name="when" default="always" />
@@ -547,13 +606,17 @@
 	
 	<macrodef name="railo-error-template">
 		<attribute name="path" default="always" />
+		<attribute name="type" default="500" />
 		<sequential>
+			<echo>setting railo template-@{type} to @{path}</echo>
+			<antcontrib:var name="railo.template.error.exists" unset="true" />
 			<xmltask source="${railo.config.file}" dest="${railo.config.file}">
-				<attr path="/railo-configuration/error" attr="template-500" value="@{path}" />
+				<copy path="/railo-configuration/error/@status-code" attrValue="true" property="railo.template.error.exists"/>
+				<insert path="/railo-configuration" position="under" unless="railo.template.error.exists"><![CDATA[<error status-code="true"/>]]></insert>
+				<attr path="/railo-configuration/error" attr="template-@{type}" value="@{path}" />
 			</xmltask>
 		</sequential>
 	</macrodef>	
-
 
 	<macrodef name="extensionprovider">
 		<attribute name="url" default="" />

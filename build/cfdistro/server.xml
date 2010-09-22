@@ -18,7 +18,10 @@
 	<property name="deploy.remote.keyfile" value=""/>
 	<property name="deploy.remote.dir" value="./"/>
 
-	<import file="tomcat/tomcat.xml" />
+	<import file="containers/jboss/jboss.xml" />
+	<import file="containers/tomcat/tomcat.xml" />
+	<import file="containers/resin/resin.xml" />
+	<import file="containers/glassfish/glassfish.xml" />
 	<import file="java/runwar/build.xml" />
 
 

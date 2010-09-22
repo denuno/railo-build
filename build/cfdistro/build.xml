@@ -148,6 +148,7 @@
 
 
 	<property name="distro.name" value="cfdistro" />
+	<property name="cfdistro.debug" value="false" />
 	<property name="default.cfengine" value="railo" />
 	<property name="src.dir" location="../src" />
 	<property name="dist.dir" location="./dist" />
@@ -158,7 +159,6 @@
 	<property name="temp.dir" location="./temp" />
 	<property name="log.dir" location="${temp.dir}" />
 	<property name="build.type" location="localdev" />
-
 	<property name="war.name" value="${distro.name}" />
 	<property name="war.contextpath" value="/${war.name}" />
 	<property name="war.target.dir" value="${temp.dir}/${war.name}.war" />
@@ -185,7 +185,8 @@
 	<property name="dist.zip.file" value="${dist.dir}/${distro.name}.zip" />
 	<property name="jps.executable" value="${java.home}/bin/jps" />
 	
-	
+	<property name="cfmlexception.install" value="true" />
+		
 	<requires-ext resource="${ext.dir}/dtd/web-app_2_3.dtd" />
 	<requires-ext resource="${ext.dir}/dtd/urlrewrite3.2.dtd" />
 	<xmlcatalog id="commonDTDs">
@@ -224,6 +225,26 @@
 			<echo message="valueA is greater than valueB" />
 		</target>
 	-->
+
+	<antcontrib:if>
+		<equals arg1="${default.cfengine}" arg2="railo" />
+		<then>
+			<property name="cfmlServletName" value="CFMLServlet" />
+		</then>
+		<else>
+			<property name="cfmlServletName" value="CfmServlet" />
+		</else>
+	</antcontrib:if>
+
+	<antcontrib:if>
+		<equals arg1="${proxy.enabled}" arg2="true" />
+		<then>
+			<echo>Proxy is enabled: ${proxy.host}:${proxy.port}</echo>
+			<setproxy proxyhost="${proxy.host}" proxyport="${proxy.port}"
+			      proxyuser="${proxy.user}" proxypassword="${proxy.pass}"/>
+		</then>
+	</antcontrib:if>
+	
 	<target name="clean" description="cleans project">
 		<sanitizeContextPath/>
 		<delete dir="${temp.dir}" />
@@ -231,9 +252,9 @@
 	</target>
 
 	<target name="jar.war">
-		<delete dir="${dist.dir}" />
-		<mkdir dir="${dist.dir}" />
-		<jar jarfile="${dist.dir}/${war.name}.war" basedir="${war.target.dir}" />
+		<delete dir="${dist.dir}/compressed" />
+		<mkdir dir="${dist.dir}/compressed" />
+		<jar jarfile="${dist.dir}/compressed/${war.name}.war" basedir="${war.target.dir}" />
 	</target>
 
 	<target name="copy.temp.to.dist">
@@ -297,6 +318,7 @@
 		<antcontrib:runtarget target="${default.cfengine}.scheduledtasks.build" />
 		<antcontrib:runtarget target="${default.cfengine}.set.log.dir" />
 		<antcontrib:runtarget target="cfantrunner.install" />
+		<antcontrib:runtarget target="cfmlexception.install" />		
 		<!-- tomcat -->
 		<mkdir dir="${war.target.dir}/META-INF" />
 		<echo file="${war.target.dir}/META-INF/context.xml"><![CDATA[<Context path="${war.contextpath}" override="true" docBase="./" />]]></echo>
@@ -348,22 +370,33 @@
 		<antcontrib:runtarget target="startscripts.create" />
 	</target>
 
+	<target name="cfmlexception.install">
+		<antcontrib:if>
+			<equals arg1="${cfmlexception.install}" arg2="true" />
+			<then>
+				<requires-ext resource="${ext.dir}/cfmlexception"/>
+				<copy todir="${src.dir}/cfmlexception" verbose="false">
+					<fileset dir="${ext.dir}/cfmlexception" />
+				</copy>
+				<mapping virtual="/cfmlexception" physical="@src.dir@/cfmlexception" />
+			  	<error-template path="/cfmlexception/error.cfm" type="404"/>
+			  	<error-template path="/cfmlexception/error.cfm" type="500"/>
+			</then>
+		</antcontrib:if>
+	</target>
+
 	<target name="build" depends="build.init">
 		<antcontrib:runtarget target="war.init" />
 		<antcontrib:runtarget target="servlet.mappings.update" />
 		<requires-ext resource="${ext.railo.dir}/error.cfm"/>
 		<antcontrib:switch value="${build.type}">
 		  <case value="localdev">
-			<copy file="${ext.railo.dir}/error.cfm" todir="${war.target.dir}/WEB-INF/lib/railo-server/context/library/tag" overwrite="true" />
 			<cache-template when="always" />
-		  	<error-template path="/WEB-INF/lib/railo-server/context/library/tag/error.cfm"/>
 			<requires-ext resource="${ext.dir}/cfeclipse" />
 			<addlibs from="${ext.dir}/cfeclipse" />
 		  </case>
 		  <case value="dev">
-			<copy file="${ext.railo.dir}/error.cfm" todir="${war.target.dir}/WEB-INF/lib/railo-server/context/library/tag" overwrite="true" />
 			<cache-template when="always" />
-		  	<error-template path="/WEB-INF/lib/railo-server/context/library/tag/error.cfm"/>
 		  </case>
 		  <case value="qa">
 			<property name="copy.mappings.to.src" value="true"/>
@@ -660,10 +693,11 @@
 
 	<macrodef name="error-template">
 		<attribute name="path"/>
+		<attribute name="type" default="500"/>
 		<sequential>
 			<antcontrib:switch value="${default.cfengine}">
 			  <case value="railo">
-				<railo-error-template path="@{path}" />
+				<railo-error-template path="@{path}" type="@{type}" />
 			  </case>
 			  <case value="acf">
 				<acf-error-template path="@{path}" />

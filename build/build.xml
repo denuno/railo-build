@@ -2,6 +2,7 @@
 
 	<tstamp>
 		<format property="todays.date" pattern="yyyy/MM/dd hh:mm:ss"/>
+		<format property="todays.tstamp" pattern="MMddhhmm"/>
 	</tstamp>
 <!--
 	
@@ -12,17 +13,16 @@
 
 	<property name="railo.build.number" value="3.1.2.021" />
 	<property name="railo.build.level" value="os"/>
-	<property name="railo.build.state" value="final"/>
+	<property name="railo.build.state" value="source-build"/>
 	<property name="railo.build.name" value="cfdistro-built"/>
 	<property name="railo.build.name-explanation" value="http://en.wikipedia.org/wiki/Barry_(dog)"/>
 	<property name="move.rc.file.to.dir" value="../dist"/>
-	<property name="railo.build.number" value="3.1.2.021" />
 	
 	<!-- don't change the password or charset! -->
 	<property name="railo.password" value="testtest"/>
 	<property name="server.charset" value="iso-8859-1" />
 	<property name="server.host" value="localhost" />
-	<property name="server.port.http" value="8181" />
+	<property name="server.port.http" value="8088" />
 	<property name="server.url" value="http://${server.host}:${server.port.http}/index.cfm" />
 	<import file="${cfdistro.build.file}"/>
 	
@@ -57,17 +57,18 @@
 			<antcontrib:runtarget target="server.stop"/>
 			<mkdir dir="${move.rc.file.to.dir}"/>
 			<move file="${src.dir}/railo-java/railo-core/dist/${railo.build.number}.rc" todir="${move.rc.file.to.dir}" />
+			<echo>Moving ${railo.build.number}.rc to: ${move.rc.file.to.dir}</echo>
 		</sequential>
 	</target>	
 				
 	<target name="build.and.test" depends="build">
 		<copy file="${move.rc.file.to.dir}/${railo.build.number}.rc" todir="${war.target.dir}/WEB-INF/lib/railo-server/patches/" />
-		<echo message="The admin password is: testtest" />
 		<antcontrib:runtarget target="server.start"/>
 		<antcontrib:runtarget target="server.openUrl"/>
-		<echo message="to stop server, run: ./cfdistro.sh server.stop" />
-		<echo message="or on windows run: cfdistro.bat server.stop" />
-		<echo message="or just: ant server.stop" />
+		<echo message="The admin password is: testtest" />
+		<echo message="to stop server, run: ./${distro.name}.sh server.stop" />
+		<echo message="or on windows run: ${distro.name}.bat server.stop" />
+		<echo message="or just: build/ant server.stop" />
 	</target>
 	
 </project>

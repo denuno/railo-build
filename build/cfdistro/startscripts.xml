@@ -1,4 +1,5 @@
 <project name="startscripts" basedir="./" xmlns:antcontrib="antlib:net.sf.antcontrib">
+<property name="startscripts.create" value="true" />
 <target name="startscripts.create" if="startscripts.create">
 	<antcontrib:runtarget target="cfdistro.executable" />
 	<!-- the sane context path always ends with /, which isn't right but makes links to it standard 

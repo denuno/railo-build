@@ -1,5 +1,6 @@
 #! /bin/sh
-export ANT_HOME="Y:\workspace\railo-build\build\cfdistro/ant/"
-Y:\workspace\railo-build\build\cfdistro/ant/bin/ant -f build.xml $*
+reldir=`dirname $0`
+export ANT_HOME="$reldir/cfdistro/ant/"
+/bin/sh $reldir/cfdistro/ant/bin/ant -f $reldir/build.xml $*
 		
 		

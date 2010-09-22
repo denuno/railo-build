@@ -1,25 +1,34 @@
-<cfcomponent output="false">  
+<cfcomponent output="false">
 
 	<cffunction name="init" output="false">
 		<cfset variables.adminType = "web" />
-		<cffile action="read" file="#getDirectoryFromPath(getMetadata(this).path)#/cfadminpassword.txt" variable="variables.password#variables.adminType#" />
-		<cfreturn this />	
+		<cfparam name="cfadminpassword" default="testtest" />
+		<cfset variables["password#variables.adminType#"] = cfadminpassword />
+		<cfreturn this />
 	</cffunction>
-	
-	<cffunction name="compile-mapping" access="remote">
+
+	<cffunction name="compile-mapping" access="remote" output="false">
 		<cfargument name="mapping" required="true">
+		<cfsilent>
 		<cfset init() />
-		<cfadmin
-		    action="compileMapping"
-		    type="web"
-		    password="#variables["password"&variables.adminType]#"
-		    virtual="#arguments.mapping#"
-	    	stoponerror="false"
-	     />
-	    <cfreturn "compiled mapping: #arguments.mapping#" />
+		<cftry>
+			<cfadmin
+			    action="compileMapping"
+			    type="web"
+			    password="#variables["password"&variables.adminType]#"
+			    virtual="#arguments.mapping#"
+		    	stoponerror="false"
+		     />
+		    <cfreturn "compiled mapping: #arguments.mapping#" />
+			<cfcatch>
+				<cfreturn cfcatch.message & cfcatch.detail />
+			</cfcatch>
+		</cftry>
+		</cfsilent>
 	</cffunction>
-	
-	<cffunction name="compile-archive" access="remote">
+
+
+	<cffunction name="compile-archive" access="remote" output="false">
 		<cfargument name="mapping" required="true">
 		<cfargument name="toFile" required="true">
 		<cfset init() />
@@ -35,6 +44,13 @@
 		     />
 	    <cfreturn "compiled archive: #arguments.mapping# : #arguments.toFile#" />
 	</cffunction>
-	
+
+	<cffunction name="show-results" access="remote" output="false">
+		<cfargument name="resultsFile" required="true">
+		<cffile action="read" file="#resultsFile#" variable="results" />
+	    <cfset writeOutput("compiled archive: #paragraphFormat(results)#")/>
+	    <cfabort>
+
+	</cffunction>
 
 </cfcomponent>

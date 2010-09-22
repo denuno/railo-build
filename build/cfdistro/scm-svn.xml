@@ -47,6 +47,8 @@
 				<arg value="@{password}" />
 				<arg value="@{uri}" />
 				<arg value="@{dest}" />
+				<jvmarg value="-Dhttp.proxyHost="/>
+				<jvmarg value="-Dhttp.proxyPort="/>
 			</java>
 		</sequential>
 	</macrodef>

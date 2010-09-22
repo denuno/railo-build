@@ -38,7 +38,7 @@ public final class RunEmbeddedWar {
     	WAR_POSTFIX = ".war";
     	WAR_FILENAME = WAR_NAME + WAR_POSTFIX;
         System.out.println(props.toString());
-    	System.out.println("Welcome to Railo!");        
+    	System.out.println("Starting...");        
 
         URL resource = classLoader.getResource(WAR_FILENAME);
         if (resource == null) {
