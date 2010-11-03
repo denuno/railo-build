@@ -10,16 +10,18 @@ echo       railo-build menu
 REM echo       usage: ${disstro.name}.bat [start|stop|{target}]
 echo.
 echo       1. Build Railo from Source in GitHub
-echo       2. Run a specific target
-echo       3. Exit
+echo       2. Build and launch
+echo       3. Run a specific target
+echo       4. Exit
 echo.
 set choice=
-set /p choice=      Enter option 1, 2 or 3: 
+set /p choice=      Enter option 1, 2, 3 or 4: 
 echo.
 if not '%choice%'=='' set choice=%choice:~0,1%
 if '%choice%'=='1' goto buildRailo
-if '%choice%'=='2' goto runTarget
-if '%choice%'=='3' goto end
+if '%choice%'=='2' goto buildRailoRun
+if '%choice%'=='3' goto runTarget
+if '%choice%'=='4' goto end
 ::
 echo.
 echo.
@@ -31,6 +33,11 @@ goto MENU
 :buildRailo
 cls
 call build\cfdistro\ant\bin\ant.bat -f build/build.xml build
+goto end
+::
+:buildRailoRun
+cls
+call build\cfdistro\ant\bin\ant.bat -f build/build.xml build.and.test
 goto end
 ::
 :listTargets
