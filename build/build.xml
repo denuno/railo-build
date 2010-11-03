@@ -11,7 +11,7 @@
 	<loadproperties srcfile="build.properties"/>
 	<echo message="${todays.date}"/>
 
-	<property name="railo.build.number" value="3.2.0.000" />
+	<property name="railo.build.number" value="3.2.0.001" />
 	<property name="railo.build.level" value="os"/>
 	<property name="railo.build.state" value="source-build"/>
 	<property name="railo.build.name" value="cfdistro-built"/>
