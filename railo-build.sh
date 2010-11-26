@@ -2,7 +2,7 @@
 export ANT_HOME="build/cfdistro/ant/"
 if [ -z "$1" ]; then
 echo "railo-build control script"
-OPTIONS="build build-and-test exit"
+OPTIONS="build build-and-test stop-test-server exit"
 select opt in $OPTIONS; do
 if [ "$opt" = "start" ]; then
 	build/cfdistro/ant/bin/ant -f build/build.xml build.start.launch
@@ -16,6 +16,8 @@ elif [ "$opt" = "build" ]; then
 	/bin/sh build/cfdistro/ant/bin/ant -f build/build.xml build
 elif [ "$opt" = "build-and-test" ]; then
 	/bin/sh build/cfdistro/ant/bin/ant -f build/build.xml build.and.test
+elif [ "$opt" = "stop-test-server" ]; then
+	/bin/sh build/cfdistro/ant/bin/ant -f build/build.xml runwar.stop
 elif [ "$opt" = "list-targets" ]; then
 	build/cfdistro/ant/bin/ant -f build/build.xml help
 elif [ "$opt" = "update" ]; then
