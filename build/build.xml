@@ -11,7 +11,7 @@
 	<loadproperties srcfile="build.properties"/>
 	<echo message="${todays.date}"/>
 
-	<property name="railo.build.number" value="3.2.0.001" />
+	<property name="railo.build.number" value="3.3.0.006" />
 	<property name="railo.build.level" value="os"/>
 	<property name="railo.build.state" value="source-build"/>
 	<property name="railo.build.name" value="cfdistro-built"/>
@@ -44,16 +44,17 @@
 		
 		<sequential>
 			<antcontrib:runtarget target="server.start"/>
+			<echo message="${cfdistro.basedir}/ant/bin/ant -buildfile build.xml -propertyfile ${temp.dir}/railo.properties" />
 			<exec dir="${src.dir}/railo-java/railo-master/" osfamily="unix"
             	executable="sh" failonerror="false">
-	            <arg line=" ${cfdistro.basedir}/ant/bin/ant -buildfile build.xml -propertyfile ${temp.dir}/railo.properties"/>
+	            <arg line="${cfdistro.basedir}/ant/bin/ant -buildfile build.xml -propertyfile ${temp.dir}/railo.properties"/>
 	          <env key="JAVA_HOME" path="${jdk5.home}"/>
 	        </exec>
 			<exec dir="${src.dir}/railo-java/railo-master/" osfamily="windows"
-            	executable="${cfdistro.basedir}/ant/bin/ant.bat" failonerror="false">
-	            <arg line="-buildfile build.xml -propertyfile ${temp.dir}/railo.properties"/>
-	          <env key="JAVA_HOME" path="${jdk5.home}"/>
-	        </exec>
+				executable="${cfdistro.basedir}/ant/bin/ant.bat" failonerror="false">
+				<arg line="-buildfile build.xml -propertyfile ${temp.dir}/railo.properties"/>
+				<env key="JAVA_HOME" path="${jdk5.home}"/>
+			</exec>
 			<antcontrib:runtarget target="server.stop"/>
 			<mkdir dir="${move.rc.file.to.dir}"/>
 			<move file="${src.dir}/railo-java/railo-core/dist/${railo.build.number}.rc" todir="${move.rc.file.to.dir}" />
