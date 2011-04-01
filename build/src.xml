@@ -15,13 +15,13 @@
         user="" password="" />
 
         <src dest="@src.dir@/" type="git"
-        uri="http://github.com/getrailo/railo.git"
-        user="" password="" />
-	-->
-        <src dest="@src.dir@/" type="git"
         uri="https://denuno@github.com/denuno/railo.git"
         user="" password="" />
 
+	-->
+        <src dest="@src.dir@/" type="git"
+        uri="http://github.com/getrailo/railo.git"
+        user="" password="" />
 
 	</project>
 	<sources>
