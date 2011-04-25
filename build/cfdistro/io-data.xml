@@ -65,7 +65,9 @@
 						<antcontrib:if>
 							<equals arg1="@{dropdatabase}" arg2="true" />
 							<then>
-								<ddlToDatabase schemaFile="@{schemafile}" verbosity="DEBUG">
+								<ddlToDatabase schemaFile="@{schemafile}" verbosity="DEBUG" validatexml="true"
+				                   	catalogpattern="ormshen"
+				                   	schemapattern="PUBLIC">
 									<database url="@{jdbcstring}" driverClassName="@{class}" username="@{username}" password="@{password}" />
 									<dropDatabase failonerror="false"/>
 								</ddlToDatabase>
@@ -74,7 +76,9 @@
 						<antcontrib:if>
 							<equals arg1="@{datafile}" arg2="" />
 							<then>
-								<ddlToDatabase schemaFile="@{schemafile}" verbosity="DEBUG">
+								<ddlToDatabase schemaFile="@{schemafile}" verbosity="DEBUG" validatexml="false"
+				                   	catalogpattern="ormshen"
+				                   	schemapattern="PUBLIC">
 		
 									<database url="@{jdbcstring}" driverClassName="@{class}" username="@{username}" password="@{password}" />
 									<!--
@@ -87,8 +91,9 @@
 									<!--
 									<dropDatabase failonerror="false"/>
 									-->
-		
-									<writeSchemaToDatabase />
+									<writeschematodatabase alterdatabase="true"
+										dodrops="true"
+										failonerror="false"/>
 								</ddlToDatabase>
 							</then>
 							<else>
@@ -167,6 +172,32 @@
 			</xmltask>
 		</sequential>
 	</macrodef>
+
+	<target name="h2.console" description="launches the h2 web console">
+		<echo message="starting h2 console, peace out!"/>
+		<antcontrib:runtarget target="exists.datasources.xml" />
+		<java classname="org.h2.tools.Server" classpathref="data.lib.path" fork="true" spawn="true">
+		</java>
+		<xmltask sourcebuffer="datasources.buff">
+		<call path="datasources/*">
+			<param name="jdbcstring" path="@jdbcstring" default="jdbc:mysql://{host}:{port}/{database}" />
+			<actions>
+				<echo message="connecting:@{jdbcstring}" />
+				<open-url url="http://localhost:8082/test.do?url=@{jdbcstring}&amp;driver=org.h2.Driver&amp;user=sa&amp;password=" />					
+			</actions>
+		</call>
+		</xmltask>
+	</target>
+	
+	<target name="h2.console.stop" description="stops the h2 web console">
+		<echo message="stopping h2 console, peace out! (MAY need to run as ROOT/ADMIN!)"/>
+		<java classname="org.h2.tools.Server" classpathref="data.lib.path">
+			<arg value="-tcpShutdown" />
+			<arg value="tcp://localhost:9092" />
+		</java>
+		<open-url url="http://localhost:8082" />					
+	</target>
+	
 
 
 </project>

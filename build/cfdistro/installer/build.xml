@@ -52,8 +52,11 @@
 		<taskdef name="xmltask" classname="com.oopsconsultancy.xmltask.ant.XmlTask" classpathref="izpack.lib.path" />
 -->
 		<taskdef name="izpack" classname="com.izforge.izpack.ant.IzPackTask" classpathref="izpack.lib.path" />
-		<taskdef name="launch4j" classname="net.sf.launch4j.ant.Launch4jTask" classpathref="izpack.lib.path" />
-
+		<taskdef name="launch4j"
+		    classname="net.sf.launch4j.ant.Launch4jTask"
+		    classpath="${cfdistro.basedir}/ext/launch4j/launch4j.jar
+		        :${cfdistro.basedir}/ext/launch4j/lib/xstream.jar" />
+		
 		<delete dir="${installer.temp.dir}" />
 		<mkdir dir="${installer.temp.dir}" />
 		<propertyfile file="${basedir}/buildinfo.properties" comment="Build Information">
@@ -196,7 +199,6 @@
 
 	<target name="installer.template.cfdistro" description="build the install izpack jar">
 		<requires-ext resource="${ext.dir}/installer" />
-		<!--
 		<copy todir="${basedir}/installer" verbose="false">
 			<fileset dir="${ext.dir}/installer" />
 		</copy>
@@ -207,7 +209,6 @@
 			tofile="${basedir}/installer/packs/${distro.name}/${distro.name}-pack.xml"/>
 		<move file="${basedir}/installer/packs/${distro.name}/cfdistro.properties"
 			tofile="${basedir}/installer/packs/${distro.name}/${distro.name}.properties"/>
-		-->
 		<move file="${basedir}/installer/packs/${distro.name}/img/cfdistro-logo.png"
 			tofile="${basedir}/installer/packs/${distro.name}/img/${distro.name}-logo.png"/>
 	</target>
@@ -221,15 +222,48 @@
 	</target>
 
 	<target name="buildInstallExe" description="build the install" depends="buildInstallJar">
-		<launch4j>
-			<config dontWrapJar="false" headerType="gui" outFile="${output.dir}/${install.file.name}.exe" jar="${output.dir}/${install.file.name}.jar" errTitle="Install Error" cmdLine="" chdir="." downloadUrl="http://java.com/download" supportUrl="" customProcName="false" stayAlive="true" icon="install/application.ico">
-				<var>-Dappdir=&quot;&quot; </var>
-				<jre path="./jre/" minVersion="1.5.0" maxVersion="" jdkPreference="">
-				</jre>
-				<versionInfo fileVersion="${product.version}" txtFileVersion="${product.version.txt}" fileDescription="${product.name.short} Windows Install" copyright="2009" productVersion="${product.version}" txtProductVersion="${product.version.txt}" productName="${product.name.short}" companyName="${company.name}" internalName="${install.file.name}.jar" originalFilename="${install.file.name}.exe" />
-				<messages startupErr="An error occurred while starting the application." bundledJreErr="This application was configured to use a bundled Java Runtime Environment but the runtime is missing or corrupted." jreVersionErr="This application requires a Java Runtime Environment.\nAt least version" launcherErr="The registry refers to a nonexistent Java Runtime Environment installation or the runtime is corrupted." instanceAlreadyExistsMsg="An application instance is already running." />
-			</config>
-		</launch4j>
+		<echo>${basedir}/install/application.ico</echo>
+	<launch4j>
+		<config dontWrapJar="false" headerType="gui"
+			outFile="${output.dir}/${install.file.name}.exe"
+			jar="${output.dir}/${install.file.name}.jar"
+			errTitle="Install Error"
+			cmdLine=""
+			chdir="."
+			downloadUrl="http://java.com/download"
+			supportUrl=""
+			customProcName="false"
+			stayAlive="true"
+			icon="installer/install/application.ico"
+			>
+		  <var>-Dappdir=&quot;&quot; </var>
+		  <jre 
+		  	path="./jre/"
+		  	minVersion="1.5.0"
+		  	maxVersion=""
+		  	jdkPreference="">
+		  </jre>
+			<versionInfo
+				fileVersion="${product.version}"
+				txtFileVersion="${product.version.txt}"
+				fileDescription="${product.name.short} Windows Install"
+				copyright="2009"
+				productVersion="${product.version}"
+				txtProductVersion="${product.version.txt}"
+				productName="${product.name.short}"
+				companyName="${company.name}"
+				internalName="${install.file.name}.jar"
+				originalFilename="${install.file.name}.exe"
+				/>
+		  <messages
+			  startupErr="An error occurred while starting the application."
+			  bundledJreErr="This application was configured to use a bundled Java Runtime Environment but the runtime is missing or corrupted."
+			  jreVersionErr="This application requires a Java Runtime Environment.\nAt least version"
+			  launcherErr="The registry refers to a nonexistent Java Runtime Environment installation or the runtime is corrupted."
+			  instanceAlreadyExistsMsg="An application instance is already running."
+		  />
+		</config>
+	</launch4j>
 	</target>
 
 	<target name="buildInstallExeJre" description="build the install" depends="buildInstallExe">

@@ -12,9 +12,10 @@
 		<attribute name="user" default="" />
 		<attribute name="password" default="" />
 		<element name="args" optional="true" />
-		<sequential>
+		<sequential> 
 			<echo message="SVN @{command}" />
 			<java classname="org.tmatesoft.svn.cli.SVN" fork="true" dir="@{dir}" classpathref="svn.lib.path" outputproperty="svn.results">
+				<jvmarg line="${proxy.jvmarg.line}"/>
 				<arg value="@{command}" />
 				<arg value="--non-interactive" />
 				<arg value="--force" />
@@ -38,6 +39,7 @@
 		<sequential>
 			<echo message="importing src: @{dest}" />
 			<java classname="org.tmatesoft.svn.cli.SVN" fork="true" classpathref="svn.lib.path">
+				<jvmarg line="${proxy.jvmarg.line}"/>
 				<arg value="export" />
 				<arg value="--non-interactive" />
 				<arg value="--force" />
@@ -47,8 +49,6 @@
 				<arg value="@{password}" />
 				<arg value="@{uri}" />
 				<arg value="@{dest}" />
-				<jvmarg value="-Dhttp.proxyHost="/>
-				<jvmarg value="-Dhttp.proxyPort="/>
 			</java>
 		</sequential>
 	</macrodef>
@@ -61,6 +61,7 @@
 		<sequential>
 			<echo message="checkout to: @{dest}" />
 			<java classname="org.tmatesoft.svn.cli.SVN" fork="true" classpathref="svn.lib.path">
+				<jvmarg line="${proxy.jvmarg.line}"/>
 				<arg value="co" />
 				<arg value="--non-interactive" />
 				<arg value="--username" />
@@ -110,6 +111,7 @@
 						<then>
 							<echo message="updating distro: @{dest}" />
 							<java classname="org.tmatesoft.svn.cli.SVN" fork="true" classpathref="svn.lib.path">
+								<jvmarg line="${proxy.jvmarg.line}"/>
 								<arg value="update" />
 								<arg value="--non-interactive" />
 								<arg value="--username" />
@@ -158,6 +160,7 @@
 				<actions>
 					<echo message="importing src: @{dest}" />
 					<java classname="org.tmatesoft.svn.cli.SVN" fork="true" classpathref="svn.lib.path">
+						<jvmarg line="${proxy.jvmarg.line}"/>
 						<arg value="export" />
 						<arg value="--non-interactive" />
 						<arg value="--force" />
@@ -191,6 +194,7 @@
 					<antcontrib:propertyregex property="project.wc.revision" input="${project.wc}" regexp="Revision:\s*(.*)" select="\1" defaultValue="" casesensitive="false" />
 					<echo message="Working Copy Revision: ${project.wc.revision}" />
 					<java classname="org.tmatesoft.svn.cli.SVN" dir="${source-root}" fork="true" classpathref="svn.lib.path" outputproperty="project.head">
+						<jvmarg line="${proxy.jvmarg.line}"/>
 						<arg value="info" />
 						<arg value="--non-interactive" />
 						<arg value="--username" />

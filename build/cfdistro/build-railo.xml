@@ -4,7 +4,6 @@
 	<property file="${build-railo.basedir}/build-railo.properties" />
 	
 	<target name="railo.requires">
-		<load-buildtype-properties buildtype="${build.type}" />
 		<mkdir dir="${ext.railo.dir}"/>
 		<mkdir dir="${ext.railo.dir}/patches"/>
 		<antcontrib:if>
@@ -14,10 +13,15 @@
 				<get src="${ext.railo.war.uri}" dest="${ext.railo.war}" verbose="true" ignoreerrors="false" />
 			</else>
 		</antcontrib:if>
+		<!--
 		<requires-ext resource="${ext.railo.dir}/railo-server.xml"/>
+		-->
 		<!-- patches -->
 		<antcontrib:if>
-			<equals arg1="${railo.patch.version}" arg2="" />
+			<or>
+				<equals arg1="${railo.patch.version}" arg2="" />
+				<equals arg1="${railo.patch.version}" arg2="$${railo.patch.version}" />
+			</or>
 			<then><echo message="Not downloading any railo patches"/></then>
 			<else>
 				<antcontrib:if>
@@ -53,11 +57,29 @@
 		<copy file="${extracted}/resource/config/server.xml" tofile="${railo.server.config.file}" overwrite="true" />
 		<copy file="${extracted}/resource/config/web.xml" tofile="${war.target.dir}/WEB-INF/railo/railo-web.xml.cfm" overwrite="true" />
 		<delete dir="${extracted}"/> 
+		<antcontrib:if>
+			<equals arg1="${server.sharedlibs}" arg2="true" />
+			<then>
+				<delete>
+					<fileset dir="${war.target.dir}/WEB-INF">
+						 <include name="lib/**"/>
+						 <exclude name="**/lib/railo-server/**"/>
+						 <exclude name="**/WEB-INF/railo/**"/>
+					</fileset>
+				</delete>
+			</then>
+		</antcontrib:if>
 		<!-- remove railo file servlet as it causes trouble -->
 		<xmltask source="${war.target.dir}/WEB-INF/web.xml" dest="${war.target.dir}/WEB-INF/web.xml">
 			<xmlcatalog refId="commonDTDs" />
 			<remove path="web-app/servlet[servlet-class/text()='railo.loader.servlet.FileServlet']" />
 			<remove path="web-app/servlet-mapping[servlet-name/text()='FileServlet']" />
+		</xmltask>
+		<xmltask source="${war.target.dir}/WEB-INF/web.xml" dest="${war.target.dir}/WEB-INF/web.xml">
+			<xmlcatalog refId="commonDTDs" />
+			<replace path="web-app/servlet[servlet-class/text()='railo.loader.servlet.CFMLServlet']/init-param[param-value/text()='/WEB-INF/railo/']/param-value/text()" withText="./WEB-INF/railo/" />
+			<insert path="web-app/servlet[servlet-class/text()='railo.loader.servlet.CFMLServlet']" position="under">
+			<![CDATA[<init-param><param-name>railo-server-root</param-name><param-value>.</param-value></init-param>]]></insert>
 		</xmltask>
 		<!-- needed if deployed to jboss -->
 		<requires-ext-file file="${ext.dir}/jboss/jboss-classloading.xml"/>
@@ -79,30 +101,6 @@
 
 	<target name="railo.build">
 		<antcontrib:runtarget target="war.init" />
-		<antcontrib:switch value="${build.type}">
-		  <case value="localdev">
-			<requires-ext resource="${ext.railo.dir}/error.cfm"/>
-			<copy file="${ext.railo.dir}/error.cfm" todir="${war.target.dir}/WEB-INF/lib/railo-server/context/library/tag" overwrite="true" />
-			<railo-cache-template when="always" />
-		  	<railo-error-template path="/WEB-INF/lib/railo-server/context/library/tag/error.cfm"/>
-		  </case>
-		  <case value="dev">
-			<copy file="${ext.railo.dir}/error.cfm" todir="${war.target.dir}/WEB-INF/lib/railo-server/context/library/tag" overwrite="true" />
-			<railo-cache-template when="always" />
-		  	<railo-error-template path="/WEB-INF/lib/railo-server/context/library/tag/error.cfm"/>
-		  </case>
-		  <case value="qa">
-			<property name="copy.mappings.to.src" value="true"/>
-			<railo-cache-template when="never" />
-		  </case>
-		  <case value="prod">
-			<property name="copy.mappings.to.src" value="true"/>
-			<railo-cache-template when="never" />
-		  </case>
-		  <default>
-		  	<fail message="Um, the build type '${build.type}' is unknown to me, esse!" />
-		  </default>
-		</antcontrib:switch>
 	</target>
 	
 	<target name="railo.build.binary">
@@ -402,7 +400,7 @@
 		<filter token="runwar.port" value="${runwar.port}"/>
 		<filter token="war.name" value="${war.name}"/>
 		<filter token="war.contextpath" value="${war.contextpath}"/>
-		<copy file="scheduledtasks.xml" toFile="${war.target.dir}/WEB-INF/railo/scheduler/scheduler.xml" filtering="true"/>
+		<copy file="${scheduledtasks.file}" toFile="${war.target.dir}/WEB-INF/railo/scheduler/scheduler.xml" filtering="true"/>
 	</target>
 	
 	<target name="railo.compile-cf">
@@ -514,6 +512,50 @@
 		</xmltask>
 	</target>
 
+	<target name="railo.set.debug">
+		<echo message="setting logging dir to ${log.dir}"/>
+		<xmltask source="${railo.config.file}" dest="${railo.config.file}">
+			<attr path="/railo-configuration/debugging" attr="debug" value="${debugging.enabled}" />
+		</xmltask>
+	</target>
+
+	
+	<target name="railo.set.inspect.templates">
+		<echo message="Will inspect each template ${cfmlengine.inspect.templates}"/>
+		<xmltask source="${railo.config.file}" dest="${railo.config.file}">
+			<attr path="/railo-configuration/java" attr="inspect-template" value="${cfmlengine.inspect.templates}" />
+		</xmltask>
+	</target>
+
+	<target name="railo.set.security">
+		<echo message="Setting security options"/>
+		<antcontrib:var name="datasource.exists" unset="true" />
+		<xmltask source="${railo.server.config.file}" dest="${railo.server.config.file}">
+			<copy path="/railo-configuration/security" attrValue="true" property="security.exists" />
+			<replace path="/railo-configuration/security']" if="security.exists">
+				<![CDATA[
+				<security access_read="${railo.security.access_read}" access_write="${railo.security.access_write}" 
+				cache="${railo.security.cache}" cfx_setting="${railo.security.cfx_setting}" cfx_usage="${railo.security.cfx_usage}"
+				custom_tag="${railo.security.custom_tag}" datasource="${railo.security.datasource}" debugging="${railo.security.debugging}"
+				direct_java_access="${railo.security.direct_java_access}" file="yes" gateway="yes" mail="yes" mapping="yes" 
+				remote="yes" scheduled_task="yes" search="yes" setting="yes" 
+				tag_execute="yes" tag_import="yes" tag_object="yes" tag_registry="yes"/>
+				]]>
+				</replace>
+			<insert path="/railo-configuration" position="under" unless="security.exists">
+				<![CDATA[
+				<security access_read="${railo.security.access_read}" access_write="${railo.security.access_write}" 
+				cache="${railo.security.cache}" cfx_setting="${railo.security.cfx_setting}" cfx_usage="${railo.security.cfx_usage}"
+				custom_tag="${railo.security.custom_tag}" datasource="${railo.security.datasource}" debugging="${railo.security.debugging}"
+				direct_java_access="${railo.security.direct_java_access}" file="yes" gateway="yes" mail="yes" mapping="yes" 
+				remote="yes" scheduled_task="yes" search="yes" setting="yes" 
+				tag_execute="yes" tag_import="yes" tag_object="yes" tag_registry="yes"/>
+				]]>
+				</insert>
+		</xmltask>
+	</target>
+
+
 	<target name="railo.add.build.cfc">
 		<mkdir dir="${war.target.dir}/_cfd_compile_temp" />
 		<railo-mapping virtual="/_cfd_compile_temp" physical="${war.target.dir}/_cfd_compile_temp" />
@@ -572,7 +614,68 @@
 				</antcontrib:if>
 		</sequential>
 	</macrodef>	
+	
+	<macrodef name="railo-cache">
+		<attribute name="name"/>
+		<attribute name="class"/>
+		<attribute name="custom"/>
+		<attribute name="storage"/>
+		<attribute name="default-type" default=""/>
+		<attribute name="read-only" default="false"/>
+		
+		<sequential>
+			<antcontrib:if>
+				<equals arg1="${default.cfengine}" arg2="railo" />
+				<then>
+					<antcontrib:var name="some.cache.exists" unset="true" />
+					<xmltask source="${railo.config.file}" dest="${railo.config.file}">
+						<xmlcatalog refId="commonDTDs" />
+						<copy path="//railo-configuration/cache/text()" property="some.cache.exists" />
+						<!-- if no caches at all, just insert -->
+						<insert path="//railo-configuration" position="under" unless="some.cache.exists">
+							<![CDATA[<cache>
+							<connection class="@{class}" custom="@{custom}" name="@{name}" read-only="@{read-only}" storage="@{storage}"/></cache>]]>
+						</insert>
+						<copy path="//railo-configuration/cache/connection[@name='@{name}']/@name" attrValue="true" property="cache.exists" />
+						<replace path="//railo-configuration/cache/connection[@name='@{name}']" if="cache.exists">
+							<![CDATA[
+							<connection class="@{class}" custom="@{custom}" name="@{name}" read-only="@{read-only}" storage="@{storage}"/>
+		  					]]>
+		  					</replace>
+						<insert path="//railo-configuration/cache" position="under" unless="cache.exists">
+							<![CDATA[
+							<connection class="@{class}" custom="@{custom}" name="@{name}" read-only="@{read-only}" storage="@{storage}"/>
+		  					]]>
+	  					</insert>
+					</xmltask>
+					<antcontrib:if>
+						<equals arg1="@{default-type}" arg2="" />
+						<then/>
+						<else>
+							<xmltask source="${railo.config.file}" dest="${railo.config.file}">
+								<attr path="/railo-configuration/cache" attr="@{default-type}" value="@{name}" />
+							</xmltask>
+						</else>
+					</antcontrib:if>
+					<!-- if some caches exist we can update and add -->
+					<antcontrib:switch value="${cache.exists}">
+						<case value="true">
+							<echo message="updated cache provider @{name}" />
+						</case>
+						<default>
+							<echo message="added cache provider @{name}" />
+						</default>
+					</antcontrib:switch>
+					<antcontrib:var name="cache.exists" unset="true" />
+				</then>
+				<else>
+					<echo> *** cache providers are useless for ${default.cfengine} hombre!</echo>
+				</else>
+			</antcontrib:if>
+		</sequential>
+	</macrodef>	
 
+	
 	<macrodef name="railo-mapping-remove">
 		<attribute name="virtual" />
 		<sequential>
@@ -593,17 +696,7 @@
 			</antcontrib:switch>
 		</sequential>
 	</macrodef>	
-	
-	
-	<macrodef name="railo-cache-template">
-		<attribute name="when" default="always" />
-		<sequential>
-			<xmltask source="${railo.config.file}" dest="${railo.config.file}">
-				<attr path="/railo-configuration/java" attr="inspect-template" value="@{when}" />
-			</xmltask>
-		</sequential>
-	</macrodef>	
-	
+		
 	<macrodef name="railo-error-template">
 		<attribute name="path" default="always" />
 		<attribute name="type" default="500" />
@@ -617,42 +710,117 @@
 			</xmltask>
 		</sequential>
 	</macrodef>	
+		
+	<macrodef name="railo-inspect-template">
+		<attribute name="when" default="" />
+		<sequential>
+			<antcontrib:runtarget target="railo.set.inspect.templates" />
+		</sequential>
+	</macrodef>	
 
 	<macrodef name="extensionprovider">
 		<attribute name="url" default="" />
 		<sequential>
-			<antcontrib:var name="some.extension.exists" unset="true" />
-			<xmltask source="${railo.config.file}" dest="${railo.config.file}">
-				<xmlcatalog refId="commonDTDs" />
-				<copy path="/railo-configuration/extensions/text()" property="some.extension.exists" />
-				<!-- if no extensions at all, just insert -->
-				<insert path="/railo-configuration" position="under" unless="some.extension.exists">
-					<![CDATA[<extensions><provider url="@{url}"/></extensions>]]>
-				</insert>
-				<copy path="/railo-configuration/extensions/provider[@url='@{url}']/@url" attrValue="true" property="extension.exists" />
-				<replace path="/railo-configuration/extensions/provider[@url='@{url}']/text()" if="extension.exists">
-					<![CDATA[
-  						<provider url="@{url}"/>
-  					]]>
-  					</replace>
-				<insert path="/railo-configuration/extensions" position="under" unless="extension.exists">
-					<![CDATA[
-						<provider url="@{url}"/>
-  					]]>
-  					</insert>
-			</xmltask>
-			<!-- if some extensions exist we can update and add -->
-			<antcontrib:switch value="${extension.exists}">
-				<case value="true">
-					<echo message="updated extension provider @{url}" />
-				</case>
-				<default>
-					<echo message="added extension provider @{url}" />
-				</default>
-			</antcontrib:switch>
+			<antcontrib:if>
+				<equals arg1="${default.cfengine}" arg2="railo" />
+				<then>
+					<antcontrib:var name="some.extension.exists" unset="true" />
+					<xmltask source="${railo.config.file}" dest="${railo.config.file}">
+						<xmlcatalog refId="commonDTDs" />
+						<copy path="/railo-configuration/extensions/text()" property="some.extension.exists" />
+						<!-- if no extensions at all, just insert -->
+						<insert path="/railo-configuration" position="under" unless="some.extension.exists">
+							<![CDATA[<extensions><provider url="@{url}"/></extensions>]]>
+						</insert>
+						<copy path="/railo-configuration/extensions/provider[@url='@{url}']/@url" attrValue="true" property="extension.exists" />
+						<replace path="/railo-configuration/extensions/provider[@url='@{url}']/text()" if="extension.exists">
+							<![CDATA[
+		  						<provider url="@{url}"/>
+		  					]]>
+		  					</replace>
+						<insert path="/railo-configuration/extensions" position="under" unless="extension.exists">
+							<![CDATA[
+								<provider url="@{url}"/>
+		  					]]>
+		  					</insert>
+					</xmltask>
+					<!-- if some extensions exist we can update and add -->
+					<antcontrib:switch value="${extension.exists}">
+						<case value="true">
+							<echo message="updated extension provider @{url}" />
+						</case>
+						<default>
+							<echo message="added extension provider @{url}" />
+						</default>
+					</antcontrib:switch>
+				</then>
+				<else>
+					<echo> *** Extension providers are useless for ${default.cfengine} hombre!</echo>
+				</else>
+			</antcontrib:if>
 		</sequential>
 	</macrodef>	
+
 	
+	<macrodef name="railo-eventgateway">
+		<attribute name="id" />
+		<attribute name="cfc-path" default="railo.extension.gateway.DirectoryWatcher" />
+		<attribute name="class" default="" />
+		<attribute name="listener-cfc-path" default="srcsync.sync" />
+		<attribute name="read-only" default="false" />
+		<attribute name="startup-mode" default="automatic" />
+		<attribute name="directory" default="" />
+		<attribute name="interval" default="6000" />
+		<attribute name="addFunction" default="onAdd" />
+		<attribute name="deleteFunction" default="onDelete" />
+		<attribute name="changeFunction" default="onChange" />
+		<attribute name="extensions" default="*" />
+		<attribute name="recurse" default="true" />		 
+		<sequential>
+			<antcontrib:if>
+				<equals arg1="${default.cfengine}" arg2="railo" />
+				<then>
+					<antcontrib:var name="some.gateway.exists" unset="true" />
+					<xmltask source="${railo.config.file}" dest="${railo.config.file}">
+						<xmlcatalog refId="commonDTDs" />
+						<copy path="/railo-configuration/gateways/text()" property="some.gateway.exists" />
+						<!-- if no gateways at all, just insert -->
+						<insert path="/railo-configuration" position="under" unless="some.gateway.exists">
+							<![CDATA[
+						    <gateways>
+							<gateway cfc-path="@{cfc-path}" class="" custom="directory=@{directory}&amp;interval=@{interval}&amp;changeFunction=@{changeFunction}&amp;extensions=@{extensions}&amp;recurse=@{recurse}&amp;addFunction=@{addFunction}&amp;deleteFunction=@{deleteFunction}" id="@{id}" listener-cfc-path="@{listener-cfc-path}" read-only="@{read-only}" startup-mode="@{startup-mode}"/>
+						    </gateways>
+		  					]]>
+						</insert>
+						<copy path="/railo-configuration/gateways/gateway[@id='@{id}']/@id" attrValue="true" property="gateway.exists" />
+						<replace path="/railo-configuration/gateways/provider[@url='@{url}']/text()" if="gateway.exists">
+							<![CDATA[
+							<gateway cfc-path="@{cfc-path}" class="" custom="directory=@{directory}&amp;interval=@{interval}&amp;changeFunction=@{changeFunction}&amp;extensions=@{extensions}&amp;recurse=@{recurse}&amp;addFunction=@{addFunction}&amp;deleteFunction=@{deleteFunction}" id="@{id}" listener-cfc-path="@{listener-cfc-path}" read-only="@{read-only}" startup-mode="@{startup-mode}"/>
+		  					]]>
+		  					</replace>
+						<insert path="/railo-configuration/gateways" position="under" unless="gateway.exists">
+							<![CDATA[
+							<gateway cfc-path="@{cfc-path}" class="" custom="directory=@{directory}&amp;interval=@{interval}&amp;changeFunction=@{changeFunction}&amp;extensions=@{extensions}&amp;recurse=@{recurse}&amp;addFunction=@{addFunction}&amp;deleteFunction=@{deleteFunction}" id="@{id}" listener-cfc-path="@{listener-cfc-path}" read-only="@{read-only}" startup-mode="@{startup-mode}"/>
+		  					]]>
+		  					</insert>
+					</xmltask>
+					<!-- if some gateways exist we can update and add -->
+					<antcontrib:switch value="${gateway.exists}">
+						<case value="true">
+							<echo message="updated gateway @{url}" />
+						</case>
+						<default>
+							<echo message="added gateway @{url}" />
+						</default>
+					</antcontrib:switch>
+				</then>
+				<else>
+					<echo> *** gateways are useless for ${default.cfengine} hombre!</echo>
+				</else>
+			</antcontrib:if>
+		</sequential>
+	</macrodef>	
+
 	<!-- these are overridden prior -->
 	<target name="clean">
 		<antcontrib:runtarget target="cfdistro.clean" />

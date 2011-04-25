@@ -8,14 +8,23 @@
 	<property name="server.port.ajp" value="8009"/>
 	<property name="server.maxmemory" value="256M"/>
 
-	<property name="jboss.server" value="default" />
 	<property name="jboss.version" value="5.1.0.GA" />
-	<property name="jboss.dir" location="${temp.dir}/server/jboss${jboss.version}" />
+	<property name="jboss.server" value="default" />
+	
+	<property name="jboss.dir" location="${basedir}/jboss${jboss.version}" />
+	<property name="jboss.dir.absolute" location="${jboss.dir}" />
+	<antcontrib:var name="jboss.dir" unset="true" />
+	<property name="jboss.dir" location="${jboss.dir.absolute}" />
 	<property name="jboss.server.dir" value="${jboss.dir}/server/${jboss.server}"/>
 	<property name="jboss.host" value="${server.host}"/>
 	<property name="ext.jboss.dir" location="${ext.dir}/jboss/${jboss.version}" />
+	<!--
+	ver 7
+	<property name="ext.jboss.zip.uri" value="http://download.jboss.org/jbossas/7.0/jboss-${jboss.version}/jboss-${jboss.version}.zip" />
+	-->
 	<property name="ext.jboss.zip.uri" value="http://sourceforge.net/projects/jboss/files/JBoss/JBoss-${jboss.version}/jboss-${jboss.version}.zip/download" />
-	<property name="ext.jboss.zip" location="${ext.jboss.dir}/apache-jboss-${jboss.version}.zip" />
+	
+	<property name="ext.jboss.zip" location="${ext.jboss.dir}/jboss-${jboss.version}.zip" />
 	<property name="jboss.port.http" value="${server.port.http}"/>
 	<property name="jboss.port.ajp" value="${server.port.ajp}"/>
 	<property name="jboss.deploy.dir" value="${server.deploy.dir}"/>
@@ -75,7 +84,7 @@
 		<antcontrib:runtarget target="jboss.configure" />
 		</sequential>
 	</target>
-
+	
 	<target name="jboss.configure">
 		<!-- 
 		<echo message="export JAVA_OPTS=-Xms256m -Xmx${server.maxmemory} -XX:MaxPermSize=128m -XX:+UseParallelGC"
@@ -132,6 +141,12 @@
 		</xmltask>
 		<echo message="${jboss.deploy.dir}"/>
 		<echo message="${server.deploy.dir}"/>
+		<antcontrib:if>
+			<equals arg1="${war.contextpath}" arg2="/" />
+			<then>
+				<delete dir="${jboss.server.dir}/deploy/ROOT.war"/>
+			</then>
+		</antcontrib:if>
 	</target>
 
 	<target name="jboss.start" depends="jboss.install">
@@ -148,8 +163,12 @@
 
 	<target name="jboss.stop">
 		<jboss-stop bindaddr="${server.host}" jbossinstalldir="${jboss.dir}" jdkhome="${jboss.jdk.home}" jnpport="${jboss.jnp.port}" />
-		<sleep seconds="10"/>
-	    <kill-java name="bootstrap.jar" jps="${jps.executable}"/>
+		<waitfor maxwait="21" maxwaitunit="second" checkevery="7" checkeveryunit="second" timeoutproperty="toolong">
+			<not>
+				<socket server="${server.host}" port="${jboss.port.http}" />
+			</not>
+		</waitfor>
+	    <kill-java name="Main" jps="${jps.executable}"/>
 	</target>	
 
 	<target name="deploy.jboss" depends="jboss.install">
@@ -312,7 +331,9 @@
 	        <condition property="shutdown.okay">
 	            <equals arg1="${shutdown.rc}" arg2="0"/>
 	        </condition>
+	    	<!--
 	        <fail unless="shutdown.okay" message="Unable to shut down JBoss (maybe it hasn't fully started yet?)."/>
+	        -->
 	        <echo>Waiting for @{bindAddr}:@{jnpPort} to stop listening...</echo>
 	        <waitfor maxwait="2" maxwaitunit="minute">
 	            <not>
@@ -332,59 +353,6 @@
 	            <socket server="@{bindAddr}" port="@{jnpPort}"/>
 	        </waitfor>
 	    </sequential>
-	</macrodef>
-	
-	<macrodef name="kill-java"
-	          description="Forcefully stop jboss....">
-	 <attribute name="name"/>
-	 <attribute name="jps" default="${java.home}/bin/jps" />
-	 <sequential>
-	  <!-- Execute the jps and check for any Java process with the provided @{name} attribute -->
-	  <exec executable="@{jps}" output="pid.out.file" />
-	  <!-- Load in the name / pid file and strip all information except the PID -->
-	  <loadfile srcfile="pid.out.file" property="pid.out">
-	   <filterchain>
-	     <linecontains>
-	      <contains value="@{name}"/>
-	     </linecontains>
-	    <tokenfilter>
-	    <deletecharacters chars="@{name}"/>
-	    <trim/>
-	    <ignoreblank/>
-	    </tokenfilter>
-	    <striplinebreaks/>
-	   </filterchain>
-	  </loadfile>
-	  <echo message="Killing java process with pid ${pid.out}"/>
-		<antcontrib:switch value="${os.name}">
-		  <case value="Mac OS X">
-			  <exec spawn="true" executable="kill">
-			   <arg line="-9" />
-			   <arg line="${pid.out}" />
-			  </exec>
-		  </case>
-		  <case value="Linux">
-		  </case>
-		  <case value="Windows">
-			  <exec spawn="true" executable="taskkill">
-			   <arg line="/PID ${pid.out}" />
-			   <arg line="/F" />
-			  </exec>
-		  </case>
-		  <case value="Windows 7">
-			  <exec spawn="true" executable="taskkill">
-			   <arg line="/PID ${pid.out}" />
-			   <arg line="/F" />
-			  </exec>
-		  </case>
-		  <default>
-		  	<fail message="Um, the os '${os.name}' is unknown to me, esse!" />
-		  </default>
-		</antcontrib:switch>
-	  <!--  
-	  <delete file="pid.out.file" />
-	  -->
-	 </sequential>
 	</macrodef>
 	
 </project>

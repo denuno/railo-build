@@ -2,7 +2,7 @@
 
 	<cffunction name="init" output="false">
 		<cfset variables.adminType = "web" />
-		<cfparam name="cfadminpassword" default="testtest" />
+		<cfparam name="cfadminpassword" default="@cfadmin.password@" />
 		<cfset variables["password#variables.adminType#"] = cfadminpassword />
 		<cfreturn this />
 	</cffunction>

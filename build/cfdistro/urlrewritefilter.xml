@@ -1,6 +1,8 @@
 <project name="urlrewritefilter" default="urlrewritefilter.update"
 	basedir="./" xmlns:antcontrib="antlib:net.sf.antcontrib">
 
+	<property name="urlrewritefilter.version" value="3.2.0" />
+
 	<target name="urlrewritefilter.servlet.install" depends="exists.urlrewrite.xml">
 		
 		<property name="urlrewritefilter.log.level" value="WARN" />
@@ -26,6 +28,10 @@
 		        <filter-mapping>
 		            <filter-name>UrlRewriteFilter</filter-name>
 		            <url-pattern>/*</url-pattern>
+					<dispatcher>REQUEST</dispatcher>
+				<!--
+			        <dispatcher>FORWARD</dispatcher>
+				-->
 		        </filter-mapping>
 				]]>
 			</insert>
@@ -194,12 +200,14 @@
 				<available file="${urlrewrite.file}" type="file" property="exists.urlrewrite.xml" />
 			</else>
 		</antcontrib:if>
+		<echo message="Using urlrewrite-${urlrewritefilter.version}" />
 		<antcontrib:if>
 			<equals arg1="${exists.urlrewrite.xml}" arg2="true" />
 			<then>
 				<copy todir="${war.target.dir}/WEB-INF/" overwrite="true">
 					<fileset dir="${ext.dir}/urlrewritefilter/">
-						<include name="**" />
+						<include name="**/*.xml" />
+						<include name="**/urlrewrite-${urlrewritefilter.version}.jar" />
 					</fileset>
 				</copy>
 				<copy todir="${war.target.dir}/WEB-INF/" overwrite="true" file="${urlrewrite.file}" verbose="true" />
@@ -208,7 +216,8 @@
 				<echo message="No urlrewrite.xml to import : ${basedir}/urlrewrite.xml does not exist." />
 				<copy todir="${war.target.dir}/WEB-INF/" overwrite="true">
 					<fileset dir="${ext.dir}/urlrewritefilter/">
-						<include name="**" />
+						<include name="**/*.xml" />
+						<include name="**/urlrewrite-${urlrewritefilter.version}.jar" />
 					</fileset>
 				</copy>
 			</else>

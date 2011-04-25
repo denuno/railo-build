@@ -11,7 +11,7 @@
 	<target name="acfdsnencrypt.compile">
 		<delete dir="${acfdsnencrypt.basedir}/bin/acfdsnencrypt/" />
 		<mkdir dir="${acfdsnencrypt.basedir}/bin/acfdsnencrypt/" />
-		<javac srcdir="${acfdsnencrypt.basedir}/src/acfdsnencrypt" destdir="${acfdsnencrypt.basedir}/bin/acfdsnencrypt" classpathref="acfdsnencrypt.lib.path" />
+		<javac-ecj srcdir="${acfdsnencrypt.basedir}/src/acfdsnencrypt" destdir="${acfdsnencrypt.basedir}/bin/acfdsnencrypt" classpath="${acfdsnencrypt.basedir}/lib/not-yet-commons-ssl-0.3.11.jar" />
 	</target>
 
 	<target name="acfdsnencrypt.jar" depends="acfdsnencrypt.compile">

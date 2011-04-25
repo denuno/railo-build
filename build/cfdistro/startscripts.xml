@@ -56,7 +56,14 @@ fi
 done
 fi
 reldir=`dirname $0`
-/bin/sh $reldir/build/cfdistro/ant/bin/ant -f $reldir/build/build.xml $*
+target=$1
+parameters=""
+shift
+for var in "$@"
+do
+    parameters="$parameters -D$var"
+done
+/bin/sh $reldir/build/cfdistro/ant/bin/ant -f $reldir/build/build.xml $target $parameters
 	]]>
 			</echo>
 			<echo file="${dist.script.bat}"><![CDATA[@echo off
@@ -134,7 +141,23 @@ REM EXIT
 			</echo>
 			<fixcrlf file="${dist.script.bat}" eol="crlf" />
 			<chmod file="${dist.script.sh}" perm="ugo+rx"/>
+			<property name="osxappbundle.dir" location="${dist.root.dir}/${distro.name}.app"/>
+
+			<!-- make OS X app bundle -->
+			<copy toDir="${osxappbundle.dir}" overwrite="yes">
+				<filterchain>
+				<expandproperties />
+				</filterchain>
+				<fileset dir="${cfdistro.basedir}/skeleton/osxappbundle" />
+			</copy>
+			<move file="${osxappbundle.dir}/Contents/Resources/icon.icns"
+				toFile="${osxappbundle.dir}/Contents/Resources/${distro.name}.icns" />
+			<move file="${osxappbundle.dir}/Contents/MacOS/start"
+				toFile="${osxappbundle.dir}/Contents/MacOS/${distro.name}" />
+			<chmod file="${osxappbundle.dir}/Contents/MacOS/${distro.name}" perm="ugo+rx"/>
+			<chmod file="${osxappbundle.dir}/Contents/MacOS/run.command" perm="ugo+rx"/>
 		</then>
+	
 	</antcontrib:if>
 </target>
 
@@ -142,8 +165,15 @@ REM EXIT
 		<echo file="${basedir}/cfdistro.sh"><![CDATA[#! /bin/sh
 reldir=`dirname $0`
 export ANT_HOME="$reldir/cfdistro/ant/"
-/bin/sh $reldir/cfdistro/ant/bin/ant -f $reldir/build.xml $*
-		]]>
+props=""
+target=$1
+shift
+for var in "$@"
+do
+    props="$props -D$var"
+done
+echo $reldir/cfdistro/ant/bin/ant -f $reldir/build.xml $target $props
+/bin/sh $reldir/cfdistro/ant/bin/ant -f $reldir/build.xml $target $props]]>
 		</echo>
 		<chmod file="${basedir}/cfdistro.sh" perm="ugo+rx"/>
 		<echo file="${basedir}/cfdistro.bat"><![CDATA[@echo off
@@ -161,5 +191,50 @@ echo cfdistro.bat stop
 
 	</target>
 
+	<target name="centos.onboot">
+		<echo file="/etc/init.d/${distro.name}"><![CDATA[#!/bin/sh
+# chkconfig: 345 99 01
+# description: ${distro.name} startup script
+# 
+runcommand=${basedir}/../${distro.name}.sh
+runuser=$(/usr/bin/whoami)
+echo Running as $runuser
+if [ $runuser != "cfml" ]; then
+	#su - cfml --session-command="/home/cfml/hazrating/hazrating.sh $1"
+	runcommand="sudo -u cfml -i -H $runcommand"
+	echo Switching to cfml user
+fi
+case "$1" in
+
+  start)
+	echo "starting ${distro.name}"
+	shift
+	$runcommand server.start @*
+;;
+
+ stop)
+	echo "stopping ${distro.name}"
+	shift
+	$runcommand server.stop @*
+;;
+
+ restart)
+	echo "restarting ${distro.name}"
+	shift
+	$runcommand server.restart @*
+;;
+
+  *)
+echo "*** Usage: ${distro.name} {start | stop | restart}"
+exit 1
+esac]]></echo>
+		<chmod file="/etc/init.d/${distro.name}" perm="ugo+rx"/>
+		<exec executable="/sbin/chkconfig">
+			<arg value="--level"/>
+			<arg value="345"/>
+			<arg value="${distro.name}"/>
+			<arg value="on"/>
+		</exec>
+	</target>
 </project>
 

@@ -1,0 +1,252 @@
+<project name="ant-util" basedir="./" xmlns:antcontrib="antlib:net.sf.antcontrib">
+
+	<macrodef name="abspath">
+		<attribute name="path" description="the path to get the absolute dir from" />
+		<attribute name="property" description="The property to set with the value." />
+		<sequential>
+			<!-- Grab data past @{root} in @{full-path}. -->
+			<antcontrib:var name="@{property}" unset="true" />
+			<property name="@{property}" location="@{path}" />
+		</sequential>
+	</macrodef>
+
+	<macrodef name="relpath"
+		description="Compute the branch based upon a root dir, @{root}, 
+	and full path, @{full-path}.  The branch represents the full path minus 
+	the root dir.  Please note:  if @{root} does not exist in @{full-path}, 
+	@{property} will be set with an empty value.">
+		<attribute name="root"
+			description="The root of the path defined in @{full-path}." />
+		<attribute name="full-path"
+			description="The absolute path for which @{root} is the root of the path and the branch computed is this path minus the root." />
+		<attribute name="property" description="The property to set with the branch." />
+		<attribute name="description" default=""
+			description="Information about this macro call." />
+		<sequential>
+			<!-- Grab data past @{root} in @{full-path}. -->
+			<antcontrib:propertyregex property="cfdistro.RELATIVE.PATH.HOLDER"
+				override="true" input="@{full-path}" regexp="@{root}(.*)" select="\1"
+				description="Parse out the branch from the value contained in @{root}" />
+			<!-- Remove the leading file separator (if it is there). If it is not 
+				there, simply use the value as is. -->
+			<antcontrib:propertyregex property="@{property}"
+				override="true" input="${cfdistro.RELATIVE.PATH.HOLDER}" regexp="^[${file.separator}](.*)"
+				replace="\1" defaultValue="${cfdistro.RELATIVE.PATH.HOLDER}"
+				description="Remove the leading file separator if its there" />
+			<antcontrib:if>
+				<equals arg1="${@{property}}" arg2="$${cfdistro.RELATIVE.PATH.HOLDER}" />
+				<then>
+					<fail
+						message="'@{root}' (the part that will be removed) should be above '@{full-path}'" />
+				</then>
+			</antcontrib:if>
+		</sequential>
+	</macrodef>
+
+	<macrodef name="javac-ecj">
+		<attribute name="srcdir" />
+		<attribute name="destdir" />
+		<attribute name="classpath" default="" />
+		<attribute name="target" default="1.5" />
+		<attribute name="compliance" default="1.5" />
+		<sequential>
+			<!-- http://help.eclipse.org/galileo/index.jsp?topic=/org.eclipse.jdt.doc.isv/guide/jdt_api_compile.htm -->
+			<path id="javac-ecj.compile.classpath" path="rt.jar:@{classpath}" />
+			<echo message="Compiling @{srcdir}" />
+			<!-- we use the temp file because the cp gets too long for windows sometimes -->
+			<tempfile property="temp.file" deleteonexit="true" />
+			<concat destfile="${temp.file}">-classpath
+				${toString:javac-ecj.compile.classpath}</concat>
+			<java jar="${cfdistro.basedir}/lib/ecj-3.6.jar" fork="true"
+				classpathref="build.lib.path">
+				<arg value="-@{compliance}" />
+				<arg value="-warn:none" />
+				<arg value="-d" />
+				<arg value="@{destdir}" />
+				<arg value="-target" />
+				<arg value="@{target}" />
+				<arg line="@${temp.file}" />
+				<arg value="@{srcdir}" />
+			</java>
+			<delete file="${temp.file}" />
+		</sequential>
+	</macrodef>
+
+	<macrodef name="zipdir">
+		<attribute name="destfile" />
+		<attribute name="sourcedir" />
+		<sequential>
+			<echo>Building zip: @{destfile}</echo>
+			<exec executable="zip" dir="@{sourcedir}">
+				<arg value="-qR" />
+				<arg value="@{destfile}" />
+				<arg value="*" />
+				<arg value="-x *.svn* *.git*" />
+			</exec>
+		</sequential>
+	</macrodef>
+
+	<macrodef name="sanitizePath">
+		<attribute name="property" />
+		<attribute name="input" />
+		<sequential>
+			<antcontrib:propertyregex property="@{property}"
+				input="@{input}" regexp="[\\|/]" replace="/" global="true" override="yes" />
+		</sequential>
+	</macrodef>
+
+	<macrodef name="sanitizeContextPath">
+		<sequential>
+			<antcontrib:propertyregex property="war.contextpath"
+				input="${war.contextpath}" regexp="^/?([^/]+)" select="/\1/" global="false"
+				override="yes" />
+			<antcontrib:propertyregex property="war.contextpath"
+				input="${war.contextpath}" regexp="^/{1,}" replace="/" global="true"
+				override="yes" />
+		</sequential>
+	</macrodef>
+
+
+	<macrodef name="fix-url-slashes">
+		<attribute name="property" />
+		<sequential>
+			<antcontrib:propertyregex property="@{property}"
+				input="${@{property}}" regexp="/{1,}" replace="/" global="true"
+				override="yes" />
+			<antcontrib:propertyregex property="@{property}"
+				input="${@{property}}" regexp="http(.)?:/" replace="http\1://"
+				global="true" override="yes" />
+			<echo>${@{property}}</echo>
+		</sequential>
+	</macrodef>
+
+	<macrodef name="load-buildtype-properties">
+		<attribute name="buildtype" />
+		<sequential>
+			<antcontrib:trycatch>
+				<try>
+					<!-- note="do it twice to catch any already defined deals" -->
+					<antcontrib:var file="${basedir}/build.@{buildtype}.properties" />
+					<antcontrib:var file="${basedir}/build.@{buildtype}.properties" />
+					<echo message="loaded custom properties: build.@{buildtype}.properties" />
+				</try>
+				<catch>
+					<echo message="no custom properties: build.@{buildtype}.properties" />
+				</catch>
+			</antcontrib:trycatch>
+		</sequential>
+	</macrodef>
+
+	<macrodef name="load-properties-if-not-defined">
+		<attribute name="file" />
+		<sequential>
+			<storeUserProperties silent="true" />
+			<antcontrib:var file="@{file}" />
+			<restoreUserProperties silent="true" />
+		</sequential>
+	</macrodef>
+
+	<macrodef name="storeUserProperties">
+		<attribute name="echoprefix" default="" />
+		<attribute name="silent" default="false" />
+		<sequential>
+			<antcontrib:var name="___echoprefix" value="@{echoprefix}" />
+			<removePropsByRegex regex="usersuppliedprops\..*" silent="@{silent}"/>
+			<antcontrib:if>
+				<equals arg1="@{silent}" arg2="false"/>
+				<then><echo message="Storing user supplied properties in usersuppliedprops.*" /></then>
+			</antcontrib:if>			
+			<script language="javascript">
+	     	<![CDATA[
+			importClass(Packages.net.sf.antcontrib.property.Variable);
+			var echopre = project.getProperty("___echoprefix");
+			xslt = new Variable();
+			xslt.project = project;
+			props = project.getUserProperties();
+			keys = props.keySet().toArray()
+			for (i in keys) {
+				if(keys[i].substr(0,4) != 'ant.') {
+					if(echopre != '' && keys[i].substr(0,echopre.length()) == echopre) {
+						print("Storing:" + keys[i] + "=" + props.get(keys[i]));
+					}
+					xslt.setName('usersuppliedprops.' + keys[i]);
+					xslt.setValue(props.get(keys[i]));
+					xslt.execute();
+				}
+			}
+		     ]]>
+			</script>
+		</sequential>
+	</macrodef>
+
+	<macrodef name="restoreUserProperties">
+		<attribute name="silent" default="false" />
+		<sequential>
+			<antcontrib:if>
+				<equals arg1="@{silent}" arg2="false"/>
+				<then><echo message="Restoring user supplied properties in usersuppliedprops.*" /></then>
+			</antcontrib:if>			
+			
+			<antcontrib:propertyselector property="usersuppliedprops.list"
+				delimiter="," match="usersuppliedprops\.(.*)" select="\1" override="true"
+				distinct="true" casesensitive="false" />
+				<antcontrib:sortlist property="usersuppliedprops.list" value="${usersuppliedprops.list}" override="true" delimiter="," />
+      			<antcontrib:for list="${usersuppliedprops.list}" param="prop">
+				<sequential>
+					<!-- <echo message="setting: @{prop} to ${usersuppliedprops.@{prop}}" 
+						/> -->
+					<antcontrib:propertycopy property="@{prop}"
+						from="usersuppliedprops.@{prop}" silent="true" override="true" />
+				</sequential>
+			</antcontrib:for>
+		</sequential>
+	</macrodef>
+
+	<macrodef name="removePropsByRegex">
+		<attribute name="regex" />
+		<attribute name="silent" default="false" />
+		<sequential>
+			<antcontrib:if>
+				<equals arg1="@{silent}" arg2="false"/>
+				<then><echo message="Removing any properties that match this regex: @{regex}" /></then>
+			</antcontrib:if>			
+			<antcontrib:propertyselector property="removeByRegex.list" override="true"
+				delimiter="," match="(@{regex})" select="\1" casesensitive="false" />
+			<!-- <echo message="Removing: ${removeByRegex.list}" />  -->
+			<antcontrib:sortlist property="removeByRegex.list" value="${removeByRegex.list}" override="true" delimiter="," />
+			<antcontrib:for list="${removeByRegex.list}" param="prop">
+				<sequential>
+					<antcontrib:var name="@{prop}" unset="true" />
+				</sequential>
+			</antcontrib:for>
+		</sequential>
+	</macrodef>
+
+	<macrodef name="xml-to-property">
+		<attribute name="property" default="false" />
+		<element name="xml" implicit="true" />
+		<sequential>
+			<antcontrib:var unset="true" name="@{property}" />
+			<tempfile property="__xml_file.temp" />
+			<echoxml file="${__xml_file.temp}"><xml/></echoxml>
+			<replace file="${__xml_file.temp}">
+			  <replacetoken><![CDATA[<?xml version="1.0" encoding="UTF-8"?>]]></replacetoken>
+			  <replacevalue></replacevalue>
+			</replace>		
+			<loadfile  srcFile="${__xml_file.temp}" property="@{property}" />
+		</sequential>
+	</macrodef>
+
+	<macrodef name="checksum-zip">
+		<attribute name="srcDir" />
+		<attribute name="zipfile" default="${basedir}/checksum.zip" />
+		<sequential>
+			<mkdir dir="${temp.dir}/checksums" />
+			<checksum todir="${temp.dir}/checksums">
+				<fileset dir="." />
+			</checksum>
+			<zip destfile="${dist.dir}/checksums.zip" basedir="${temp.dir}" />
+		</sequential>
+	</macrodef>
+	
+</project>

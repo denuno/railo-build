@@ -9,9 +9,8 @@ import org.eclipse.jetty.util.resource.Resource;
 import org.eclipse.jetty.webapp.WebAppContext;
 
 public class CFMLContext extends WebAppContext {
-	private String _skinURI = "/mxunit";
-	private String _srcDir = "/workspace/mxunit-cfdistro/src";
-	private Resource _srcDirResource;
+	private Resource[] cfmlDirResource;
+	private String[] cfmlDirs;
 
 	/**
 	 * Standard constructor; passed a path or URL for a war (or exploded war
@@ -21,10 +20,15 @@ public class CFMLContext extends WebAppContext {
 	 * 
 	 * @param contextPath
 	 */
-	public CFMLContext(ContextHandlerCollection contexts, String war, String contextPath) {
+	public CFMLContext(ContextHandlerCollection contexts, String war, String contextPath, String cfmlDirList) {
 		super(contexts, war, contextPath);
+		this.cfmlDirs = cfmlDirList.split(",");
+		this.cfmlDirResource = new Resource[cfmlDirs.length];
 		try {
-			_srcDirResource = Resource.newResource(_srcDir);
+			for(int x =0; x < cfmlDirs.length; x++){				
+				cfmlDirResource[x] = Resource.newResource(cfmlDirs[x]);
+				System.out.println("Serving content from " + cfmlDirResource[x].getFile().getAbsolutePath());
+			}
 		} catch (MalformedURLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -44,20 +48,33 @@ public class CFMLContext extends WebAppContext {
 
 	public Resource getResource(String contextPath) {
 		try {
-			 System.out.println("requested:"+contextPath);
-			File reqFile = new File(_srcDir + contextPath);
-			 System.out.println("requested =="+reqFile.getAbsolutePath() + " exists:" + reqFile.exists());
-			if (reqFile.exists() && !contextPath.equals("/")) {
-				//System.out.println("returning:" + _srcDir + contextPath);
-				return _srcDirResource.addPath(contextPath);
-			}
+			 //System.out.println("requested:"+contextPath);
+			 if(!contextPath.equals("/") && !contextPath.startsWith("/WEB-INF")) {
+				for (int x = 0; x < cfmlDirs.length; x++) {
+					File reqFile = new File(cfmlDirs[x] + contextPath);
+					//System.out.println("requested ==" + reqFile.getAbsolutePath() + " exists:" + reqFile.exists());
+					if (reqFile.exists()) {
+						// System.out.println("returning:" + cfmlDir +
+						// contextPath);
+						//System.out.println("ret1:"+ cfmlDirResource[x].addPath(contextPath).getFile().getAbsolutePath());
+						return cfmlDirResource[x].addPath(contextPath);
+					} else {
+						String absPath = new File(cfmlDirs[x]).getCanonicalPath();
+						reqFile = new File(cfmlDirs[x] + contextPath.replace(absPath, ""));
+						//System.out.println("DDD==" + reqFile.getAbsolutePath() + " exists:" + reqFile.exists());
+						if (reqFile.exists()) {
+							//System.out.println("ret2:"+ cfmlDirResource[x].addPath(contextPath).getFile().getAbsolutePath());
+							return cfmlDirResource[x].addPath(contextPath);
+						}
+					}
+				}
+			 }
+			//System.out.println("nada:"+ contextPath);
 
 			return super.getResource(contextPath);
 		} catch (MalformedURLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return null;

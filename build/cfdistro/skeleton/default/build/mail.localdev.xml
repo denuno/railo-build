@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <mail>
-	<settings log="./temp/logs/mail.log" spool-enable="yes"
+	<settings log="./temp/logs/mail.log" spool-enable="true"
 		spool-interval="5" timeout="30" />
 	<servers>
 		<server password="@gmail.password@"

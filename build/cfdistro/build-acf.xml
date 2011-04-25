@@ -1,13 +1,12 @@
-<project name="build-acf" default="acf.build.war.localdev" basedir="./" xmlns:antcontrib="antlib:net.sf.antcontrib">
+<project name="build-acf" default="acf.build" basedir="./" xmlns:antcontrib="antlib:net.sf.antcontrib">
 
 	<property name="ext.acf.dir" location="${ext.dir}/acf" />
 	<property name="ext.acf.war" location="${ext.acf.dir}/9/cfusion.war" />
-	<property name="cache.trusted" value="false" />
-	<property name="cache.saveclassfiles" value="false" />
+	<property name="cfmlengine.inspect.templates" value="always" />
 	
 	<import file="java/acfdsnencrypt/build.xml" />
 
-	<target name="acf.build" depends="clean">
+	<target name="acf.requires">
 		<unzip src="${ext.acf.war}"
 		       dest="${war.target.dir}">
 <!--
@@ -17,6 +16,9 @@
 		    </patternset>
 -->		    
 		</unzip>
+	</target>
+
+	<target name="acf.war.init" depends="acf.requires">
 <!--
 		<requires-ext resource="${ext.acf.dir}/9/web-noflash.xml" />
 		<copy file="${ext.acf.dir}/9/web-noflash.xml" tofile="${war.target.dir}/WEB-INF/web.xml" overwrite="true" />
@@ -53,21 +55,24 @@ vendor=0YV\#Y\!,U&;_;YN@)&)B'"WP  \n
 			<attr path="//struct/var[@name='logSlowRequests']/boolean" attr="value" value="false"/>
   		</xmltask>
 	</target>
+	
+	<target name="acf.build">
+		<antcontrib:runtarget target="war.init" />
+		<antcontrib:switch value="${build.type}">
+		  <case value="localdev">
+		  </case>
+		  <case value="dev">
+		  </case>
+		  <case value="qa">
+			<property name="copy.mappings.to.src" value="true"/>
+		  </case>
+		  <case value="prod">
+			<property name="copy.mappings.to.src" value="true"/>
+		  </case>
+		</antcontrib:switch>
+	</target>
 
-	<target name="acf.war.build" depends="acf.build">
-		<antcontrib:runtarget target="acf.mappings.xml.build" />
-		<antcontrib:runtarget target="acf.customtags.xml.build" />
-		<antcontrib:runtarget target="acf.mail.xml.build" />
-		<antcontrib:runtarget target="acf.datasources.build" />
-		<antcontrib:runtarget target="acf.add.libs" />
-		<antcontrib:runtarget target="set.debug.acf" />
-		<antcontrib:runtarget target="cfantrunner.install" />		
-	</target>
-	
-	<target name="acf.build.war.localdev" depends="acf.war.build">
-	</target>
-	
-	<target name="set.debug.acf">
+	<target name="acf.set.debug">
 		<property name="debugging.enabled" value="false" />
 		<property name="debugging.robust" value="false" />
 		<property name="debugging.template" value="/WEB-INF/debug/debug-classic.cfm" />
@@ -87,37 +92,100 @@ vendor=0YV\#Y\!,U&;_;YN@)&)B'"WP  \n
 	        <param name="virtual" path="@virtual" default="NONE"/>
 	        <param name="physical" path="@physical" default="NONE"/>
 	        <actions>
-	        	<antcontrib:var name="mapping.exists" unset="true"/>
-	      		<xmltask source="${war.target.dir}/WEB-INF/cfusion/lib/neo-runtime.xml" dest="${war.target.dir}/WEB-INF/cfusion/lib/neo-runtime.xml">
-	  					<copy path="//data/array/struct[8]/var[@name='@{virtual}']/@name" attrValue="true" property="mapping.exists"/>
-	  					<replace path="//data/array/struct[8]/var[@name='@{virtual}']" if="mapping.exists">
-	  						<![CDATA[
-	  						<var name="@{virtual}">
-	  							<string>@{physical}</string>
-	  						</var>
-	  						]]>
-	  					</replace>
-	  					<insert path="//data/array/struct[8]" position="under" unless="mapping.exists">
-	  						<![CDATA[
-	  						<var name="@{virtual}">
-	  							<string>@{physical}</string>
-	  						</var>
-	  						]]>
-	  					</insert>
-	  				</xmltask>
-	        	<antcontrib:switch value="${mapping.exists}">
-	        	  <case value="@{virtual}">
-	        	    <echo message="Updated Mapping @{virtual} to @{physical}" />
-	        	  </case>
-	        	  <default>
-	        	    <echo message="Added Mapping @{virtual} to @{physical}" />
-	        	  </default>
-	        	</antcontrib:switch>
+				<acf-mapping physical="@{physical}" virtual="@{virtual}" />
 	        </actions>
 	      </call>  
 	    </xmltask>  
 	</target>	
 
+	<macrodef name="acf-mapping">
+		<attribute name="physical" />
+		<attribute name="virtual" />
+		<sequential>
+			<antcontrib:if>
+				<equals arg1="${copy.mappings.to.src}" arg2="true" />
+				<then>
+					<copy todir="${war.target.dir}/@{virtual}" verbose="false">
+						<fileset dir="@{physical}"/>
+					</copy>
+				</then>
+				<else>
+		        	<antcontrib:var name="mapping.exists" unset="true"/>
+		      		<xmltask source="${war.target.dir}/WEB-INF/cfusion/lib/neo-runtime.xml" dest="${war.target.dir}/WEB-INF/cfusion/lib/neo-runtime.xml">
+		  					<copy path="//data/array/struct[8]/var[@name='@{virtual}']/@name" attrValue="true" property="mapping.exists"/>
+		  					<replace path="//data/array/struct[8]/var[@name='@{virtual}']" if="mapping.exists">
+		  						<![CDATA[
+		  						<var name="@{virtual}">
+		  							<string>@{physical}</string>
+		  						</var>
+		  						]]>
+		  					</replace>
+		  					<insert path="//data/array/struct[8]" position="under" unless="mapping.exists">
+		  						<![CDATA[
+		  						<var name="@{virtual}">
+		  							<string>@{physical}</string>
+		  						</var>
+		  						]]>
+		  					</insert>
+	  				</xmltask>
+		        	<antcontrib:switch value="${mapping.exists}">
+		        	  <case value="@{virtual}">
+		        	    <echo message="Updated Mapping @{virtual} to @{physical}" />
+		        	  </case>
+		        	  <default>
+		        	    <echo message="Added Mapping @{virtual} to @{physical}" />
+		        	  </default>
+		        	</antcontrib:switch>
+				</else>
+			</antcontrib:if>
+		</sequential>
+	</macrodef>	
+
+	<macrodef name="acf-error-template">
+		<attribute name="path" default="" />
+		<attribute name="type" default="500" />
+		<sequential>
+			<!--
+			<struct type='coldfusion.server.ConfigMap'>
+				<var name='EnableHTTPStatus'>
+					<string>1</string>
+				</var>
+				<var name='missing_template'>
+					<string>/cfmlexception/error.cfm</string>
+				</var>
+				<var name='queue_timeout'>
+					<string></string>
+				</var>
+				<var name='site_wide'>
+					<string>/cfmlexception/error.cfm</string>
+				</var>
+			</struct>
+      		<xmltask source="${war.target.dir}/WEB-INF/cfusion/lib/neo-runtime.xml" dest="${war.target.dir}/WEB-INF/cfusion/lib/neo-runtime.xml">
+  					<copy path="//data/array/struct[7]/var[@name='@{virtual}']/@name" attrValue="true" property="mapping.exists"/>
+  					<replace path="//data/array/struct[7]/var[@name='@{virtual}']" if="mapping.exists">
+			-->
+			<echo>setting @{type} template to @{path}</echo>
+        	<antcontrib:switch value="@{type}">
+        	  <case value="500">
+	      		<xmltask source="${war.target.dir}/WEB-INF/cfusion/lib/neo-runtime.xml" dest="${war.target.dir}/WEB-INF/cfusion/lib/neo-runtime.xml">
+    				<remove path="//data/array/struct[7]/var[@name='site_wide']" />
+    				<insert path="//data/array/struct[7]" position="under"><![CDATA[<var name="site_wide">
+                        <string>@{path}</string>
+                    </var>]]></insert>
+    			</xmltask>
+        	  </case>
+          	  <case value="404">
+	      		<xmltask source="${war.target.dir}/WEB-INF/cfusion/lib/neo-runtime.xml" dest="${war.target.dir}/WEB-INF/cfusion/lib/neo-runtime.xml">
+    				<remove path="//data/array/struct[7]/var[@name='missing_template']" />
+    				<insert path="//data/array/struct[7]" position="under"><![CDATA[<var name="missing_template">
+                        <string>@{path}</string>
+                    </var>]]></insert>
+    			</xmltask>
+          	  </case>
+        	</antcontrib:switch>
+		</sequential>
+	
+	</macrodef>	
 	
 	<target name="acf.customtags.xml.build" depends="exists.customtags.xml" if="exists.customtags.xml">
 		<xmltask source="customtags.xml">
@@ -164,7 +232,7 @@ vendor=0YV\#Y\!,U&;_;YN@)&)B'"WP  \n
 		<xmltask sourcebuffer="mail.buff" outputter="simple">
 			<call path="mail/settings">
 				<param name="log" path="@log" default="./temp/logs/mail.log" />
-				<param name="spool-enable" path="@spool-enable" default="yes" />
+				<param name="spool-enable" path="@spool-enable" default="true" />
 				<param name="spool-dir" path="@spool-dir" default="{neo.rootdir}/Mail/Spool" />
 				<param name="spool-interval" path="@spool-interval" default="5" />
 				<param name="timeout" path="@timeout" default="30" />
@@ -270,7 +338,9 @@ vendor=0YV\#Y\!,U&;_;YN@)&)B'"WP  \n
 					<filterchain>
 						<replacetokens>
 			                <token key="distro.name" value="${distro.name}"/>
+							<!--
 			                <token key="disable_autogenkeys" value="false"/>
+			                -->
 			                <token key="class" value="@{class}"/>
 			                <token key="alter" value="@{sqlalter}"/>
 			                <token key="validationQuery" value=""/>
@@ -318,6 +388,65 @@ vendor=0YV\#Y\!,U&;_;YN@)&)B'"WP  \n
 	    </xmltask>  		
 	  	<echo message="imported datasources from ${basedir}/datasources.${build.type}.xml" />
 	</target>	
+
+	<target name="acf.scheduledtasks.build" depends="exists.scheduledtasks.xml" if="exists.scheduledtasks.xml">
+		<echo>NOT IMPLEMENTED FOR ${default.cfengine}</echo>
+	</target>
+	
+	<target name="acf.set.log.dir">
+		<echo>NOT IMPLEMENTED (IMPOSSIBLE?) FOR ${default.cfengine}</echo>
+	</target>
+	
+	<target name="acf.set.security">
+		<echo>NOT IMPLEMENTED FOR ${default.cfengine}</echo>
+	</target>
+
+	<target name="acf.set.inspect.templates">
+		<echo message="Will inspect each template ${cfmlengine.inspect.templates}"/>
+		<antcontrib:switch value="${cfmlengine.inspect.templates}">
+		  <case value="always">
+	  		<xmltask source="${war.target.dir}/WEB-INF/cfusion/lib/neo-runtime.xml" dest="${war.target.dir}/WEB-INF/cfusion/lib/neo-runtime.xml">
+				<attr path="//struct/var[@name='trustedCacheEnabled']/boolean" attr="value" value="false"/>
+				<attr path="//struct/var[@name='saveClassFiles']/boolean" attr="value" value="false"/>
+	  		</xmltask>
+		  </case>
+		  <case value="once">
+	  		<xmltask source="${war.target.dir}/WEB-INF/cfusion/lib/neo-runtime.xml" dest="${war.target.dir}/WEB-INF/cfusion/lib/neo-runtime.xml">
+				<attr path="//struct/var[@name='trustedCacheEnabled']/boolean" attr="value" value="false"/>
+				<attr path="//struct/var[@name='saveClassFiles']/boolean" attr="value" value="false"/>
+	  		</xmltask>
+		  </case>
+		  <case value="never">
+	  		<xmltask source="${war.target.dir}/WEB-INF/cfusion/lib/neo-runtime.xml" dest="${war.target.dir}/WEB-INF/cfusion/lib/neo-runtime.xml">
+				<attr path="//struct/var[@name='trustedCacheEnabled']/boolean" attr="value" value="true"/>
+				<attr path="//struct/var[@name='saveClassFiles']/boolean" attr="value" value="true"/>
+	  		</xmltask>
+		  </case>
+		  <default>
+		  	<fail message="cfmlengine.inspect.templates: ${cfmlengine.inspect.templates} must be always, once or never" />
+		  </default>
+		</antcontrib:switch>
+	</target>
+	
+	<macrodef name="acf-inspect-template">
+		<attribute name="when" default="" />
+		<sequential>
+			<antcontrib:runtarget target="acf.set.inspect.templates" />
+		</sequential>
+	</macrodef>	
+	
+    <target name="acf.compile-cf">
+        <java classname="coldfusion.tools.CommandLineInvoker" failonerror="true" fork="true" resultproperty="java.compilecheck" classpathref="fileservlet.lib.path">            
+            <sysproperty key="coldfusion.classPath" value="${coldfusion.compiler.classpath}"/>
+            <sysproperty key="coldfusion.libPath"   value="${coldfusion.compiler.libpath}"/>
+            
+            <arg line=" Compiler "/>
+            <arg line=" -cfroot ${coldfusion.home} "/>
+            <arg line=" -webinf ${war.target.dir}/WEB-INF "/>
+            <arg line=" -webroot ${war.target.dir} "/>
+            <arg line=" ${build}" />
+        </java>                        
+    </target>
 	
 	<target name="acf.add.libs" if="add.libs.dir" unless="dont.add.libs">
 		<echo message="Copying libs: ${add.libs.dir} to: ${war.target.dir}/WEB-INF/cfusion/lib" /> 
@@ -349,6 +478,10 @@ vendor=0YV\#Y\!,U&;_;YN@)&)B'"WP  \n
 
 	<target name="exists.mail.xml">
 		<antcall target="cfdistro.exists.mail.xml" />
+	</target>
+
+	<target name="exists.scheduledtasks.xml">
+		<antcall target="cfdistro.exists.scheduledtasks.xml" />
 	</target>
 
 </project>
