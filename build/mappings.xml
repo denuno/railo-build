@@ -1,6 +1,5 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <mappings>
-  <mapping physical="@src.dir@/cfmlexception" virtual="/cfmlexception"/>
   <mapping physical="@src.dir@/railo-cfml" virtual="/railo-cfml"/>
   <mapping physical="@src.dir@/railo-java" virtual="/railo-java"/>
 </mappings>

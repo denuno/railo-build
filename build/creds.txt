@@ -4,3 +4,12 @@
 #gmail.password=fournick8
 #dsn.username=sa
 #dsn.password=
+remote.ec2_1.host=ec2-50-17-73-187.compute-1.amazonaws.com
+remote.ec2_1.dir=./
+remote.ec2_1.deploy.dir=./railo-infinispan/build/jboss1/standalone/deployments
+remote.ec2_1.unzip.cmd=/usr/bin/unzip
+remote.ec2_1.keyfile=${user.home}/.ssh/denawskey.pem
+remote.ec2_1.keyfile.pass=
+remote.ec2_1.user=cfml
+remote.ec2_1.host.port=22
+
