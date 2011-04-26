@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<extensions>
+<extension>
+	<extensionId>@extension.extensionid@</extensionId>
+	<extensionType>@extension.extensionType@</extensionType>
+	<extensionName>@extension.extensionName@</extensionName>
+	<extensionLabel>@extension.extensionLabel@</extensionLabel>
+	<extensionCodename>@extension.extensionCodename@</extensionCodename>
+	<extensionDescription>@extension.extensionDescription@</extensionDescription>
+	<extensionSources>@extension.extensionSources@</extensionSources>
+	<extensionAuthor>@extension.extensionAuthor@</extensionAuthor>
+	<extensionCategory>@extension.extensionCategory@</extensionCategory>
+	<extensionImage>@extension.extensionImage@</extensionImage>
+	<extensionSupport>@extension.extensionSupport@</extensionSupport>
+	<extensionDocumentation>@extension.extensionDocumentation@</extensionDocumentation>
+	<extensionForum>@extension.extensionForum@</extensionForum>
+	<extensionCreated>@build.date@</extensionCreated>
+	<extensionVersion>@build.number@</extensionVersion>
+	<extensionDownload>@extension.extensionDownload@</extensionDownload>
+</extension>
+</extensions>

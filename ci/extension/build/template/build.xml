@@ -1,0 +1,246 @@
+<project name="build-extension" basedir=".." default="build-revision">
+	<dirname property="build-extension.basedir" file="${ant.file.build-extension}"/>
+	<path id="classpath.path">
+		<!--	TODO:  see if adding one that points to the javaloaded libs will fix classloading strangeness	-->
+		<fileset dir="${build-extension.basedir}/lib">
+			<include name="*.jar" />
+		</fileset>
+	</path>	
+
+	<target name="init">
+		<tstamp/>
+		<!-- this property file will override the defaults  -->
+		<property file="${basedir}/build.properties" />
+		<filter filtersfile="${basedir}/build.properties" />		
+		<!-- defaults -->
+		<property name="dist" location="../dist"/>
+		<property name="src" location="../src"/>
+		<property name="lib" location="../lib"/>
+		<property name="docs.dir" location="../docs"/>
+		<property name="plugin.dir" location="${src}/plugin"/>
+		<property name="tag.dir" location="${src}/tag"/>
+		<property name="function.dir" location="${src}/function"/>
+		<property name="build.libs" value="${build-extension.basedir}/lib" />
+		<property name="temp.dir" value="./temp" />
+		<property name="extension.build" value="${build-extension.basedir}" />
+		<property name="extension.src" value="${src}/extension" />
+		<property name="extension.archive" value="${extension.extensionName}-extension.zip"/>
+
+		<!-- this property file will override the defaults  -->
+		<property file="${basedir}/mxunit.properties" />
+		<!-- defaults -->
+    <property name="mxunit.jar" value="${basedir}/../build/cfdistro/lib/mxunit-ant.jar" />
+		<property name="mxunit.server" value="localhost" />
+		<property name="mxunit.port" value="8181" />
+		<property name="mxunit.verbose" value="true" />
+		<property name="mxunit.defaultrunner" value="/${extension.extensionName}/tests/HttpAntRunner.cfc" />
+		<property name="mxunit.haltonerror" value="true" />
+		<property name="mxunit.failureproperty" value="mxunit.failures" />		
+    <property name="mxunit.outputdir" value="${basedir}/testresults" />
+    <property name="mxunit.junit.out.dir.xml" value="${mxunit.outputdir}" />
+    <property name="mxunit.junit.out.dir.html" value="${mxunit.outputdir}/html" />
+		<property name="mxunit.browser" value="Firefox\firefox.exe" />
+		<!-- test defaults -->
+		<property name="mxunit.testresultssummary" value="testresults.properties" />
+		<property name="mxunit.testcase.name" value="${extension.extensionName}.tests.extension.TestInstall" />
+		<property name="mxunit.testcase.packageName" value="${extension.extensionName}.tests.extension" />
+		<!-- directory runner defaults -->
+		<property name="mxunit.directoryrunner.remoteMethod" value="run" />
+		<property name="mxunit.directoryrunner.directory" value="../tests" />
+		<property name="mxunit.directoryrunner.componentpath" value="${extension.extensionName}.tests.extension.TestInstall" />
+		<property name="mxunit.directoryrunner.packagename" value="${extension.extensionName}.tests.extension" />
+		<property name="mxunit.directoryrunner.recurse" value="false" />
+		<echoproperties prefix="mxunit." destfile="${basedir}/mxunit.properties"/>
+		
+<!--		<taskdef name="xmltask" classname="com.oopsconsultancy.xmltask.ant.XmlTask" classpath="${build.libs}/xmltask-v1.15.1.jar" />-->
+
+		<delete dir="${temp.dir}" />
+		<mkdir dir="${temp.dir}" />
+		<mkdir dir="${dist}" />
+		<propertyfile file="${basedir}/buildinfo.properties" comment="Build Information">
+			<entry key="build.date" type="date" pattern="MM-dd-yyyy HH:mm:ss" value="now" />
+			<entry key="build.time" type="date" pattern="kk:mm:ss" value="now" />
+			<entry key="build.timestamp" type="date" pattern="MM-dd-yyyy' at 'HH:mm:ss" value="now" />
+		</propertyfile>
+		<property file="${basedir}/buildinfo.properties" />
+	  <echoproperties>
+	    <propertyset>
+	      <propertyref prefix="build."/>
+	      <propertyref prefix="extension."/>
+	    </propertyset>
+	  </echoproperties>
+		<property name="build.number" value="${build.major.number}.${build.minor.number}.${build.revision.number}"/>
+
+   <available property="hasLibs"
+               file="${lib}"
+               type="dir"
+               />
+   <available property="hasTags"
+               file="${tag.dir}"
+               type="dir"
+               />
+   <available property="hasPlugins"
+               file="${plugin.dir}"
+               type="dir"
+               />
+
+   <available property="hasFunctions"
+               file="${function.dir}"
+               type="dir"
+               />
+	</target>
+
+	<target name="clean">
+		<delete dir="${temp.dir}" />
+		<delete dir="${dist}" />
+	</target>
+	
+	<target name="zipLibs" if="hasLibs">
+		<zip destfile="libs.zip">
+			<fileset dir="${lib}" />
+		</zip>
+	</target>
+	
+	<target name="zipTags" if="hasTags">
+	  <zip destfile="tag.zip"
+	       basedir="${tag.dir}"
+	  />
+	</target>
+	
+	<target name="zipFunctions" if="hasFunctions">
+	  <zip destfile="function.zip"
+	       basedir="${function.dir}"
+	  />
+	</target>
+
+	<target name="zipPlugins" if="hasPlugins">
+	  <zip destfile="plugin.zip"
+	       basedir="${plugin.dir}"
+	  />
+	</target>
+
+	<target name="directCopyPlugins" depends="init">
+		<copy todir="/workspace/denstar/build/temp/denstar.war/WEB-INF/railo/context/admin/plugin">
+		  <fileset dir="${plugin.dir}">
+		    <include name="**/*"/>
+		  </fileset>
+		</copy>	
+	</target>
+	
+	
+	<target name="build" depends="init,zipLibs,zipTags,zipPlugins,zipFunctions" description="builds the extension">
+		<delete file="${dist}/${extension.archive}" />
+		<copy overwrite="yes" verbose="no" file="${extension.build}/info.xml" tofile="${temp.dir}/info.xml" filtering="true">
+			<filterchain>
+				<filterreader classname="org.apache.tools.ant.filters.ReplaceTokens">
+					<param type="token" name="extension.extensionDownload" value="${extension.extensionDownload}"/>
+				</filterreader>
+				<filterreader classname="org.apache.tools.ant.filters.ReplaceTokens">
+					<param type="propertiesfile" value="${basedir}/buildinfo.properties" />
+					<param type="propertiesfile" value="${basedir}/build.properties" />
+					<param type="token" name="build.number" value="${build.number}"/>
+				</filterreader>
+			</filterchain>
+		</copy>
+		<delete file="${dist}/${extension.archive}"/>
+		<zip destfile="${dist}/${extension.archive}">
+			<fileset file="${docs.dir}/license.txt" />
+			<fileset file="${temp.dir}/info.xml" />
+			<fileset dir="${extension.src}" />
+			<fileset dir="${basedir}" includes="*.zip" />
+		</zip>
+<!--		<delete dir="${temp.dir}" />-->
+		<delete>
+			<fileset dir="." includes="content.zip,libs.zip,tag.zip,plugin.zip,function.zip" />
+		</delete>
+	</target>
+
+	<target name="mxunittest">
+		<property file="${basedir}/mxunit.properties" />
+		<echoproperties prefix="mxunit." />
+		<delete dir="${mxunit.outputdir}" />
+		<mkdir dir="${mxunit.outputdir}" />
+		<mkdir dir="${mxunit.junit.out.dir.html}" />
+		<taskdef name="mxunittask" classname="org.mxunit.ant.MXUnitAntTask" classpath="${mxunit.jar}" />
+		<mxunittask server="${mxunit.server}" port="${mxunit.port}" defaultrunner="${mxunit.defaultrunner}" 
+		outputdir="${mxunit.outputdir}" testResultsSummary="${mxunit.testresultssummary}" 
+		verbose="${mxunit.verbose}" haltonerror="${mxunit.haltonerror}" failureproperty="${mxunit.failureproperty}">
+			<testcase name="${mxunit.testcase.name}" packageName="${mxunit.testcase.packagename}" />
+<!--			<directory remoteMethod="${mxunit.directoryrunner.remoteMethod}" path="${mxunit.directoryrunner.directory}" componentPath="${mxunit.directoryrunner.componentpath}" packageName="${mxunit.directoryrunner.packagename}" recurse="${mxunit.directoryrunner.recurse}" />-->
+		</mxunittask>
+		<echoproperties prefix="${mxunit.testresultssummary}"/>
+	</target>
+
+	<target name="test" depends="junitreport" if="${mxunit.failureproperty}">
+		<fail message="one or more tests failed" />
+	</target>
+
+	<target name="build-test" depends="build,test" description="build, then run MXUnit tests">
+	</target>
+
+	<target name="build-revision" depends="revision" description="build and bump revision up">
+		<antcall target="build"/>
+	</target>
+
+	<target name="build-revision-test" depends="revision">
+		<antcall target="build"/>
+		<antcall target="test"/>
+	</target>
+
+	<target name="junitreport" depends="mxunittest">
+		<mkdir dir="${mxunit.junit.out.dir.html}" />
+		<junitreport todir="${mxunit.junit.out.dir.html}">
+			<fileset dir="${mxunit.outputdir}">
+				<include name="*.xml" />
+			</fileset>
+			<report format="frames" todir="${mxunit.junit.out.dir.html}" styledir="${build-extension.basedir}/xsl" />
+		</junitreport>
+		<delete dir="${mxunit.outputdir}" />
+
+		<!-- Read the properties files we generated -->
+		<property file="${mxunit.outputdir}/${mxunit.testresultssummary}" />
+		<echoproperties />
+		<echo />
+		<echo message="MXUnit sample Ant build completed." />
+		<echo message="Point a web browser to ${mxunit.junit.out.dir.html}/index.html to view the report." />
+	</target>
+
+	<target name="browse" depends="junitreport">
+		<exec executable="${mxunit.browser}" spawn="true">
+			<arg value="${mxunit.outputdir}/index.html" />
+		</exec>
+	</target>
+
+	
+<!-- BUILD INCREMENTATION TARGETS -->
+
+	<target name="dist" description="bumps the minor build number">
+	  <antcall target="minor"></antcall>
+	  <antcall target="build"></antcall>
+	</target>
+	
+	<target name="revision">
+	    <propertyfile  file="${basedir}/buildinfo.properties">
+	            <entry key="build.revision.number" type="int" operation="+" value="1" pattern="00"/>
+	    </propertyfile>
+		<echo message="bumped revision build number"/> 
+	</target>
+	
+	<target name="minor">
+	    <propertyfile  file="${basedir}/buildinfo.properties">
+	            <entry key="build.minor.number" type="int" operation="+" value="1" pattern="00"/>
+	            <entry key="build.revision.number" type="int" value="0" pattern="00"/>
+	    </propertyfile>
+		<echo message="bumped minor build number"/> 
+	</target>
+	
+	<target name="major">
+	    <propertyfile  file="${basedir}/buildinfo.properties">
+	            <entry key="build.major.number" type="int" operation="+" value="1" pattern="00"/>
+	            <entry key="build.minor.number" type="int" value="0" pattern="00"/>
+	            <entry key="build.revision.number" type="int" value="0" pattern="00"/>
+	    </propertyfile>
+		<echo message="bumped major build number"/> 
+	</target>
+
+</project>

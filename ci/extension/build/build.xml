@@ -1,0 +1,5 @@
+<project name="cfjasperreports-build" default="build-revision">
+
+	<import file="template/build.xml"/>	
+	
+</project>

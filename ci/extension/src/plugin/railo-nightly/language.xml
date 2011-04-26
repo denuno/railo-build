@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<languages>
+	<language key="de">
+		<title>Railo-Build</title>
+		<description>Analysieren Sie ihre Sfontz</description>
+		<custom key="fontname">Font Name (CSS font-family)</custom>
+		<custom key="fontfile">Font File</custom>
+		<custom key="add_font_header">Add Font</custom>
+		<custom key="remove_font_header">Fonts</custom>
+		<custom key="fontname_label">Font Name:</custom>
+		<custom key="fontfile_label">Font File:</custom>
+		<custom key="restart_railo">The server must be restarted for any changes to take effect. Restarting Railo itself is not enough.</custom>
+		<custom key="fontsjar_label">Location of fonts.jar file:</custom>
+	</language>
+	<language key="en">
+		<title>Railo-Build</title>
+		<description>Manage the installed cfdocument pdf fonts</description>
+		<custom key="fontname">Font Name (CSS font-family)</custom>
+		<custom key="fontfile">Font File (click to test)</custom>
+		<custom key="add_font_header">Add Font</custom>
+		<custom key="remove_font_header">Fonts</custom>
+		<custom key="fontname_label">Font Name:</custom>
+		<custom key="fontfile_label">Font File:</custom>
+		<custom key="restart_railo">The server must be restarted for any changes to take effect.  Restarting Railo itself is not enough.</custom>
+		<custom key="fontsjar_label">Location of fonts.jar file:</custom>
+	</language>
+</languages>
+
