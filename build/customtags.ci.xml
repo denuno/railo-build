@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <mappings>
 <!--
-<mapping physical="/workspace/railo-build/src/cfdistro/ext/cfmltags/cfantrunner/" virtual="/cfantrunner"/>
+<mapping physical="@cfdistro.basedir@/ext/cfmltags/cfantrunner" virtual="/cfantrunner"/>
 -->
-<mapping physical="@cfdistro.basedir@/build/cfdistro/ext/cfmltags/cfantrunner" virtual="/cfantrunner"/>
+<mapping physical="@cfdistro.basedir@/ext/cfmltags/cfantrunner" virtual="/cfantrunner"/>
 </mappings>
