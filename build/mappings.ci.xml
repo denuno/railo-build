@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <mappings>
-<mapping physical="../../ci" virtual="/"/>
-<mapping physical="../../ci/extension/src/provider" virtual="/extensions"/>
+<mapping physical="../ci" virtual="/"/>
+<mapping physical="../ci/extension/src/provider" virtual="/extensions"/>
 </mappings>

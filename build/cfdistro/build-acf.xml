@@ -64,10 +64,10 @@ vendor=0YV\#Y\!,U&;_;YN@)&)B'"WP  \n
 		  <case value="dev">
 		  </case>
 		  <case value="qa">
-			<property name="copy.mappings.to.src" value="true"/>
+			<property name="copy.mappings.to.war" value="true"/>
 		  </case>
 		  <case value="prod">
-			<property name="copy.mappings.to.src" value="true"/>
+			<property name="copy.mappings.to.war" value="true"/>
 		  </case>
 		</antcontrib:switch>
 	</target>
@@ -103,7 +103,7 @@ vendor=0YV\#Y\!,U&;_;YN@)&)B'"WP  \n
 		<attribute name="virtual" />
 		<sequential>
 			<antcontrib:if>
-				<equals arg1="${copy.mappings.to.src}" arg2="true" />
+				<equals arg1="${copy.mappings.to.war}" arg2="true" />
 				<then>
 					<copy todir="${war.target.dir}/@{virtual}" verbose="false">
 						<fileset dir="@{physical}"/>

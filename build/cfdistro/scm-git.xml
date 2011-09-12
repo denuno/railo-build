@@ -149,6 +149,15 @@
 		</sequential>
 	</macrodef>
 
+	<macrodef name="git-commit-hash">
+		<attribute name="repository" />
+		<attribute name="property" />
+		<sequential>
+			<git command="log" dir="${src.dir}"><args><arg value="-n"/><arg value="1"/></args></git>
+			<antcontrib:propertyregex override="yes" property="@{property}" input="${git.results}" regexp=".*commit\s(.\w+).*" select="\1" />
+		</sequential>
+	</macrodef>
+
 	<target name="jgit.help">
 		<git command="branch">
 			<args>
@@ -206,7 +215,7 @@
 							<echo message="updating src: @{dest}" />
 							<!--
 							-->
-							<git command="fetch" />
+							<git command="fetch" dir="@{dest}"/>
 							<git-checkout repository="@{dest}" branch="@{branch}" force="${project.update.force}"/>
 						</else>
 					</antcontrib:if>
@@ -223,51 +232,55 @@
 				<param name="type" path="@type" default="NONE" />
 				<param name="uri" path="@uri" default="NONE" />
 				<actions>
+					<antcontrib:var name="revisions.are.same" value="true"/>
+					<antcontrib:var name="desthash" unset="true"/>
+					<safestring value="@{dest}" property="desthash"/>
+					<echo message="${desthash}"/>
+					<git-commit-hash repository="@{dest}" property="pre.fetch.commit.hash" />
+					<propertyfile file="${basedir}/scm.cache" comment="source control management cache">
+						<entry key="${desthash}.last.commit.hash" default="${pre.fetch.commit.hash}" />
+						<entry key="${desthash}.current.commit.hash" value="${pre.fetch.commit.hash}" />
+					</propertyfile>
+					<property file="${basedir}/scm.cache" />
+					<antcontrib:propertycopy name="desthash.last.commit.hash" from="${desthash}.last.commit.hash" override="true"/>
+					<antcontrib:propertycopy name="desthash.current.commit.hash" from="${desthash}.current.commit.hash" override="true"/>
+					<echo>${desthash.last.commit.hash}" arg2="${desthash.current.commit.hash}</echo>
+					<antcontrib:if>
+						<equals arg1="${desthash.last.commit.hash}" arg2="${desthash.current.commit.hash}" />
+						<then>
+							<echo message="Local revision is unchanged" />
+						</then>
+						<else>
+							<property name="revisions.local.differ" value="true" />
+							<antcontrib:var name="revisions.are.same" value="false"/>
+							<echo message="Local revision differs" />
+						</else>
+					</antcontrib:if>
+					<!-- check for remote commits (defaults to origin) -->
+					<git command="fetch" dir="@{dest}"/>
 					<git command="log" dir="@{dest}">
 						<args>
 							<arg value="-n" />
 							<arg value="1" />
+							<arg value="--" />
+							<arg value="HEAD..origin/master" />
 						</args>
 					</git>
+					<antcontrib:if>
+						<equals arg1="${git.results}" arg2="" />
+						<then>
+							<echo message="Remote revision is the same" />
+						</then>
+						<else>
+							<antcontrib:var name="revisions.are.same" value="false"/>
+							<property name="revisions.remote.differ" value="true" />
+							<echo message="Remote revision differs" />
+						</else>
+					</antcontrib:if>
 				</actions>
 			</call>
 		</xmltask>
-		<echo message="${git.results}" file="./git.current.rev.txt" />
-		<condition property="revisions.are.same">
-			<filesmatch file1="./git.current.rev.txt" file2="./git.last.rev.txt" textfile="true" />
-		</condition>
-		<antcontrib:if>
-			<equals arg1="${revisions.are.same}" arg2="true" />
-			<then>
-				<echo message="Local revision is unchanged" />
-			</then>
-			<else>
-				<property name="revisions.local.differ" value="true" />
-				<echo message="Local revision differs" />
-			</else>
-		</antcontrib:if>
-		<echo message="${git.results}" file="./git.last.rev.txt" />
-		<!-- check for remote commits (defaults to origin) -->
-		<git command="fetch"/>
-		<git command="log">
-			<args>
-				<arg value="-n" />
-				<arg value="1" />
-				<arg value="--" />
-				<arg value="HEAD..origin/master" />
-			</args>
-		</git>
-		<antcontrib:if>
-			<equals arg1="${git.results}" arg2="" />
-			<then>
-				<echo message="Remote revision is the same" />
-			</then>
-			<else>
-				<property name="revisions.remote.differ" value="true" />
-				<echo message="Remote revision differs" />
-			</else>
-		</antcontrib:if>
-
+		<echoproperties prefix="revisions"/>
 	</target>
 
 	<target name="exists.src.xml">

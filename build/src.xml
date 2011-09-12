@@ -25,9 +25,13 @@
         <src dest="@src.dir@/" type="git"
         uri="http://github.com/getrailo/railo.git"
         user="" password="" branch="origin/develop" />
-	-->
-        <src dest="@src.dir@/" type="git"
+        
+	<src dest="@src.dir@/" type="git"
         uri="https://denuno@github.com/denuno/railo.git"
+        user="" password="" branch="origin/3.3" />
+-->
+        <src dest="@src.dir@/" type="git"
+        uri="http://github.com/getrailo/railo.git"
         user="" password="" branch="origin/develop" />
 
 	</project>

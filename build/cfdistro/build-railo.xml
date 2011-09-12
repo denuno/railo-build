@@ -85,7 +85,7 @@
 		<requires-ext-file file="${ext.dir}/jboss/jboss-classloading.xml"/>
 		<copy file="${ext.dir}/jboss/jboss-classloading.xml" tofile="${war.target.dir}/WEB-INF/jboss-classloading.xml" overwrite="true" />
 		<xmltask source="${railo.server.config.file}" dest="${railo.server.config.file}">
-			<attr path="/railo-configuration" attr="password" value="${cfadmin.password}" />
+			<attr path="/railo-configuration" attr="password" value="1546d179736e1235bc0c0977347784ef7e89f52d04c0d0dce23f18848a638be0" />
 			<attr path="/railo-configuration" attr="default-password" value="${cfadmin.password}" />
 		</xmltask>
 		<xmltask source="${railo.web.config.file}" dest="${railo.web.config.file}">
@@ -208,44 +208,7 @@
 				<param name="virtual" path="@virtual" default="NONE" />
 				<param name="physical" path="@physical" default="NONE" />
 				<actions>
-					<antcontrib:if>
-						<equals arg1="${copy.mappings.to.src}" arg2="true" />
-						<then>
-							<copy todir="${railo.customtags.dir}/@{virtual}">
-								<fileset dir="@{physical}"/>
-							</copy>
-						</then>
-						<else>
-							<antcontrib:var name="mapping.exists" unset="true" />
-							<xmltask source="${railo.config.file}" dest="${railo.config.file}">
-								<copy path="/railo-configuration/custom-tag/mapping[@physical='@{physical}']/@physical" attrValue="true" property="mapping.exists" />
-								<replace path="/railo-configuration/custom-tag/mapping[@physical=@{physical}]/text()" if="mapping.exists">
-									<![CDATA[
-			  					<mapping
-			  						trusted="false"
-			  						physical="@{physical}"
-			  					/>
-			  					]]>
-			  					</replace>
-								<insert path="/railo-configuration/custom-tag" position="under" unless="mapping.exists">
-									<![CDATA[
-			  					<mapping
-			  						trusted="false"
-			  						physical="@{physical}"
-		  						/>
-			  					]]>
-			  					</insert>
-							</xmltask>
-							<antcontrib:switch value="${mapping.exists}">
-								<case value="@{physical}">
-									<echo message="Updated Custom Tag Mapping - @{physical}" />
-								</case>
-								<default>
-									<echo message="Added Custom Tag Mapping - @{physical}" />
-								</default>
-							</antcontrib:switch>
-						</else>
-					</antcontrib:if>
+					<railo-customtag physical="@{physical}" virtual="@{virtual}" />
 				</actions>
 			</call>
 		</xmltask>
@@ -397,10 +360,8 @@
 	</target>
 	
 	<target name="railo.scheduledtasks.build" depends="exists.scheduledtasks.xml" if="exists.scheduledtasks.xml">
-		<filter token="runwar.port" value="${runwar.port}"/>
-		<filter token="war.name" value="${war.name}"/>
-		<filter token="war.contextpath" value="${war.contextpath}"/>
-		<copy file="${scheduledtasks.file}" toFile="${war.target.dir}/WEB-INF/railo/scheduler/scheduler.xml" filtering="true"/>
+		<mkdir dir="${war.target.dir}/WEB-INF/railo/scheduler"/>
+		<xmltask sourcebuffer="scheduledtasks.buff" dest="${war.target.dir}/WEB-INF/railo/scheduler/scheduler.xml" outputter="simple" />
 	</target>
 	
 	<target name="railo.compile-cf">
@@ -567,8 +528,9 @@
 		<attribute name="virtual" />
 		<sequential>
 			<antcontrib:if>
-				<equals arg1="${copy.mappings.to.src}" arg2="true" />
+				<equals arg1="${copy.mappings.to.war}" arg2="true" />
 				<then>
+					<echo message="copying @{physical} to ${war.target.dir}/@{virtual}" />
 					<copy todir="${war.target.dir}/@{virtual}" verbose="false">
 						<fileset dir="@{physical}"/>
 					</copy>
@@ -614,6 +576,54 @@
 				</antcontrib:if>
 		</sequential>
 	</macrodef>	
+
+	<macrodef name="railo-customtag">
+		<attribute name="physical" />
+		<attribute name="virtual" />
+		<sequential>
+			<relpath property="customtag.physical" from="${war.target.dir}" to="@{physical}" />
+			<antcontrib:if>
+				<equals arg1="${copy.mappings.to.war}" arg2="true" />
+				<then>
+					<echo message="Copying Custom Tag @{physical} to ${railo.customtags.dir}@{virtual}" />
+					<copy todir="${railo.customtags.dir}@{virtual}">
+						<fileset dir="@{physical}"/>
+					</copy>
+					<antcontrib:var name="customtag.physical" unset="true"/>
+					<relpath property="customtag.physical" from="${war.target.dir}" to="${railo.customtags.dir}@{virtual}" />
+				</then>
+			</antcontrib:if>
+			<antcontrib:var name="mapping.exists" unset="true" />
+			<xmltask source="${railo.config.file}" dest="${railo.config.file}">
+				<copy path="/railo-configuration/custom-tag/mapping[@physical='${customtag.physical}']/@physical" attrValue="true" property="mapping.exists" />
+				<replace path="/railo-configuration/custom-tag/mapping[@physical='${customtag.physical}']/text()" if="mapping.exists">
+					<![CDATA[
+				<mapping
+					trusted="false"
+					physical="${customtag.physical}"
+				/>
+				]]>
+				</replace>
+				<insert path="/railo-configuration/custom-tag" position="under" unless="mapping.exists">
+					<![CDATA[
+				<mapping
+					trusted="false"
+					physical="${customtag.physical}"
+				/>
+				]]>
+				</insert>
+			</xmltask>
+			<antcontrib:switch value="${mapping.exists}">
+				<case value="${customtag.physical}">
+					<echo message="Updated Custom Tag Mapping - ${customtag.physical}" />
+				</case>
+				<default>
+					<echo message="Added Custom Tag Mapping - ${customtag.physical}" />
+				</default>
+			</antcontrib:switch>
+		</sequential>
+	</macrodef>	
+	
 	
 	<macrodef name="railo-cache">
 		<attribute name="name"/>

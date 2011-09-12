@@ -35,7 +35,7 @@
 			<echo message="importing data (@{schemafile}) for dsn: @{dsn}" />
 			<taskdef name="ddlToDatabase" classname="org.apache.ddlutils.task.DdlToDatabaseTask" classpathref="data.lib.path" />
 			<xmltask sourcebuffer="datasources.buff">
-				<call path="datasources/*">
+				<call path="datasources/datasource[@name='@{dsn}']">
 					<param name="name" path="@name" default="datasource" />
 					<param name="blob" path="@blob" default="false" />
 					<param name="clob" path="@clob" default="false" />
@@ -122,7 +122,7 @@
 			<echo message="exporting schema (@{schemafile}) for dsn: @{dsn}" />
 			<taskdef name="databaseToDdl" classname="org.apache.ddlutils.task.DatabaseToDdlTask" classpathref="data.lib.path" />
 			<xmltask sourcebuffer="datasources.buff">
-				<call path="datasources/*">
+				<call path="datasources/datasource[@name='@{dsn}']">
 					<param name="name" path="@name" default="datasource" />
 					<param name="blob" path="@blob" default="false" />
 					<param name="clob" path="@clob" default="false" />

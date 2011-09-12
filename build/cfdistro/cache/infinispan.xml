@@ -1,6 +1,6 @@
 <project name="infinispan" basedir="./" xmlns:antcontrib="antlib:net.sf.antcontrib">
 
-	<property name="infinispan.version" value="5.0.0.BETA1" />
+	<property name="infinispan.version" value="5.0.0.CR1" />
 	<property name="ext.infinispan.dir" location="${ext.dir}/infinispan/${infinispan.version}" />
 	<property name="infinispan.dir" location="./infinispan${infinispan.version}" />
 	<property name="ext.infinispan.zip.uri" value="http://downloads.sourceforge.net/project/infinispan/infinispan/${infinispan.version}/infinispan-${infinispan.version}-all.zip" />

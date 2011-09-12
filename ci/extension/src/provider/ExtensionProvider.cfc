@@ -1,7 +1,7 @@
 <cfcomponent output="false" style="rpc" namespace = "http://#cgi.HTTP_HOST#/extensions/ExtensionProvider"><cfsilent>
 
 
-	<cfset this.downloadDir = expandPath("/") & "../dist" />
+	<cfset this.downloadDir = getDirectoryFromPath(getBaseTemplatePath()) />
 	<cfset this.reloadseconds = 10 />
 
    <cffunction name="getInfo" access="remote" returntype="struct" output="false">

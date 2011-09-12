@@ -1,13 +1,13 @@
 <cfset props = {
-			"dist":expandPath("/") & "../dist",
-			"extension.extensionDownloadURL":"/"
+			"dist":getDirectoryFromPath(getBaseTemplatePath()),
+			"extension.extensionDownloadURL":"/extensions/"
 			} />
 <cfdump var="#props#">
 
 
 <cfparam name="target" default="build-test" />
 
-<cfdirectory action="list" directory="./../../../" name="src">
+<cfdirectory action="list" directory="#getDirectoryFromPath(getBaseTemplatePath())#/../../../" name="src">
 <ul>
 	<li><a href="?build=all">Build All</a> | <a href="?build=all&ignore-build-errors=1">Build All Ignore</a></li>
 <cfoutput query="src">

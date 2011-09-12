@@ -13,7 +13,6 @@
 	
 	<property name="jboss.dir" location="${basedir}/jboss${jboss.version}" />
 	<property name="jboss.dir.absolute" location="${jboss.dir}" />
-	<antcontrib:var name="jboss.dir" unset="true" />
 	<property name="jboss.dir" location="${jboss.dir.absolute}" />
 	<property name="jboss.server.dir" value="${jboss.dir}/server/${jboss.server}"/>
 	<property name="jboss.host" value="${server.host}"/>
@@ -256,10 +255,10 @@
 		    			war="file://${dist.dir}/${war.name}.war"/>
 			  </case>
 			  <case value="qa">
-			  	<property name="copy.mappings.to.src" value="true" />
+			  	<property name="copy.mappings.to.war" value="true" />
 			  </case>
 			  <case value="prod">
-			  	<property name="copy.mappings.to.src" value="true" />
+			  	<property name="copy.mappings.to.war" value="true" />
 			  </case>
 			  <default>
 			  	<fail message="Um, the build type '${build.type}' is unknown to me, esse!" />

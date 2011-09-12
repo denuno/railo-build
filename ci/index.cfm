@@ -21,10 +21,11 @@
 	<cfabort>
 </cfif>
 <h2>Continious Integration</h2>
+<h3><a href="ci.cfm?target=build">Run a Build</a></h3>
 <h3>Available builds</h3>
-<cfdirectory name="builds" action="list" directory="#expandPath('/../dist')#" filter="*.log">
+<cfdirectory name="builds" action="list" directory="#expandPath('/../dist')#" filter="*.rc">
 <cfloop query="builds">
-	<cfoutput>#name#</cfoutput><br />
+	<cfoutput><a href="./#name#">#name#</a>  <a href="./commit.#listGetAt(name,5,".")#.log">build log</a></cfoutput><br />
 </cfloop>
 
 <cfif structKeyExists(server,"ci")>

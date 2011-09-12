@@ -86,11 +86,14 @@
 		<delete dir="${runwar.basedir}/bin"/>
 	</target>
 
-	<target name="runembedded.jar" depends="runwar.compile" description="creates an jar with the WAR embedded">
+	<target name="runembedded.jar" description="creates an jar with the WAR embedded">
+		<property name="runembedded.jar.file" value="${dist.dir}/embedded/${war.name}.jar"/>
+		<antcontrib:runtarget target="build" />
+		<antcontrib:runtarget target="jar.war" />
 		<delete dir="${dist.dir}/embedded"/>
 		<mkdir dir="${dist.dir}/embedded"/>
 		<echo file="${dist.dir}/embedded/runwar.properties" message="war.name=${war.name}"/>
-		<jar destfile="${dist.dir}/embedded/${war.name}.jar" filesetmanifest="mergewithoutmain">
+		<jar destfile="${runembedded.jar.file}" filesetmanifest="mergewithoutmain">
 			<manifest>
 				<attribute name="Main-Class" value="runwar.RunEmbeddedWar" />
 				<attribute name="Class-Path" value="./${jetty-runner.jar}" />
@@ -115,7 +118,7 @@
 		<antcontrib:runtarget target="runwar.start" />
 	</target>
 
-	<target name="runwar.start" depends="runwar.jar" description="starts jetty-runner server">
+	<target name="runwar.start" description="starts jetty-runner server">
 		<runwar.initprops />
 		<echoproperties prefix="runwar"/>
 		<property name="background" value="true" />
@@ -171,12 +174,15 @@
 
 	<target name="server.openUrl" description="launches a browser pointing at ${open.url}">
 		<runwar.initprops />
+		<echo message="${cfdistro.basedir}"/>
 		<open-url url="${open.url}" />			
 	</target>
 
 	<target name="build.war.runner" description="creates an runnable jar with the WAR embedded">
 		<delete file="${war.target.dir}"/>
 		<antcontrib:runtarget target="build.war.src" />
+		<antcontrib:var name="runwar.port" value="10192" />
+		<antcontrib:var name="runwar.stop.socket" value="10191" />
 		<antcontrib:runtarget target="runwar.start.stop" />
 		<antcontrib:runtarget target="jar.war" />
 		<fix-url-slashes property="open.url" />
@@ -215,11 +221,7 @@ pack.segment.limit=-1
 		 <delete quiet="true" file="${runner.jar}.tmp2.jar"/>
 		 <delete quiet="true" file="${runner.jar}.conf"/>
 -->
-		<jar2exe jar="${runner.jar}" exe="${dist.dir}/${distro.name}.exe" icon="${ext.dir}/installer/install/application.ico" />
-		<property name="runner.jar.abs" location="${runner.jar}" />
-		<jar2sh jar="${runner.jar.abs}" output="${dist.dir}/${war.name}"/>
-		<jar2app jar="${runner.jar}" appdir="${dist.dir}" icon="${cfdistro.basedir}/ext/izpack/dmg/icons/icon.icns" />
-		<app2dmg app="${dist.dir}/${war.name}.app" appname="${war.name}.app" dmg="${dist.dir}/${war.name}.dmg" icon="${cfdistro.basedir}/ext/izpack/dmg/icons/icon.icns" />
+		<antcontrib:runtarget target="wrappers" />
 
 		<move file="${runner.jar}" todir="${dist.dir}" />
 		<delete dir="${runner.temp.dir}" />
@@ -230,7 +232,12 @@ pack.segment.limit=-1
 		<property name="runner.jar.abs" location="${runner.jar}" />
 		<jar2sh jar="${runner.jar.abs}" output="${dist.dir}/${war.name}"/>
 		<jar2app jar="${runner.jar}" appdir="${dist.dir}" icon="${cfdistro.basedir}/ext/izpack/dmg/icons/icon.icns" />
-		<app2dmg app="${dist.dir}/${war.name}.app" appname="${war.name}.app" dmg="${dist.dir}/${war.name}.dmg" icon="${cfdistro.basedir}/ext/izpack/dmg/icons/icon.icns" />
+	    <if>
+	        <equals arg1="${os.family}" arg2="mac"/>
+	        <then>
+	    		<app2dmg app="${dist.dir}/${war.name}.app" appname="${war.name}.app" dmg="${dist.dir}/${war.name}.dmg" icon="${cfdistro.basedir}/ext/izpack/dmg/icons/icon.icns" />
+	        </then>
+	    </if>
 	</target>
 
 	<macrodef name="jar2sh">

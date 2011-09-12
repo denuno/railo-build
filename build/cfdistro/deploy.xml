@@ -45,6 +45,22 @@
 		</sequential>
 	</target>
 
+	<target name="remote.scp">
+		<sequential>
+			<fail unless="scp.dir" message="specify ${scp.dir} dir (relative to project root) to copy to remote" />
+			<deploy-scp toDir="${remote.user}@${remote.host}:${remote.dir}${distro.name}">
+				<scpfiles>
+					<fileset dir="${basedir}/../${scp.dir}">
+						<exclude name="**/cache.properties"/>
+						<exclude name="**/temp/**"/>
+						<exclude name="**/cfdistro/ext/**"/>
+						<exclude name="**/.git/**"/>
+					</fileset>
+				</scpfiles>
+			</deploy-scp>
+		</sequential>
+	</target>
+
 	<target name="remote.scp.test">
 		<sequential>
 			<deploy-scp file="${basedir}/buildinfo.properties" todir="${remote.user}@${remote.host}:." />

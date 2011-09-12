@@ -21,7 +21,8 @@
 			<abspath path="${jboss.server.dir}" property="jboss.server.dir"/>
 			<abspath path="${jboss.deploy.dir}" property="jboss.deploy.dir"/>
 			<abspath path="${jboss.config.file}" property="jboss.config.file"/>
-			<relpath root="${jboss.server.dir}" full-path="${jboss.deploy.dir}" property="jboss.deploy.dir.rel"/>
+			<relpath from="${jboss.server.dir}" to="${jboss.deploy.dir}" property="jboss.deploy.dir.rel"/>
+			<echo message="wwwwwww ${jboss.server.dir}: ${jboss.deploy.dir} = ${jboss.deploy.dir.rel}" />
 	    </sequential>
 	</macrodef>
 
@@ -131,6 +132,7 @@
 				<delete dir="${jboss.server.dir}/deploy/ROOT.war"/>
 			</then>
 		</antcontrib:if>
+		<chmod dir="${jboss.dir}/bin" perm="ugo+rx" includes="**/*.sh"/>
 	</target>
 
 	<target name="jboss.start" depends="jboss.install">
@@ -246,10 +248,10 @@
 		    			war="file://${dist.dir}/${war.name}.war"/>
 			  </case>
 			  <case value="qa">
-			  	<property name="copy.mappings.to.src" value="true" />
+			  	<property name="copy.mappings.to.war" value="true" />
 			  </case>
 			  <case value="prod">
-			  	<property name="copy.mappings.to.src" value="true" />
+			  	<property name="copy.mappings.to.war" value="true" />
 			  </case>
 			  <default>
 			  	<fail message="Um, the build type '${build.type}' is unknown to me, esse!" />
@@ -336,6 +338,20 @@
 				<insert path="//*[local-name()='interfaces']" position="under"><![CDATA[<interface name="internal" xmlns="urn:jboss:domain:1.0">${interface.xml}</interface>]]></insert>
 				<attr path="//:*[@interface='external']" attr="interface" value="@{name}" />
 				<attr path="//:*[@default-interface='external']" attr="default-interface" value="@{name}" />
+			</xmltask>
+	    </sequential>
+	</macrodef>
+
+	<macrodef name="jboss-standalone-interface">
+	    <attribute name="name"/>
+	    <element name="interface" implicit="true"/>
+	    <sequential>
+	    	<xml-to-property property="interface.xml"><interface/></xml-to-property>
+	    	<echo>interface @{name} : ${interface.xml}</echo>
+			<xmltask source="${jboss.standalone.config.file}" dest="${jboss.standalone.config.file}">
+				<remove path="//*[local-name()='interfaces']/*[local-name()='interface'][@name='@{name}']"/>
+				<print path="//*[local-name()='interfaces']/*[local-name()='interface'][@name='@{name}']"/>
+				<insert path="//*[local-name()='interfaces']" position="under"><![CDATA[<interface name="@{name}" xmlns="urn:jboss:domain:1.0">${interface.xml}</interface>]]></insert>
 			</xmltask>
 	    </sequential>
 	</macrodef>

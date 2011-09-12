@@ -7,41 +7,35 @@
 			<!-- Grab data past @{root} in @{full-path}. -->
 			<antcontrib:var name="@{property}" unset="true" />
 			<property name="@{property}" location="@{path}" />
+			<antcontrib:var name="@{property}" value="${@{property}}" />
 		</sequential>
 	</macrodef>
 
-	<macrodef name="relpath"
-		description="Compute the branch based upon a root dir, @{root}, 
-	and full path, @{full-path}.  The branch represents the full path minus 
-	the root dir.  Please note:  if @{root} does not exist in @{full-path}, 
-	@{property} will be set with an empty value.">
-		<attribute name="root"
-			description="The root of the path defined in @{full-path}." />
-		<attribute name="full-path"
-			description="The absolute path for which @{root} is the root of the path and the branch computed is this path minus the root." />
-		<attribute name="property" description="The property to set with the branch." />
-		<attribute name="description" default=""
-			description="Information about this macro call." />
-		<sequential>
-			<!-- Grab data past @{root} in @{full-path}. -->
-			<antcontrib:propertyregex property="cfdistro.RELATIVE.PATH.HOLDER"
-				override="true" input="@{full-path}" regexp="@{root}(.*)" select="\1"
-				description="Parse out the branch from the value contained in @{root}" />
-			<!-- Remove the leading file separator (if it is there). If it is not 
-				there, simply use the value as is. -->
-			<antcontrib:propertyregex property="@{property}"
-				override="true" input="${cfdistro.RELATIVE.PATH.HOLDER}" regexp="^[${file.separator}](.*)"
-				replace="\1" defaultValue="${cfdistro.RELATIVE.PATH.HOLDER}"
-				description="Remove the leading file separator if its there" />
-			<antcontrib:if>
-				<equals arg1="${@{property}}" arg2="$${cfdistro.RELATIVE.PATH.HOLDER}" />
-				<then>
-					<fail
-						message="'@{root}' (the part that will be removed) should be above '@{full-path}'" />
-				</then>
-			</antcontrib:if>
-		</sequential>
-	</macrodef>
+	<scriptdef name="relpath" language="javascript">
+		  <attribute name="property"/>
+		  <attribute name="from"/>
+		  <attribute name="to"/>
+		  <![CDATA[
+		      // Imports: Helper classes for Files
+		      importClass(Packages.org.apache.tools.ant.util.FileUtils);
+		      importClass(Packages.java.io.File);
+		     
+		      // Access to the attributes
+		      propName = attributes.get("property");
+		      baseFile = new File(attributes.get("to"));
+		      file     = new File(attributes.get("from"));
+		     
+		      // The relative
+		      relPath = FileUtils.getRelativePath(file, baseFile);
+		      if (!file.isDirectory()) {
+		          relPath = (relPath.length() >= 3) ? relPath.substring(3) : relPath;
+		      }
+		      relPath += "/";
+		
+		      // Store the result in a property
+		      project.setNewProperty(propName, relPath);
+		  ]]>
+	</scriptdef>
 
 	<macrodef name="javac-ecj">
 		<attribute name="srcdir" />
@@ -140,7 +134,7 @@
 	<macrodef name="load-properties-if-not-defined">
 		<attribute name="file" />
 		<sequential>
-			<storeUserProperties silent="true" />
+			<storeUserProperties silent="true"/>
 			<antcontrib:var file="@{file}" />
 			<restoreUserProperties silent="true" />
 		</sequential>
@@ -165,7 +159,7 @@
 			props = project.getUserProperties();
 			keys = props.keySet().toArray()
 			for (i in keys) {
-				if(keys[i].substr(0,4) != 'ant.') {
+				if(keys[i].substr(0,4) != 'ant.' && keys[i].substr(0,5) != 'user.') {
 					if(echopre != '' && keys[i].substr(0,echopre.length()) == echopre) {
 						print("Storing:" + keys[i] + "=" + props.get(keys[i]));
 					}
@@ -211,7 +205,7 @@
 				<then><echo message="Removing any properties that match this regex: @{regex}" /></then>
 			</antcontrib:if>			
 			<antcontrib:propertyselector property="removeByRegex.list" override="true"
-				delimiter="," match="(@{regex})" select="\1" casesensitive="false" />
+				delimiter="," match="(?!user\.|java\.|cfdistro\.|ant\.)+(@{regex})" select="\1" casesensitive="false" />
 			<!-- <echo message="Removing: ${removeByRegex.list}" />  -->
 			<antcontrib:sortlist property="removeByRegex.list" value="${removeByRegex.list}" override="true" delimiter="," />
 			<antcontrib:for list="${removeByRegex.list}" param="prop">
@@ -246,6 +240,53 @@
 				<fileset dir="." />
 			</checksum>
 			<zip destfile="${dist.dir}/checksums.zip" basedir="${temp.dir}" />
+		</sequential>
+	</macrodef>
+
+	<macrodef name="hash">
+		<attribute name="value"/>
+		<attribute name="property"/>
+		<sequential>
+			<antcontrib:var name="___hashvalue" value="@{value}" />
+			<antcontrib:var name="___hashvalueproperty" value="@{property}" />
+			<script language="javascript">
+	     	<![CDATA[
+			importClass(Packages.net.sf.antcontrib.property.Variable);
+			var value = project.getProperty("___hashvalue");
+			var valueproperty = project.getProperty("___hashvalueproperty");
+			varvar = new Variable();
+			varvar.project = project;
+			varvar.setName(valueproperty);
+			varvar.setValue(value.hashCode());
+			varvar.execute();			
+		     ]]>
+			</script>
+			<antcontrib:var name="___hashvalue" unset="true" />
+			<antcontrib:var name="___hashvalueproperty" unset="true" />
+		</sequential>
+	</macrodef>
+
+
+	<macrodef name="safestring">
+		<attribute name="value"/>
+		<attribute name="property"/>
+		<sequential>
+			<antcontrib:var name="___hashvalue" value="@{value}" />
+			<antcontrib:var name="___hashvalueproperty" value="@{property}" />
+			<script language="javascript">
+	     	<![CDATA[
+			importClass(Packages.net.sf.antcontrib.property.Variable);
+			var value = project.getProperty("___hashvalue");
+			var valueproperty = project.getProperty("___hashvalueproperty");
+			varvar = new Variable();
+			varvar.project = project;
+			varvar.setName(valueproperty);
+			varvar.setValue(value.replaceAll("[^A-z0-9]","_"));
+			varvar.execute();			
+		     ]]>
+			</script>
+			<antcontrib:var name="___hashvalue" unset="true" />
+			<antcontrib:var name="___hashvalueproperty" unset="true" />
 		</sequential>
 	</macrodef>
 	

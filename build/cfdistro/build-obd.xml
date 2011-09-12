@@ -47,7 +47,7 @@
 		  <replacevalue><![CDATA[<web-app id="WebApp_ID" version="2.5">]]></replacevalue>
 		</replace>		
 		<!--
-		<property name="copy.mappings.to.src" value="true"/>
+		<property name="copy.mappings.to.war" value="true"/>
 		-->
 		<xmltask source="${war.target.dir}/WEB-INF/bluedragon/bluedragon.xml" dest="${war.target.dir}/WEB-INF/bluedragon/bluedragon.xml">
 			<replace path="/server/system/defaultcharset/text()" withText="${obd.charset}"/>
@@ -88,11 +88,11 @@
 		  	<obd-error-template path="/WEB-INF/lib/railo-server/context/library/tag/error.cfm"/>
 		  </case>
 		  <case value="qa">
-			<property name="copy.mappings.to.src" value="true"/>
+			<property name="copy.mappings.to.war" value="true"/>
 			<obd-cache-template when="never" />
 		  </case>
 		  <case value="prod">
-			<property name="copy.mappings.to.src" value="true"/>
+			<property name="copy.mappings.to.war" value="true"/>
 			<obd-cache-template when="never" />
 		  </case>
 		  <default>
@@ -502,7 +502,7 @@
 		<attribute name="virtual" />
 		<sequential>
 			<antcontrib:if>
-				<equals arg1="${copy.mappings.to.src}" arg2="true" />
+				<equals arg1="${copy.mappings.to.war}" arg2="true" />
 				<then>
 					<copy todir="${war.target.dir}/@{virtual}" verbose="false">
 						<fileset dir="@{physical}"/>
