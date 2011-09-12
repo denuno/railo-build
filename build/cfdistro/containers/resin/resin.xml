@@ -56,13 +56,9 @@
 			<echo message="server dir ${resin.dir} already exists, not installing!  Remove with: ant server.uninstall"/> 
 			</then>
 			<else>
-				<antcontrib:if>
-					<available file="${ext.resin.zip}" />
-					<then/>
-					<else>
-						<get src="${ext.resin.zip.uri}" dest="${ext.resin.zip}" verbose="true" ignoreerrors="false" />
-					</else>
-				</antcontrib:if>
+				<required-resource
+					src="${ext.resin.zip.uri}" 
+					dest="${ext.resin.zip}" />
 				<unzip src="${ext.resin.zip}"						
 				       dest="${resin.dir}">
 					<regexpmapper from="resin-${resin.version.long}/(.*)$" to="\1"/>

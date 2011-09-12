@@ -1,0 +1,87 @@
+<project name="ehcache" basedir="./" xmlns:antcontrib="antlib:net.sf.antcontrib">
+
+	<property name="ehcache.version" value="5.0.0.FINAL" />
+	<property name="ext.ehcache.dir" location="${ext.dir}/ehcache/${ehcache.version}" />
+	<property name="ehcache.dir" location="./ehcache${ehcache.version}" />
+	<property name="ext.ehcache.zip.uri" value="http://downloads.jboss.org/ehcache/${ehcache.version}/ehcache-${ehcache.version}-all.zip" />
+	<property name="ext.ehcache.zip" location="${ext.ehcache.dir}/ehcache-${ehcache.version}.zip" />
+
+	<!-- <property name="rhq.version" value="4.0.1" /> -->
+	<property name="rhq.version" value="4.1.0.Beta" />
+	<pathconvert property="rhq.version.lc">		
+		<path path="${rhq.version}"/>
+		<chainedmapper><flattenmapper/><scriptmapper language="javascript">self.addMappedName(source.toLowerCase());</scriptmapper></chainedmapper>
+	</pathconvert>
+	<property name="ext.rhq.dir" location="${ext.dir}/rhq/${rhq.version.lc}" />
+	<property name="rhq.dir" location="./rhq${rhq.version.lc}" />
+	<property name="ext.rhq.zip.uri" value="http://sourceforge.net/projects/rhq/files/rhq/rhq-${rhq.version.lc}/rhq-server-${rhq.version}.zip" />
+	<property name="ext.rhq.zip" location="${ext.rhq.dir}/rhq-server-${rhq.version}.zip" />
+	
+	<target name="ehcache.install">
+		<mkdir dir="${ext.ehcache.dir}"/>
+		<property name="ehcache.config" value="${basedir}/ehcache-cfg.xml"/>
+		<sequential>
+		<required-resource
+			src="${ext.ehcache.zip.uri}"
+			dest="${ext.ehcache.zip}"
+		/>
+		<unzip src="${ext.ehcache.zip}"						
+		       dest="${ehcache.dir}">
+			<regexpmapper from="ehcache-${ehcache.version}/(.*)$" to="\1"/>
+		</unzip>
+		<chmod dir="${ehcache.dir}/bin" perm="ugo+rx" 
+		       includes="**/*.sh"/>
+		</sequential>
+		<echo message="Creating ehcache.sh script.  To run it type: ./ehcache.sh" />
+		<relpath from="${basedir}" to="${ehcache.dir}" property="ehcache.dir"/>
+		<!--
+			add_jvm_args '-Dcom.sun.management.jmxremote.port=6996' 
+			add_jvm_args '-Dcom.sun.management.jmxremote.ssl=false'  
+			add_jvm_args '-Dcom.sun.management.jmxremote.authenticate=false'
+			add to startServer.sh for JMX		
+		-->
+		<echo file="${basedir}/ehcache.sh"><![CDATA[#! /bin/sh
+${ehcache.dir}/bin/startServer.sh -r hotrod -c ${ehcache.config} -l ${server.host}]]></echo>
+		<chmod file="${basedir}/ehcache.sh" perm="ugo+rx"/>
+		
+	</target>
+
+	<target name="rhq.install">
+		<mkdir dir="${ext.rhq.dir}"/>
+		<sequential>
+		<required-resource
+			src="${ext.rhq.zip.uri}" 
+			dest="${ext.rhq.zip}" />
+		<unzip src="${ext.rhq.zip}"
+		       dest="${rhq.dir}">
+			<regexpmapper from="rhq-server-${rhq.version}/(.*)$" to="\1"/>
+		</unzip>
+		<chmod dir="${rhq.dir}/bin" perm="ugo+rx" 
+		       includes="**/*.sh"/>
+		<chmod dir="${rhq.dir}/jbossas/bin" perm="ugo+rx" 
+		       includes="**/*.sh"/>
+		</sequential>
+		<copy file="${ehcache.dir}/modules/rhq-plugin/ehcache-rhq-plugin.jar" todir="${rhq.dir}/plugins" />
+		<copy todir="${rhq.dir}/jbossas/server/default/lib">
+			<fileset dir="${ehcache.dir}/modules/rhq-plugin/lib" />
+		</copy>
+		<open-url url="http://127.0.0.1:7080/installer/start.jsf" />
+	</target>
+	
+	<target name="rhq.agent.install">
+		<property name="rhq.agent.version" value="4.0.1" />
+		<property name="ext.rhq.agent.dir" location="${ext.dir}/rhq.agent/${rhq.agent.version}" />
+		<property name="rhq.agent.dir" location="./rhq-agent${rhq.agent.version}" />
+		<property name="ext.rhq.agent.zip.uri" value="http://127.0.0.1:7080/agentupdate/download" />
+		<property name="ext.rhq.agent.zip" location="${ext.rhq.agent.dir}/rhq-enterprise-agent-${rhq.agent.version}.zip" />
+		<required-resource
+			src="${ext.rhq.agent.zip.uri}" 
+			dest="${ext.rhq.agent.zip}" />
+		<!--
+	        <entry key="rhq.agent.plugins.server-discovery.period-secs" value="60"/>
+	        <entry key="rhq.agent.plugins.availability-scan.period-secs" value="30"/>
+		-->
+
+	</target>
+
+	</project>

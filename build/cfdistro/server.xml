@@ -19,7 +19,12 @@
 	<property name="deploy.remote.keyfile" value=""/>
 	<property name="deploy.remote.dir" value="./"/>
 	<property name="server.memory.max" value="256M"/>
-	<property name="server.jvm.args" value="-Xms${server.memory.max} -Xmx${server.memory.max} -XX:+UseConcMarkSweepGC -XX:+CMSClassUnloadingEnabled -XX:PermSize=128m -XX:MaxPermSize=128m -Dsun.rmi.dgc.client.gcInterval=600000 -Dsun.rmi.dgc.server.gcInterval=600000 -Djava.net.preferIPv4Stack=true" />
+	<property name="server.memory.perm" value="64M"/>
+	<property name="server.memory.perm.max" value="${server.memory.perm}"/>
+	<property name="server.java.opts" value=""/>
+	<property name="server.gc" value=""/>
+	<!-- -XX:+UseConcMarkSweepGC -XX:+CMSClassUnloadingEnabled -Dsun.rmi.dgc.client.gcInterval=600000 -Dsun.rmi.dgc.server.gcInterval=600000 -->
+	<property name="server.jvm.args" value="-XX:+HeapDumpOnOutOfMemoryError -Xms${server.memory.max} -Xmx${server.memory.max} -XX:PermSize=${server.memory.perm} -XX:MaxPermSize=${server.memory.perm.max} ${server.gc} -Djava.net.preferIPv4Stack=true ${server.java.opts}" />
 
 	<property name="jboss.version.major" value="7.0" />
 	<antcontrib:if>
@@ -33,6 +38,7 @@
 	</antcontrib:if>
 
 	<import file="containers/tomcat/tomcat.xml" />
+	<import file="containers/jetty/jetty.xml" />
 	<import file="containers/resin/resin.xml" />
 	<import file="containers/glassfish/glassfish.xml" />
 	<import file="java/runwar/build.xml" />
@@ -164,76 +170,5 @@
 		</loadfile>
 		<echo message="${gae.deploy.log}"/>
 	</target>
-
-
-	<macrodef name="kill-java"
-	          description="Forcefully stop java process">
-		<attribute name="name"/>
-		<attribute name="jps" default="${java.home}/bin/jps" />
-		<sequential>
-			<!-- Execute the jps and check for any Java process with the provided @{name} attribute -->
-			<exec executable="@{jps}" output="pid.out.file" />
-			<!-- Load in the name / pid file and strip all information except the PID -->
-			<loadfile srcfile="pid.out.file" property="pid.out">
-				<filterchain>
-					<linecontains>
-						<contains value="@{name}"/>
-					</linecontains>
-					<tokenfilter>
-						<deletecharacters chars="@{name}"/>
-					</tokenfilter>
-					<striplinebreaks/>
-				</filterchain>
-			</loadfile>
-			<antcontrib:propertyregex property="pid.out"
-			              input="${pid.out}"
-			              regexp="[\s]?(\d+)?.*"
-			              select="\1" override="true"
-			              casesensitive="false"
-			 />
-			<antcontrib:if>
-				<or>
-					<equals arg1="${pid.out}" arg2="" />
-					<equals arg1="${pid.out}" arg2="$${pid.out}" />
-				</or>
-				<then>
-					<echo message="No process named @{name} found to kill."/>
-				</then>
-				<else>
-					<echo message="Killing java process with pid ${pid.out} (@{name})"/>
-					<antcontrib:switch value="${os.name}">
-						<case value="Mac OS X">
-							<exec spawn="true" executable="kill">
-								<arg line="-9" />
-								<arg line="${pid.out}" />
-							</exec>
-						</case>
-						<case value="Linux">
-							<exec spawn="true" executable="kill">
-								<arg line="-9" />
-								<arg line="${pid.out}" />
-							</exec>
-						</case>
-						<case value="Windows">
-							<exec spawn="true" executable="taskkill">
-								<arg line="/PID ${pid.out}" />
-								<arg line="/F" />
-							</exec>
-						</case>
-						<case value="Windows 7">
-							<exec spawn="true" executable="taskkill">
-								<arg line="/PID ${pid.out}" />
-								<arg line="/F" />
-							</exec>
-						</case>
-						<default>
-							<fail message="Um, the os '${os.name}' is unknown to me, esse!" />
-						</default>
-					</antcontrib:switch>
-				</else>
-			</antcontrib:if>
-	  		<delete file="pid.out.file" />
-		</sequential>
-	</macrodef>
 
 </project>

@@ -182,6 +182,35 @@
 		</xmltask>
 	</target>
 
+	<target name="git.public.repo">
+		<property name="git.repo.dir" value="../../${distro.name}.git" />
+		<mkdir dir="${git.repo.dir}" />
+		<git command="init" dir="${git.repo.dir}">
+			<args>
+				<arg value="--bare" />
+			</args>
+		</git>
+		<git command="config" dir="${git.repo.dir}">
+			<args>
+				<arg value="core.worktree" />
+				<arg value="../${distro.name}" />
+			</args>
+		</git>
+		<git command="config" dir="${git.repo.dir}">
+			<args>
+				<arg value="core.bare" />
+				<arg value="false" />
+			</args>
+		</git>
+		<git command="config" dir="${git.repo.dir}">
+			<args>
+				<arg value="receive.denycurrentbranch" />
+				<arg value="ignore" />
+			</args>
+		</git>
+		<echo file="${git.repo.dir}/hooks/post-receive" message="#!/bin/sh${line.separator}git checkout -f"/>
+	</target>
+	
 	<target name="project.update.git">
 		<property name="temp.dir.absolute" location="${temp.dir}" />
 		<antcontrib:var name="temp.dir" unset="true" />
@@ -201,7 +230,7 @@
 							<equals arg1="${project.overwrite}" arg2="true" />
 						</or>
 						<then>
-							<echo message="@{dest}.git not there (or $${project.overwrite} is true), let us try to get one- this may take a [long-ass] bit..." />
+							<echo message="@{dest}.git not there (or $${project.overwrite} is true), let us try to get one- you may want to go get some coffee..." />
 							<git-clone repository="@{uri}" dest="@{dest}" />
 							<antcontrib:if>
 								<equals arg1="@{branch}" arg2="NONE" />

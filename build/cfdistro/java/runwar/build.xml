@@ -82,7 +82,13 @@
 		<jar destfile="${cfdistro.basedir}/lib/runwar.jar"
          basedir="${runwar.basedir}/bin/runwar/" 
          includes="**/*.class"
-         />
+         >
+			<manifest>
+				<attribute name="Main-Class" value="runwar.Start" />
+				<attribute name="Class-Path" value="./${jetty-runner.jar}" />
+			</manifest>
+		</jar>
+			
 		<delete dir="${runwar.basedir}/bin"/>
 	</target>
 
@@ -112,6 +118,31 @@
 		<echo message="${errlog}" />
 	</target>
 
+	<target name="runwar.install" description="creates start script">
+		<antcontrib:propertyregex property="war.contextpath" input="${war.contextpath}" regexp="^/?([^/]+)" select="/\1" global="false"  override="yes" />
+		<echo message="starting runwar (${server.jvm.args})"/>
+		<property name="runwar.dir" location="${war.target.dir}/WEB-INF/" />
+		<mkdir dir="${runwar.dir}" />
+		<copy todir="${runwar.dir}">
+			<fileset file="${cfdistro.basedir}/lib/${jetty-runner.jar}"/>
+			<fileset file="${cfdistro.basedir}/lib/runwar.jar"/>
+		</copy>
+		<echo file="${dist.dir}/${distro.name}.sh"><![CDATA[#start script
+if test -n "${JAVA_HOME}"; then
+if test -z "${JAVA_EXE}"; then
+JAVA_EXE=$JAVA_HOME/bin/java
+fi
+fi
+
+if test -z "${JAVA_EXE}"; then
+JAVA_EXE=java
+fi
+cd $(dirname $0)
+exec $JAVA_EXE ${server.jvm.args} -cp ${war.name}.war/WEB-INF/${jetty-runner.jar} -jar ${war.name}.war/WEB-INF/runwar.jar ${war.name}.war ${war.contextpath} ${runwar.host} ${runwar.port} ${runwar.stop.socket} ${runwar.log.dir} ${runwar.cfml.dirlist} false false]]>
+</echo>
+		<chmod file="${dist.dir}/${distro.name}.sh" perm="ugo+rx"/>
+	</target>
+	
 	<target name="runwar.start.fg" description="starts jetty-runner server in foreground">
 		<runwar.initprops />
 		<antcontrib:var name="runwar.background" value="false" />
@@ -124,7 +155,7 @@
 		<property name="background" value="true" />
 		<property name="runwar.background" value="${background}" />
 		<property name="runwar.openbrowser" value="false" />
-		<echo message="starting jetty-runner"/>
+		<echo message="starting jetty-runner (${server.jvm.args})"/>
 		<sequential>
 			<path id="cfdistro.libs.path">
 				<fileset dir="${cfdistro.basedir}/lib">

@@ -11,6 +11,51 @@
 		</sequential>
 	</macrodef>
 
+	<macrodef name="required-resource">
+		<attribute name="src" />
+		<attribute name="dest" />
+		<attribute name="verbose" default="true" />
+		<attribute name="ignoreerrors" default="false" />
+		<sequential>
+			<add-required extpath="@{dest}" />
+			<antcontrib:if>
+				<available file="@{dest}" />
+				<then/>
+				<else>
+					<get src="@{src}" dest="@{dest}" verbose="@{verbose}" ignoreerrors="@{ignoreerrors}" />
+				</else>
+			</antcontrib:if>
+		</sequential>
+	</macrodef>
+	
+	<macrodef name="add-required">
+	  	<attribute name="extpath"/>
+		<sequential>
+			<antcontrib:if>
+				<available file="${basedir}/requires.txt"/>
+				<then />
+				<else>
+					<echo file="${basedir}/requires.txt" message="" />
+				</else>
+			</antcontrib:if>
+			<antcontrib:propertyregex override="yes" property="extpath" input="@{extpath}" regexp=".*/ext/(.*)" select="\1" />
+			<antcontrib:var name="requires.content" unset="true" />
+			<antcontrib:var name="add-required-path.exists" unset="true" />
+			<loadfile property="requires.content" srcFile="${basedir}/requires.txt" />
+			<antcontrib:propertyregex override="true" property="add-required-path.exists" input="${requires.content}"
+				regexp=".*${extpath}.*" select="\1" />
+			<antcontrib:if>
+				<equals arg1="${add-required-path.exists}" arg2="$${add-required-path.exists}" />
+				<then>
+					<echo file="${basedir}/requires.txt" append="true">${extpath}${line.separator}</echo>
+				</then>
+				<else>
+					<echo message="requirement is tracked: ${extpath}"/>
+				</else>
+			</antcontrib:if>
+		</sequential>
+	</macrodef>
+
 	<scriptdef name="relpath" language="javascript">
 		  <attribute name="property"/>
 		  <attribute name="from"/>
@@ -126,6 +171,17 @@
 				</try>
 				<catch>
 					<echo message="no custom properties: build.@{buildtype}.properties" />
+					<antcontrib:trycatch>
+						<try>
+							<!-- note="do it twice to catch any already defined deals" -->
+							<antcontrib:var file="${cfdistro.basedir}/build.@{buildtype}.properties" />
+							<antcontrib:var file="${cfdistro.basedir}/build.@{buildtype}.properties" />
+							<echo message="loaded built-in custom properties: ${cfdistro.basedir}/build.@{buildtype}.properties" />
+						</try>
+						<catch>
+							<echo message="no built-in custom properties: build.@{buildtype}.properties" />
+						</catch>
+					</antcontrib:trycatch>
 				</catch>
 			</antcontrib:trycatch>
 		</sequential>
@@ -161,7 +217,7 @@
 			for (i in keys) {
 				if(keys[i].substr(0,4) != 'ant.' && keys[i].substr(0,5) != 'user.') {
 					if(echopre != '' && keys[i].substr(0,echopre.length()) == echopre) {
-						print("Storing:" + keys[i] + "=" + props.get(keys[i]));
+						java.lang.System.out.println("Storing:" + keys[i] + "=" + props.get(keys[i]));
 					}
 					xslt.setName('usersuppliedprops.' + keys[i]);
 					xslt.setValue(props.get(keys[i]));
@@ -218,11 +274,12 @@
 
 	<macrodef name="xml-to-property">
 		<attribute name="property" default="false" />
+		<attribute name="namespacePolicy" default="ignore" />
 		<element name="xml" implicit="true" />
 		<sequential>
 			<antcontrib:var unset="true" name="@{property}" />
 			<tempfile property="__xml_file.temp" />
-			<echoxml file="${__xml_file.temp}"><xml/></echoxml>
+			<echoxml file="${__xml_file.temp}" namespacePolicy="@{namespacePolicy}"><xml/></echoxml>
 			<replace file="${__xml_file.temp}">
 			  <replacetoken><![CDATA[<?xml version="1.0" encoding="UTF-8"?>]]></replacetoken>
 			  <replacevalue></replacevalue>
@@ -290,4 +347,149 @@
 		</sequential>
 	</macrodef>
 	
+	<macrodef name="replace-attributes">
+		<attribute name="string" />
+		<attribute name="propertyname" />
+		<sequential>
+			<antcontrib:var name="@{propertyname}" value="@{string}" />
+			<antcontrib:propertyregex property="@{propertyname}" override="true" input="@{string}" regexp="@src.dir@(.*)" replace="${src.dir}\1" casesensitive="false" />
+		</sequential>
+	</macrodef>
+
+	<macrodef name="add-system-path">
+		<attribute name="path" />
+		<attribute name="keyword" default="@{path}" />
+		<sequential>
+			<!--
+			add to windows path:
+			   	reg add “HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Environment” /v Path /t REG_EXPAND_SZ /d “%path%;c:\test” /f
+			   	2.run:
+			   	nircmd sysrefresh
+			-->
+			<property environment="env"/>
+			<echo message="${env.PATH}"/>
+			<antcontrib:propertyregex override="true" property="add-system-path.path.exists" input="${env.PATH}"
+				regexp="${path.separator}?([^${path.separator}]*@{keyword})" select="\1"/>
+			<antcontrib:if>
+				<equals arg1="${add-system-path.path.exists}" arg2="$${add-system-path.path.exists}" />
+				<then>
+					<echo message="Not found in path: @{keyword}"/>
+					<echo message="Adding path: @{path}"/>
+					<antcontrib:switch value="${os.name}">
+						<case value="Mac OS X">
+							<loadfile property="profile.file.content" srcFile="${user.home}/.profile" />
+							<echo message="${profile.file.content}" />
+							<antcontrib:propertyregex override="true" property="add-system-path.path.exists" input="${profile.file.content}"
+								regexp="${path.separator}?([^${path.separator}]*@{keyword})" select="\1"/>
+							<antcontrib:if>
+								<equals arg1="${add-system-path.path.exists}" arg2="$${add-system-path.path.exists}" />
+								<then>
+									<echo message="Adding path to ${user.home}/.profile"/>
+									<echo file="${user.home}/.profile" append="true">${line.separator}# Adding cfdistro path${line.separator}<![CDATA[PATH="@{path}:$PATH"]]>${line.separator}export PATH${line.separator}</echo>
+								</then>
+								<else>
+									<echo message="Path exists in ${user.home}/.profile.  Try starting a new terminal so it takes effect."/>
+								</else>
+							</antcontrib:if>
+						</case>
+						<case value="Linux">
+							<exec spawn="true" executable="kill">
+								<arg line="-9" />
+								<arg line="${pid.out}" />
+							</exec>
+						</case>
+						<case value="Windows">
+							<exec spawn="true" executable="taskkill">
+								<arg line="/PID ${pid.out}" />
+								<arg line="/F" />
+							</exec>
+						</case>
+						<case value="Windows 7">
+							<exec spawn="true" executable="taskkill">
+								<arg line="/PID ${pid.out}" />
+								<arg line="/F" />
+							</exec>
+						</case>
+						<default>
+							<fail message="Um, the os '${os.name}' is unknown to me, esse!" />
+						</default>
+					</antcontrib:switch>
+				</then>
+				<else>
+					<echo message="Path exists: ${add-system-path.path.exists}"/>
+				</else>
+			</antcontrib:if>				
+
+		</sequential>
+	</macrodef>
+
+	<macrodef name="kill-java"
+	          description="Forcefully stop java process">
+		<attribute name="name"/>
+		<attribute name="jps" default="${java.home}/bin/jps" />
+		<sequential>
+			<!-- Execute the jps and check for any Java process with the provided @{name} attribute -->
+			<exec executable="@{jps}" output="pid.out.file" />
+			<!-- Load in the name / pid file and strip all information except the PID -->
+			<loadfile srcfile="pid.out.file" property="pid.out">
+				<filterchain>
+					<linecontains>
+						<contains value="@{name}"/>
+					</linecontains>
+					<tokenfilter>
+						<deletecharacters chars="@{name}"/>
+					</tokenfilter>
+					<striplinebreaks/>
+				</filterchain>
+			</loadfile>
+			<antcontrib:propertyregex property="pid.out"
+			              input="${pid.out}"
+			              regexp="[\s]?(\d+)?.*"
+			              select="\1" override="true"
+			              casesensitive="false"
+			 />
+			<antcontrib:if>
+				<or>
+					<equals arg1="${pid.out}" arg2="" />
+					<equals arg1="${pid.out}" arg2="$${pid.out}" />
+				</or>
+				<then>
+					<echo message="No process named @{name} found to kill."/>
+				</then>
+				<else>
+					<echo message="Killing java process with pid ${pid.out} (@{name})"/>
+					<antcontrib:switch value="${os.name}">
+						<case value="Mac OS X">
+							<exec spawn="true" executable="kill">
+								<arg line="-9" />
+								<arg line="${pid.out}" />
+							</exec>
+						</case>
+						<case value="Linux">
+							<exec spawn="true" executable="kill">
+								<arg line="-9" />
+								<arg line="${pid.out}" />
+							</exec>
+						</case>
+						<case value="Windows">
+							<exec spawn="true" executable="taskkill">
+								<arg line="/PID ${pid.out}" />
+								<arg line="/F" />
+							</exec>
+						</case>
+						<case value="Windows 7">
+							<exec spawn="true" executable="taskkill">
+								<arg line="/PID ${pid.out}" />
+								<arg line="/F" />
+							</exec>
+						</case>
+						<default>
+							<fail message="Um, the os '${os.name}' is unknown to me, esse!" />
+						</default>
+					</antcontrib:switch>
+				</else>
+			</antcontrib:if>
+	  		<delete file="pid.out.file" />
+		</sequential>
+	</macrodef>	
 </project>

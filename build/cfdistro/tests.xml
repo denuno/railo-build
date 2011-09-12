@@ -68,7 +68,8 @@
 		<property name="testresult.file" value="${war.target.dir}/test.results.html" />
 		<sequential>
 			<antcontrib:runtarget target="project.update" />
-			<antcontrib:runtarget target="build.start" />
+			<antcontrib:runtarget target="build" />
+			<antcontrib:runtarget target="server.start" />
 			<antcontrib:runtarget target="tests.run" />
 			<antcontrib:runtarget target="server.stop" />
 		</sequential>

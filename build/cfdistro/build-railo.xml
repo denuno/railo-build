@@ -6,13 +6,9 @@
 	<target name="railo.requires">
 		<mkdir dir="${ext.railo.dir}"/>
 		<mkdir dir="${ext.railo.dir}/patches"/>
-		<antcontrib:if>
-			<available file="${ext.railo.war}" />
-			<then/>
-			<else>
-				<get src="${ext.railo.war.uri}" dest="${ext.railo.war}" verbose="true" ignoreerrors="false" />
-			</else>
-		</antcontrib:if>
+		<required-resource
+			src="${ext.railo.war.uri}" 
+			dest="${ext.railo.war}" />
 		<!--
 		<requires-ext resource="${ext.railo.dir}/railo-server.xml"/>
 		-->
@@ -24,18 +20,11 @@
 			</or>
 			<then><echo message="Not downloading any railo patches"/></then>
 			<else>
-				<antcontrib:if>
-					<available file="${ext.railo.dir}/patches/${railo.patch.version}.rc" />
-					<then>
-						<echo message="Copying patch: ${railo.patch.version}/${railo.patch.version}.rc" />
-						<copy file="${ext.railo.dir}/patches/${railo.patch.version}.rc" todir="${war.target.dir}/WEB-INF/lib/railo-server/patches/" overwrite="true" />
-					</then>
-					<else>
-						<echo message="Downlaoding patch from http://${railo.patch.buildtype}.getrailo.org/railo/remote/download/${railo.patch.version}/${railo.patch.version}.rc" />
-						<get src="http://${railo.patch.buildtype}.getrailo.org/railo/remote/download/${railo.patch.version}/${railo.patch.version}.rc" dest="${ext.railo.dir}/patches/${railo.patch.version}.rc" verbose="true" ignoreerrors="true" />
-						<copy file="${ext.railo.dir}/patches/${railo.patch.version}.rc" todir="${war.target.dir}/WEB-INF/lib/railo-server/patches/" overwrite="true" />
-					</else>
-				</antcontrib:if>
+				<echo message="installing patch: ${railo.patch.version}/${railo.patch.version}.rc" />
+				<required-resource
+					src="http://${railo.patch.buildtype}.getrailo.org/railo/remote/download/${railo.patch.version}/${railo.patch.version}.rc" 
+					dest="${ext.railo.dir}/patches/${railo.patch.version}.rc" />
+				<copy file="${ext.railo.dir}/patches/${railo.patch.version}.rc" todir="${war.target.dir}/WEB-INF/lib/railo-server/patches/" overwrite="true" />
 			</else>
 		</antcontrib:if>
 	</target>
@@ -79,17 +68,19 @@
 			<xmlcatalog refId="commonDTDs" />
 			<replace path="web-app/servlet[servlet-class/text()='railo.loader.servlet.CFMLServlet']/init-param[param-value/text()='/WEB-INF/railo/']/param-value/text()" withText="./WEB-INF/railo/" />
 			<insert path="web-app/servlet[servlet-class/text()='railo.loader.servlet.CFMLServlet']" position="under">
-			<![CDATA[<init-param><param-name>railo-server-root</param-name><param-value>.</param-value></init-param>]]></insert>
+			<![CDATA[<init-param><param-name>railo-server-root</param-name><param-value>/</param-value></init-param>]]></insert>
 		</xmltask>
 		<!-- needed if deployed to jboss -->
 		<requires-ext-file file="${ext.dir}/jboss/jboss-classloading.xml"/>
 		<copy file="${ext.dir}/jboss/jboss-classloading.xml" tofile="${war.target.dir}/WEB-INF/jboss-classloading.xml" overwrite="true" />
+
+		<cfmlengcrypt engine="railo" plaintext="${cfadmin.password}" property="railo.password.encrypted" />
 		<xmltask source="${railo.server.config.file}" dest="${railo.server.config.file}">
-			<attr path="/railo-configuration" attr="password" value="1546d179736e1235bc0c0977347784ef7e89f52d04c0d0dce23f18848a638be0" />
-			<attr path="/railo-configuration" attr="default-password" value="${cfadmin.password}" />
+			<attr path="/railo-configuration" attr="password" value="${railo.password.encrypted}" />
+			<attr path="/railo-configuration" attr="default-password" value="${railo.password.encrypted}" />
 		</xmltask>
 		<xmltask source="${railo.web.config.file}" dest="${railo.web.config.file}">
-			<attr path="/railo-configuration" attr="password" value="1546d179736e1235bc0c0977347784ef7e89f52d04c0d0dce23f18848a638be0" />
+			<attr path="/railo-configuration" attr="password" value="${railo.password.encrypted}" />
 		</xmltask>
 		<xmltask source="${railo.web.config.file}" dest="${railo.web.config.file}">
 			<insert path="//railo-configuration" position="under" xml="&lt;charset/&gt;" />
@@ -195,8 +186,10 @@
 			<call path="mappings/*">
 				<param name="virtual" path="@virtual" default="NONE" />
 				<param name="physical" path="@physical" default="NONE" />
+				<param name="trusted" path="@trusted" default="false" />
+				<param name="readonly" path="@readonly" default="true" />
 				<actions>
-					<railo-mapping physical="@{physical}" virtual="@{virtual}" />
+					<railo-mapping physical="@{physical}" virtual="@{virtual}" readonly="@{readonly}" trusted="@{trusted}" />
 				</actions>
 			</call>
 		</xmltask>
@@ -356,7 +349,7 @@
 				</actions>
 			</call>
 		</xmltask>
-		<echo message="imported datasources from ${basedir}/datasources.${build.type}.xml" />
+		<echo message="configured datasources" />
 	</target>
 	
 	<target name="railo.scheduledtasks.build" depends="exists.scheduledtasks.xml" if="exists.scheduledtasks.xml">
@@ -461,7 +454,7 @@
 	</target>
 
 	<target name="railo.set.log.dir">
-		<mkdir dir="${log.dir}"/>
+		<!-- <mkdir dir="${log.dir}" /> -->
 		<echo message="setting logging dir to ${log.dir}"/>
 		<xmltask source="${railo.config.file}" dest="${railo.config.file}">
 			<attr path="/railo-configuration/remote-clients" attr="log" value="${log.dir}" />
@@ -526,7 +519,10 @@
 	<macrodef name="railo-mapping">
 		<attribute name="physical" />
 		<attribute name="virtual" />
+		<attribute name="readonly" default="true"/>
+		<attribute name="trusted" default="false"/>
 		<sequential>
+			<antcontrib:var name="___physical" value="@{physical}" />
 			<antcontrib:if>
 				<equals arg1="${copy.mappings.to.war}" arg2="true" />
 				<then>
@@ -536,16 +532,23 @@
 					</copy>
 				</then>
 				<else>
+					<antcontrib:if>
+						<equals arg1="${mappings.relative}" arg2="true" />
+						<then>
+							<antcontrib:var name="___physical" unset="true" />
+							<relpath from="${war.target.dir}" to="@{physical}" property="___physical"/>
+						</then>
+					</antcontrib:if>
 					<antcontrib:var name="mapping.exists" unset="true" />
 					<xmltask source="${railo.config.file}" dest="${railo.config.file}">
 						<copy path="/railo-configuration/mappings/mapping[@virtual='@{virtual}']/@virtual" attrValue="true" property="mapping.exists" />
-						<replace path="/railo-configuration/mappings/mapping[@virtual=@{virtual}]/text()" if="mapping.exists">
+						<replace path="/railo-configuration/mappings/mapping[@virtual='@{virtual}']" if="mapping.exists">
 							<![CDATA[
 							<mapping
-								readonly="yes"
-								trusted="false"
+								readonly="@{readonly}"
+								trusted="@{trusted}"
 								virtual="@{virtual}"
-								physical="@{physical}"
+								physical="${___physical}"
 								archive=""
 								primary="physical"
 							/>
@@ -554,10 +557,10 @@
 						<insert path="/railo-configuration/mappings" position="under" unless="mapping.exists">
 							<![CDATA[
 							<mapping
-								readonly="yes"
-								trusted="false"
+								readonly="@{readonly}"
+								trusted="@{trusted}"
 								virtual="@{virtual}"
-								physical="@{physical}"
+								physical="${___physical}"
 								archive=""
 								primary="physical"
 							/>
@@ -566,14 +569,15 @@
 					</xmltask>
 					<antcontrib:switch value="${mapping.exists}">
 						<case value="@{virtual}">
-							<echo message="Updated Mapping - @{virtual}	 @{physical}" />
+							<echo message="Updated Mapping - @{virtual}	 ${___physical}" />
 						</case>
 						<default>
-							<echo message="Added Mapping - @{virtual} 	@{physical}" />
+							<echo message="Added Mapping - @{virtual} 	${___physical}" />
 						</default>
 					</antcontrib:switch>
 					</else>
 				</antcontrib:if>
+			<antcontrib:var name="___physical" unset="true" />
 		</sequential>
 	</macrodef>	
 

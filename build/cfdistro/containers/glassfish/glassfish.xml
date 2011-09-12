@@ -57,13 +57,9 @@
 			<echo message="server dir ${glassfish.dir} already exists, not installing!  Remove with: ant server.uninstall"/> 
 			</then>
 			<else>
-				<antcontrib:if>
-					<available file="${ext.glassfish.zip}" />
-					<then/>
-					<else>
-						<get src="${ext.glassfish.zip.uri}" dest="${ext.glassfish.zip}" verbose="true" ignoreerrors="false" />
-					</else>
-				</antcontrib:if>
+				<required-resource
+					src="${ext.glassfish.zip.uri}" 
+					dest="${ext.glassfish.zip}" />
 				<unzip src="${ext.glassfish.zip}"						
 				       dest="${glassfish.dir}">
 					<regexpmapper from="glassfishv${glassfish.version.major}/(.*)$" to="\1"/>

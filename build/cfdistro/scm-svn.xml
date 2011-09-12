@@ -37,7 +37,7 @@
 		<attribute name="password" default="" />
 		<attribute name="dirname" default="" />
 		<sequential>
-			<echo message="importing src: @{dest}" />
+			<echo message="importing src: @{dest} from @{uri}" />
 			<java classname="org.tmatesoft.svn.cli.SVN" fork="true" classpathref="svn.lib.path">
 				<jvmarg line="${proxy.jvmarg.line}"/>
 				<arg value="export" />

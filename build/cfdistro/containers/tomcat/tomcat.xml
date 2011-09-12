@@ -76,13 +76,9 @@
 			<echo message="server dir ${tomcat.dir} already exists, not installing!  Remove with: ant server.uninstall"/> 
 			</then>
 			<else>
-				<antcontrib:if>
-					<available file="${ext.tomcat.zip}" />
-					<then/>
-					<else>
-						<get src="${ext.tomcat.zip.uri}" dest="${ext.tomcat.zip}" verbose="true" ignoreerrors="false" />
-					</else>
-				</antcontrib:if>
+				<required-resource
+					src="${ext.tomcat.zip.uri}" 
+					dest="${ext.tomcat.zip}" />
 				<unzip src="${ext.tomcat.zip}"						
 				       dest="${tomcat.dir}">
 					<regexpmapper from="apache-tomcat-${tomcat.version.long}/(.*)$" to="\1"/>

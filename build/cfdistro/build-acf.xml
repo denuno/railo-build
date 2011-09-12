@@ -4,8 +4,6 @@
 	<property name="ext.acf.war" location="${ext.acf.dir}/9/cfusion.war" />
 	<property name="cfmlengine.inspect.templates" value="always" />
 	
-	<import file="java/acfdsnencrypt/build.xml" />
-
 	<target name="acf.requires">
 		<unzip src="${ext.acf.war}"
 		       dest="${war.target.dir}">

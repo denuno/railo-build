@@ -27,13 +27,9 @@
 				</delete>
 			</then>
 		</antcontrib:if>
-		<antcontrib:if>
-			<available file="${ext.obd.war}" />
-			<then/>
-			<else>
-				<get src="${ext.obd.war.uri}" dest="${ext.obd.war}" verbose="true" ignoreerrors="false" />
-			</else>
-		</antcontrib:if>
+		<required-resource
+			src="${ext.obd.war.uri}" 
+			dest="${ext.obd.war}" />
 		<requires-ext-file file="${ext.dir}/jboss/jboss-classloading.xml"/>
 	</target>
 

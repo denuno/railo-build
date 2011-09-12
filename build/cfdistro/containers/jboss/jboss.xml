@@ -67,13 +67,9 @@
 			<echo message="server dir ${jboss.dir} already exists, not installing!  Remove with: ant server.uninstall"/> 
 			</then>
 			<else>
-				<antcontrib:if>
-					<available file="${ext.jboss.zip}" />
-					<then/>
-					<else>
-						<get src="${ext.jboss.zip.uri}" dest="${ext.jboss.zip}" verbose="true" ignoreerrors="false" />
-					</else>
-				</antcontrib:if>
+				<required-resource
+					src="${ext.jboss.zip.uri}" 
+					dest="${ext.jboss.zip}" />
 				<unzip src="${ext.jboss.zip}"						
 				       dest="${jboss.dir}">
 					<regexpmapper from="jboss-${jboss.version}/(.*)$" to="\1"/>

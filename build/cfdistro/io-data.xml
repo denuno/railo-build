@@ -173,8 +173,19 @@
 		</sequential>
 	</macrodef>
 
+	<target name="dsn.export">
+		<property name="dsn" value="${distro.name}"/>
+		<dsn-export dsn="${dsn}" schemafile="${distro.name}.schema.xml" datafile="${distro.name}.data.xml" />
+	</target>
+	
+	<target name="dsn.import">
+		<property name="dsn" value="${distro.name}"/>
+		<dsn-import dsn="${dsn}" schemafile="${distro.name}.schema.xml" datafile="${distro.name}.data.xml" />
+	</target>
+	
 	<target name="h2.console" description="launches the h2 web console">
 		<echo message="starting h2 console, peace out!"/>
+		<requires-ext resource="/ext/ddlutils/" />
 		<antcontrib:runtarget target="exists.datasources.xml" />
 		<java classname="org.h2.tools.Server" classpathref="data.lib.path" fork="true" spawn="true">
 		</java>
@@ -195,7 +206,7 @@
 			<arg value="-tcpShutdown" />
 			<arg value="tcp://localhost:9092" />
 		</java>
-		<open-url url="http://localhost:8082" />					
+		<kill-java name="Server" />
 	</target>
 	
 

@@ -62,7 +62,8 @@
 		<antcontrib:propertyregex override="false" property="httpd.serverroot" input="${httpd.conf.file.content}"
 			regexp="${line.separator}ServerRoot\s+[&quot;](.*)[&quot;]" select="\1"/>
 		<echo message="httpd.serverroot: httpd server root:${httpd.serverroot}"/>
-		<echo message="httpd.cfml.conf.file: httpd cfml conf file (${httpd.host}): using ${httpd.cfml.conf.file} -- Existing:"/> 
+		<echo message="httpd.cfml.conf.file: httpd cfml conf file (${httpd.host}): using ${httpd.cfml.conf.file}"/> 
+		<echo message="Existing entries:"/> 
 		<loadfile property="httpd.conf.cfml.content" srcFile="${httpd.cfml.conf.file}" failonerror="false">
 		</loadfile>
 		<echo message="${httpd.conf.cfml.content}" />
@@ -93,17 +94,17 @@
 			</else>
 		</antcontrib:if>
 		<antcontrib:if>
-			<available file="${httpd.distro.conf.dir}/${httpd.distro.conf.name}"/>
+			<available file="${httpd.distro.conf.dir}/${httpd.distro.conf.name}.conf"/>
 			<then>
 				<echo message="httpd.distro.conf.name: using conf template: ${httpd.distro.conf.name}"/>
-				<property name="httpd.host.conf.name" value="${httpd.distro.conf.name}"/>
+				<property name="httpd.host.conf.name" value="${distro.name}"/>
 				<!--
 				<antcontrib:propertyregex property="httpd.host.conf.name" input="${httpd.distro.conf.name}" regexp="(.*)\.conf" select="\1-${build.type}.conf" />
 				-->
 				<echo message="httpd.conf.name: ${httpd.host.conf.name}"/>
 			</then>
 			<else>
-				<fail message="host conf file name (name only ${httpd.distro.conf.dir}/${httpd.distro.conf.name}, not the full path) ${httpd.distro.conf.name} not found.  Specify it with property: httpd.distro.conf.name (and put it in ${httpd.distro.conf.dir})"/>
+				<property name="httpd.host.conf.name" value="template"/>
 			</else>
 		</antcontrib:if>
 	</target>
@@ -162,12 +163,27 @@
 				<!-- <filterreader classname="org.apache.tools.ant.filters.ExpandProperties"/> -->
 			</filterchain>
 			<fileset dir="${httpd.distro.conf.dir}" includes="**" />
+			<mapper type="regexp" from="^(.*)template(.*)" to="\1${distro.name}\2" />
+		</copy>
+		<copy todir="${httpd.generated.dir}" verbose="false" overwrite="true">
+			<filterchain>
+				<filterreader classname="org.apache.tools.ant.filters.ReplaceTokens">
+					<param type="propertiesfile" value="${temp.file}" />
+				</filterreader>
+				<!-- <filterreader classname="org.apache.tools.ant.filters.ExpandProperties"/> -->
+			</filterchain>
+			<fileset dir="${httpd.distro.conf.dir}" excludes="template.*" />
 		</copy>
 		<delete file="${temp.file}"/>
-		<move file="${httpd.generated.dir}/${httpd.distro.conf.name}" tofile="${httpd.generated.dir}/${httpd.host.conf.name}" overwrite="true" />
 	</target>
 
 	<target name="httpd.host.install" depends="httpd.init" description="adds vhost to httpd">
+		<antcontrib:if>
+			<equals arg1="template" arg2="${httpd.host.conf.name}" />
+			<then>
+				<antcontrib:var name="httpd.host.conf.name" value="${distro.name}.conf" />
+			</then>
+		</antcontrib:if>
 		<echo message="adding ${httpd.host.dir}/${httpd.host.conf.name} include directive to ${httpd.cfml.conf.file}" />
 		<replaceregexp byline="false"
 			file="${httpd.cfml.conf.file}" flags="m">

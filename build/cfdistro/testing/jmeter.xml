@@ -1,0 +1,29 @@
+<project name="jmeter" basedir="./" xmlns:antcontrib="antlib:net.sf.antcontrib">
+
+	<property name="jmeter.version" value="2.4" />
+	<property name="ext.jmeter.dir" location="${ext.dir}/jmeter/${jmeter.version}" />
+	<property name="jmeter.dir" location="./jmeter-${jmeter.version}" />
+	<property name="ext.jmeter.zip.uri" value="http://www.gossipcheck.com/mirrors/apache//jakarta/jmeter/binaries/jakarta-jmeter-${jmeter.version}.zip" />
+	
+	<property name="ext.jmeter.zip" location="${ext.jmeter.dir}/jmeter-${jmeter.version}.zip" />
+	
+	<target name="jmeter.install">
+		<mkdir dir="${ext.jmeter.dir}"/>
+		<sequential>
+		<antcontrib:if>
+			<available file="${ext.jmeter.zip}" />
+			<then/>
+			<else>
+				<get src="${ext.jmeter.zip.uri}" dest="${ext.jmeter.zip}" verbose="true" ignoreerrors="false" />
+			</else>
+		</antcontrib:if>
+		<unzip src="${ext.jmeter.zip}"						
+		       dest="${jmeter.dir}">
+			<regexpmapper from="jmeter-${jmeter.version}/(.*)$" to="\1"/>
+		</unzip>
+		<chmod dir="${jmeter.dir}/bin" perm="ugo+rx" 
+		       includes="**/*.sh"/>
+		</sequential>
+	</target>
+	
+</project>

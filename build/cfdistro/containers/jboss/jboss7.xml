@@ -1,7 +1,6 @@
 <project name="jboss7" basedir="./" xmlns:antcontrib="antlib:net.sf.antcontrib">
 	
 	<dirname property="jboss7.basedir" file="${ant.file.jboss7}" />
-	<property file="${jboss7.basedir}/jboss7.properties"/>
 	
 	<antcontrib:if>
 		<equals arg1="1" arg2="1" />
@@ -21,8 +20,9 @@
 			<abspath path="${jboss.server.dir}" property="jboss.server.dir"/>
 			<abspath path="${jboss.deploy.dir}" property="jboss.deploy.dir"/>
 			<abspath path="${jboss.config.file}" property="jboss.config.file"/>
+	    	<antcontrib:var name="jboss.deploy.dir.rel" unset="true" />
 			<relpath from="${jboss.server.dir}" to="${jboss.deploy.dir}" property="jboss.deploy.dir.rel"/>
-			<echo message="wwwwwww ${jboss.server.dir}: ${jboss.deploy.dir} = ${jboss.deploy.dir.rel}" />
+			<echo message="Relative deploy dir ${jboss.server.dir}: ${jboss.deploy.dir} = ${jboss.deploy.dir.rel}" />
 	    </sequential>
 	</macrodef>
 
@@ -44,16 +44,12 @@
 			<echo message="server dir ${jboss.dir} already exists, not installing!  Remove with: ant server.uninstall"/> 
 			</then>
 			<else>
-				<antcontrib:if>
-					<available file="${ext.jboss.zip}" />
-					<then/>
-					<else>
-						<get src="${ext.jboss.zip.uri}" dest="${ext.jboss.zip}" verbose="true" ignoreerrors="false" />
-					</else>
-				</antcontrib:if>
+				<required-resource
+					src="${ext.jboss.zip.uri}" 
+					dest="${ext.jboss.zip}" />
 				<unzip src="${ext.jboss.zip}"						
 				       dest="${jboss.dir}">
-					<regexpmapper from="jboss-${jboss.version}/(.*)$" to="\1"/>
+					<regexpmapper from="jboss-as-${jboss.version}/(.*)$" to="\1"/>
 				</unzip>
 			</else>
 		</antcontrib:if>
@@ -80,6 +76,7 @@
 		<antcontrib:var name="jboss.host.exists" unset="true"/>
 		<echo message="configuring host (${jboss.host}) if not there already, and setting ports (http: ${jboss.port.http})" />
 		<xmltask source="${jboss.config.file}" dest="${jboss.config.file}">
+			<attr path="//*[name() = 'server']/*[name()='profile']/*[name()='subsystem']/*[name()='virtual-server'][@name='default-host']" attr="enable-welcome-root" value="false" />
 			<attr path="//:server/:socket-binding-group" attr="port-offset" value="${jboss.port.offset}" />
 			<attr path="//:server/:management-interfaces/:native-interface" attr="port" value="${jboss.native-interface}" />
 			<attr path="//:server/:management-interfaces/:http-interface" attr="port" value="${jboss.http-interface}" />
@@ -352,6 +349,35 @@
 				<remove path="//*[local-name()='interfaces']/*[local-name()='interface'][@name='@{name}']"/>
 				<print path="//*[local-name()='interfaces']/*[local-name()='interface'][@name='@{name}']"/>
 				<insert path="//*[local-name()='interfaces']" position="under"><![CDATA[<interface name="@{name}" xmlns="urn:jboss:domain:1.0">${interface.xml}</interface>]]></insert>
+			</xmltask>
+	    </sequential>
+	</macrodef>
+
+	<macrodef name="jboss-standalone-modcluster">
+	    <element name="mod-cluster-config" implicit="true"/>
+	    <sequential>
+	    	<xml-to-property property="mod-cluster-config.xml"><mod-cluster-config/></xml-to-property>
+	    	<echo>mod-cluster-config : ${mod-cluster-config.xml}</echo>
+			<xmltask source="${jboss.standalone.config.file}" dest="${jboss.standalone.config.file}">
+				<remove path="//*[local-name()='extensions']/*[local-name()='extension'][@module='org.jboss.as.modcluster']"/>
+				<insert path="//*[local-name()='extensions']" position="under"><![CDATA[<extension module="org.jboss.as.modcluster" xmlns="urn:jboss:domain:1.0" />]]></insert>
+				<remove path="//*[namespace-uri()='urn:jboss:domain:modcluster:1.0']"/>
+				<insert path="//*[local-name()='profile']" position="under"><![CDATA[<subsystem xmlns="urn:jboss:domain:modcluster:1.0">${mod-cluster-config.xml}</subsystem>]]></insert>
+			</xmltask>
+	    </sequential>
+	</macrodef>
+
+
+	<macrodef name="jboss-standalone-socket-binding">
+	    <attribute name="socket-binding-group"/>
+	    <attribute name="socket-binding"/>
+	    <element name="socket-binding-xml" implicit="true"/>
+	    <sequential>
+	    	<xml-to-property property="socket-binding.xml" namespacePolicy="elementsOnly"><socket-binding-xml/></xml-to-property>
+	    	<echo>mod-cluster-config : ${socket-binding.xml}</echo>
+			<xmltask source="${jboss.standalone.config.file}" dest="${jboss.standalone.config.file}">
+				<remove path="//*[local-name()='socket-binding-group'][@name='@{socket-binding-group}']/*[local-name()='socket-binding'][@name='@{socket-binding}']"/>
+				<insert path="//*[namespace-uri()='urn:jboss:domain:1.0' and local-name()='socket-binding-group']" position="under"><![CDATA[${socket-binding.xml}]]></insert>
 			</xmltask>
 	    </sequential>
 	</macrodef>

@@ -1,6 +1,7 @@
 <project name="revisions" basedir="./" xmlns:antcontrib="antlib:net.sf.antcontrib">
 
 	<property name="basedir.absolute" location="${basedir}" />
+	<property name="src.xml.file" value="${basedir.absolute}/src.xml" />
 	<import file="scm-git.xml"/>
 	<import file="scm-svn.xml"/>
 	<import file="scm-cvs.xml"/>
@@ -20,12 +21,14 @@
 	<macrodef name="load-src-xml">
 		<sequential>
 			<antcontrib:runtarget target="check.creds" />
-			<loadfile property="src.xml" srcFile="${basedir.absolute}/src.xml">
+			<loadfile property="src.xml" srcFile="${src.xml.file}">
 				<filterchain>
 					<filterreader classname="org.apache.tools.ant.filters.ReplaceTokens">
 						<param type="token" name="src.dir" value="${src.dir}"/>
 						<param type="token" name="pub.dir" value="${pub.dir}"/>
 						<param type="token" name="lib.dir" value="${lib.dir}"/>
+						<param type="token" name="distro.name" value="${distro.name}"/>
+						<param type="token" name="war.name" value="${war.name}"/>
 						<param type="token" name="war.target.dir" value="${war.target.dir}"/>
 						<param type="propertiesfile" value="${creds.token.file}" />
 					</filterreader>
@@ -38,16 +41,16 @@
 	</macrodef>
 	
 	<target name="exists.src.xml">
-		<available file="${basedir.absolute}/src.xml" type="file"
+		<available file="${src.xml.file}" type="file"
 		           property="exists.src.xml"/>
 		<antcontrib:if>
 			<equals arg1="${exists.src.xml}" arg2="true" />
 			<then>
-				<echo message="src file exists : ${basedir.absolute}/src.xml " />
+				<echo message="src file exists : ${src.xml.file} " />
 				<load-src-xml />
 			</then>
 			<else>
-				<echo message="No src file to import : ${basedir.absolute}/src.xml does not exist." />
+				<echo message="No src file to import : ${src.xml.file} does not exist." />
 			</else>
 		</antcontrib:if>
 		<property name="src.dir.absolute" location="${src.dir}" />

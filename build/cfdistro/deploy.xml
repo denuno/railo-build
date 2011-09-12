@@ -48,6 +48,7 @@
 	<target name="remote.scp">
 		<sequential>
 			<fail unless="scp.dir" message="specify ${scp.dir} dir (relative to project root) to copy to remote" />
+			<property name="scp.include" value="**"/>
 			<deploy-scp toDir="${remote.user}@${remote.host}:${remote.dir}${distro.name}">
 				<scpfiles>
 					<fileset dir="${basedir}/../${scp.dir}">
@@ -55,6 +56,7 @@
 						<exclude name="**/temp/**"/>
 						<exclude name="**/cfdistro/ext/**"/>
 						<exclude name="**/.git/**"/>
+						<include name="${scp.include}"/>
 					</fileset>
 				</scpfiles>
 			</deploy-scp>
@@ -233,6 +235,22 @@
 		</deploy-scp>
 	</target>
 
+	<target name="remote.scp.dist" description="scp wrapped with ssh tunnel dist ${dist.dir} to ${env.remote_host} ${env.remote_dir}">
+		<echo message="Copying ${dist.dir} dir to ${remote.user}@${remote.host}:${remote.dir}${distro.name}/" />
+		<verifyRemoteProperties />
+		<deploy-scp toDir="${remote.user}@${remote.host}:${remote.dir}${distro.name}" fromdir="${dist.dir}/${distro.name}">
+			<scpfiles>
+				<fileset dir="${dist.dir}/${distro.name}">
+					<exclude name="**/creds.txt"/>
+					<exclude name="**/cfdistro/ext/**"/>
+					<exclude name="**/cache.properties"/>
+					<exclude name="**/temp/**"/>
+					<exclude name="**/.git/**"/>
+				</fileset>
+			</scpfiles>
+		</deploy-scp>
+	</target>
+
 	<target name="remote.scp.war" description="scp wrapped with ssh tunnel ${war.target.dir} to ${remote.deploy.dir}">
 		<echo message="Copying ${war.target.dir} to ${remote.user}@${remote.host}:${remote.deploy.dir}/" />
 		<verifyRemoteProperties />
@@ -311,6 +329,7 @@
 	<macrodef name="cfdistro-scp">
 		<attribute name="file" default="" />
 		<attribute name="todir" />
+		<attribute name="fromdir" default="${basedir}/../" />
 		<attribute name="passphrase" default="" />
 		<attribute name="password" default="" />
 		<attribute name="keyfile" default="" />
@@ -324,7 +343,7 @@
 			</path>
 			<antcontrib:pathtofileset name="scp.files.fileset"
 			                       pathrefid="scp.files.ref"
-			                       dir="${basedir}/../"/>
+			                       dir="@{fromdir}"/>
 			<pathconvert pathsep="${line.separator}" property="scp.files.list" refid="scp.files.fileset"/>
 			<echo message="Transferring:@{file} ${scp.files.list}"/>
 			<antcontrib:if>
@@ -396,6 +415,7 @@
 	<macrodef name="deploy-scp">
 		<attribute name="file" default="" />
 		<attribute name="todir" />
+		<attribute name="fromdir" default="${basedir}/../" />
 		<element name="scpfiles" optional="true" />
 		<sequential>
 			<antcontrib:if>
@@ -405,14 +425,15 @@
 				</or>
 				<then>
 					<echo message="scp: using direct SSH to server" />
-					<cfdistro-scp file="@{file}" toDir="@{todir}" password="${remote.user.pass}" keyfile="${remote.keyfile}" passphrase="${remote.keyfile.pass}" port="${remote.host.port}">
+					<cfdistro-scp file="@{file}" toDir="@{todir}" password="${remote.user.pass}" keyfile="${remote.keyfile}" 
+						fromdir="@{fromdir}" passphrase="${remote.keyfile.pass}" port="${remote.host.port}">
 						<files><scpfiles/></files>
 					</cfdistro-scp>
 				</then>
 				<else>
 					<echo message="scp: using bastion SSH server for port forwarding" />
 					<deploy-sshsession>
-						<cfdistro-scp file="@{file}" toDir="@{todir}" password="${remote.user.pass}" keyfile="${remote.keyfile}" passphrase="${remote.keyfile.pass}" port="${remote.bastion.localport}">
+						<cfdistro-scp file="@{file}" fromdir="@{fromdir}" toDir="@{todir}" password="${remote.user.pass}" keyfile="${remote.keyfile}" passphrase="${remote.keyfile.pass}" port="${remote.bastion.localport}">
 							<files><scpfiles/></files>
 						</cfdistro-scp>
 					</deploy-sshsession>

@@ -26,27 +26,28 @@ exec $JAVA_EXE -Xmx200m -jar ${cfdistro.basedir}/lib/${jetty-runner.jar} --port 
 			</echo>
 			<chmod file="${basedir}/start.sh" perm="ugo+rx"/>
 			<echo file="${basedir}/start.bat"><![CDATA[java -Xmx200m -jar "${cfdistro.basedir}/lib/${jetty-runner.jar}" --port ${server.port.http} --path ${war.contextpath} %1 "${war.target.dir}"]]></echo>
-			<sanitizeContextPath />
-			<property name="dist.script.sh" value="${dist.root.dir}/${distro.name}.sh" />
-			<property name="dist.script.bat" value="${dist.root.dir}/${distro.name}.bat" />
+			<property name="dist.script.sh" value="${dist.dir}/${distro.name}/${distro.name}.sh" />
+			<property name="dist.script.bat" value="${dist.dir}/${distro.name}/${distro.name}.bat" />
 			<echo file="${dist.script.sh}"><![CDATA[#! /bin/bash
-export ANT_HOME="build/cfdistro/ant/"
+reldir=`dirname $0`
+cd $reldir/build
+export ANT_HOME=$reldir/build/cfdistro/ant
 if [ -z "$1" ]; then
 echo "${distro.name} control script"
 OPTIONS="start stop help list-targets update exit"
 select opt in $OPTIONS; do
 if [ "$opt" = "start" ]; then
-	build/cfdistro/ant/bin/ant -f build/build.xml build.start.launch
+	cfdistro/ant/bin/ant -f build/build.xml build.start.launch
 	exit
 elif [ "$opt" = "stop" ]; then
-	build/cfdistro/ant/bin/ant -f build/build.xml server.stop
+	cfdistro/ant/bin/ant -f build/build.xml server.stop
 	exit
 elif [ "$opt" = "help" ]; then
 	echo "usage (skips this prompt): ${distro.name}.sh [start|stop|{target}]"
 elif [ "$opt" = "list-targets" ]; then
-	build/cfdistro/ant/bin/ant -f build/build.xml help
+	cfdistro/ant/bin/ant -f build/build.xml help
 elif [ "$opt" = "update" ]; then
-	build/cfdistro/ant/bin/ant -f build/build.xml project.update
+	cfdistro/ant/bin/ant -f build/build.xml project.update
 elif [ "$opt" = "exit" ]; then
 	exit
 else
@@ -55,7 +56,6 @@ else
 fi
 done
 fi
-reldir=`dirname $0`
 target=$1
 parameters=""
 shift
@@ -63,7 +63,7 @@ for var in "$@"
 do
     parameters="$parameters -D$var"
 done
-/bin/sh $reldir/build/cfdistro/ant/bin/ant -f $reldir/build/build.xml $target $parameters
+/bin/sh cfdistro/ant/bin/ant -f build.xml $target -Dbasedir=. $parameters
 	]]>
 			</echo>
 			<echo file="${dist.script.bat}"><![CDATA[@echo off
@@ -159,12 +159,15 @@ REM EXIT
 		</then>
 	
 	</antcontrib:if>
+
+	<add-system-path path="${user.home}/cfdistro/bin" keyword="cfdistro" />
+
 </target>
 
 	<target name="cfdistro.executable">
-		<echo file="${basedir}/cfdistro.sh"><![CDATA[#! /bin/sh
+		<echo file="${basedir}/bin/cfdistro"><![CDATA[#! /bin/sh
 reldir=`dirname $0`
-export ANT_HOME="$reldir/cfdistro/ant/"
+export ANT_HOME="$reldir/../ant/"
 props=""
 target=$1
 shift
@@ -172,14 +175,14 @@ for var in "$@"
 do
     props="$props -D$var"
 done
-echo $reldir/cfdistro/ant/bin/ant -f $reldir/build.xml $target $props
-/bin/sh $reldir/cfdistro/ant/bin/ant -f $reldir/build.xml $target $props]]>
+#echo $reldir/../ant/bin/ant -f $reldir/build.xml $target $props
+/bin/sh $reldir/../ant/bin/ant -f $reldir/../build.xml $target -Dbasedir=. $props]]>
 		</echo>
-		<chmod file="${basedir}/cfdistro.sh" perm="ugo+rx"/>
-		<echo file="${basedir}/cfdistro.bat"><![CDATA[@echo off
+		<chmod file="${basedir}/bin/cfdistro" perm="ugo+rx"/>
+		<echo file="${basedir}/bin/cfdistro.bat"><![CDATA[@echo off
 if "%1" == "" goto error
-set ANT_HOME=%CD%\cfdistro\ant\
-call %CD%\cfdistro\ant\bin\ant.bat -f %CD%\build.xml %1
+set ANT_HOME=%CD%\..\ant\
+call %CD%\..\ant\bin\ant.bat -f %CD%\build.xml %1
 goto end
 :error
 echo usage:

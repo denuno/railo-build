@@ -1,4 +1,12 @@
-CD /D %~dp0
-SET ANT_HOME=..\ant\
-call ..\ant\bin\ant.bat -f ..\..\build.xml -Dbasedir="..\..\" %1
-REM @ping 127.0.0.1 -n 21 -w 1000 > nul
+@echo off
+if "%1" == "" goto error
+set ANT_HOME=%CD%\..\ant\
+call %CD%\..\ant\bin\ant.bat -f %CD%\build.xml %1
+goto end
+:error
+echo usage:
+echo cfdistro.bat start
+echo cfdistro.bat stop
+:end
+		
+		
