@@ -71,6 +71,7 @@
 			<![CDATA[<init-param><param-name>railo-server-root</param-name><param-value>/</param-value></init-param>]]></insert>
 		</xmltask>
 		<!-- needed if deployed to jboss -->
+		<mkdir dir="${ext.dir}/jboss" />
 		<requires-ext-file file="${ext.dir}/jboss/jboss-classloading.xml"/>
 		<copy file="${ext.dir}/jboss/jboss-classloading.xml" tofile="${war.target.dir}/WEB-INF/jboss-classloading.xml" overwrite="true" />
 

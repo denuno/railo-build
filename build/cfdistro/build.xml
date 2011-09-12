@@ -363,6 +363,7 @@
 		<echo file="${war.target.dir}/META-INF/context.xml">
 			<![CDATA[<Context path="${war.contextpath}" override="true" docBase="./" />]]></echo>
 		<!-- jboss -->
+		<mkdir dir="${ext.dir}/jboss" />
 		<requires-ext resource="${ext.dir}/jboss/jboss-classloading.xml" />
 		<copy file="${ext.dir}/jboss/jboss-classloading.xml" tofile="${war.target.dir}/WEB-INF/jboss-classloading.xml" overwrite="true" />
 	</target>
