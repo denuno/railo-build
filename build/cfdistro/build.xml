@@ -175,7 +175,7 @@
 
 	<property name="jetty-runner.jar" value="jetty-runner-7.3.1.v20110307.jar" />
 
-	<property name="ext.uri" value="https://subversion.assembla.com/svn/cfdistro/trunk/cfdistro/ext" />
+	<property name="ext.uri" value="http://subversion.assembla.com/svn/cfdistro/trunk/cfdistro/ext" />
 	<property name="creds.token.file" value="${basedir}/creds.txt" />
 
 	<property name="dist.zip.file" value="${dist.dir}/${distro.name}.zip" />
