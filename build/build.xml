@@ -286,7 +286,7 @@ ${git.results}</echo>
 		<sequential>
 			<exec dir="@{buildfile-dir}" osfamily="unix"
             	executable="sh" failonerror="true">
-	            <arg line="${cfdistro.basedir}/ant/bin/ant -buildfile build.xml -propertyfile ${temp.dir}/railo.properties @{target}"/>
+	            <arg line="${cfdistro.basedir}/ant/bin/ant -buildfile build.xml -propertyfile ${temp.dir}/railo.properties -Dcore.version=${railo.build.number} @{target}"/>
 	        </exec>
 			<exec dir="@{buildfile-dir}" osfamily="windows"
 				executable="${cfdistro.basedir}/ant/bin/ant.bat" failonerror="true">
