@@ -1,14 +1,14 @@
 <project name="infinispan" basedir="./" xmlns:antcontrib="antlib:net.sf.antcontrib">
 
-	<property name="infinispan.version" value="5.0.0.FINAL" />
+	<property name="infinispan.version" value="5.0.1.FINAL" />
 	<property name="ext.infinispan.dir" location="${ext.dir}/infinispan/${infinispan.version}" />
-	<property name="infinispan.dir" location="./infinispan${infinispan.version}" />
+	<property name="infinispan.dir" location="${basedir}/../infinispan${infinispan.version}" />
 	<property name="ext.infinispan.zip.uri" value="http://downloads.jboss.org/infinispan/${infinispan.version}/infinispan-${infinispan.version}-all.zip" />
 	<property name="ext.infinispan.zip" location="${ext.infinispan.dir}/infinispan-${infinispan.version}.zip" />
 
 	<!-- <property name="rhq.version" value="4.0.1" /> -->
 	<property name="rhq.version" value="4.1.0.Beta" />
-	<pathconvert property="rhq.version.lc">		
+	<pathconvert property="rhq.version.lc">
 		<path path="${rhq.version}"/>
 		<chainedmapper><flattenmapper/><scriptmapper language="javascript">self.addMappedName(source.toLowerCase());</scriptmapper></chainedmapper>
 	</pathconvert>
@@ -19,7 +19,7 @@
 	
 	<target name="infinispan.install">
 		<mkdir dir="${ext.infinispan.dir}"/>
-		<property name="infinispan.config" value="${basedir}/infinispan-cfg.xml"/>
+		<property name="infinispan.config" value="build/infinispan-hotrod-cfg.xml"/>
 		<sequential>
 		<required-resource
 			src="${ext.infinispan.zip.uri}"
@@ -32,17 +32,17 @@
 		<chmod dir="${infinispan.dir}/bin" perm="ugo+rx" 
 		       includes="**/*.sh"/>
 		</sequential>
-		<echo message="Creating infinispan.sh script.  To run it type: ./infinispan.sh" />
-		<relpath from="${basedir}" to="${infinispan.dir}" property="infinispan.dir"/>
+		<echo message="Creating infinispan script.  To run it type: ./infinispan" />
+		<relpath from="${basedir}/../" to="${infinispan.dir}" property="infinispan.dir"/>
 		<!--
 			add_jvm_args '-Dcom.sun.management.jmxremote.port=6996' 
 			add_jvm_args '-Dcom.sun.management.jmxremote.ssl=false'  
 			add_jvm_args '-Dcom.sun.management.jmxremote.authenticate=false'
 			add to startServer.sh for JMX		
 		-->
-		<echo file="${basedir}/infinispan.sh"><![CDATA[#! /bin/sh
-${infinispan.dir}/bin/startServer.sh -r hotrod -c ${infinispan.config} -l ${server.host}]]></echo>
-		<chmod file="${basedir}/infinispan.sh" perm="ugo+rx"/>
+		<echo file="${basedir}/../infinispan"><![CDATA[#! /bin/sh
+${infinispan.dir}bin/startServer.sh -r hotrod -c ${infinispan.config} -l ${server.host}]]></echo>
+		<chmod file="${basedir}/../infinispan" perm="ugo+rx"/>
 		
 	</target>
 

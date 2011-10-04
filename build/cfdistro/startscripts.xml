@@ -26,28 +26,135 @@ exec $JAVA_EXE -Xmx200m -jar ${cfdistro.basedir}/lib/${jetty-runner.jar} --port 
 			</echo>
 			<chmod file="${basedir}/start.sh" perm="ugo+rx"/>
 			<echo file="${basedir}/start.bat"><![CDATA[java -Xmx200m -jar "${cfdistro.basedir}/lib/${jetty-runner.jar}" --port ${server.port.http} --path ${war.contextpath} %1 "${war.target.dir}"]]></echo>
-			<property name="dist.script.sh" value="${dist.dir}/${distro.name}/${distro.name}.sh" />
-			<property name="dist.script.bat" value="${dist.dir}/${distro.name}/${distro.name}.bat" />
+			<property name="osxappbundle.dir" location="${dist.root.dir}/${distro.name}.app"/>
+
+			<startscript script-path="${dist.dir}/${distro.name}/${distro.name}" />
+
+			<!-- make OS X app bundle -->
+			<copy toDir="${osxappbundle.dir}" overwrite="yes">
+				<filterchain>
+				<expandproperties />
+				</filterchain>
+				<fileset dir="${cfdistro.basedir}/skeleton/osxappbundle" />
+			</copy>
+			<move file="${osxappbundle.dir}/Contents/Resources/icon.icns"
+				toFile="${osxappbundle.dir}/Contents/Resources/${distro.name}.icns" />
+			<move file="${osxappbundle.dir}/Contents/MacOS/start"
+				toFile="${osxappbundle.dir}/Contents/MacOS/${distro.name}" />
+			<chmod file="${osxappbundle.dir}/Contents/MacOS/${distro.name}" perm="ugo+rx"/>
+			<chmod file="${osxappbundle.dir}/Contents/MacOS/run.command" perm="ugo+rx"/>
+		</then>
+	
+	</antcontrib:if>
+
+	<!--	
+	<add-system-path path="${user.home}/cfdistro/bin" keyword="cfdistro" /> 
+	-->
+
+</target>
+
+	<target name="cfdistro.executable">
+		<echo file="${basedir}/bin/cfdistro"><![CDATA[#! /bin/sh
+reldir=`dirname $0`
+export ANT_HOME="$reldir/../ant/"
+props=""
+target=$1
+shift
+for var in "$@"
+do
+    props="$props -D$var"
+done
+#echo $reldir/../ant/bin/ant -f $reldir/build.xml $target $props
+/bin/sh $reldir/../ant/bin/ant -f build/build.xml $target -Dcfdistro.build.file=$reldir/../build.xml $props]]>
+		</echo>
+		<chmod file="${basedir}/bin/cfdistro" perm="ugo+rx"/>
+		<echo file="${basedir}/bin/cfdistro.bat"><![CDATA[@echo off
+if "%1" == "" goto error
+set ANT_HOME=%CD%\..\ant\
+call %CD%\..\ant\bin\ant.bat -f %CD%\build.xml %1
+goto end
+:error
+echo usage:
+echo cfdistro.bat start
+echo cfdistro.bat stop
+:end
+		]]>
+		</echo>
+
+	</target>
+
+	<target name="centos.onboot">
+		<echo file="/etc/init.d/${distro.name}"><![CDATA[#!/bin/sh
+# chkconfig: 345 99 01
+# description: ${distro.name} startup script
+# 
+runcommand=${basedir}/../${distro.name}.sh
+runuser=$(/usr/bin/whoami)
+echo Running as $runuser
+if [ $runuser != "cfml" ]; then
+	#su - cfml --session-command="/home/cfml/myapp/myapp.sh $1"
+	runcommand="sudo -u cfml -i -H $runcommand"
+	echo Switching to cfml user
+fi
+case "$1" in
+
+  start)
+	echo "starting ${distro.name}"
+	shift
+	$runcommand server.start @*
+;;
+
+ stop)
+	echo "stopping ${distro.name}"
+	shift
+	$runcommand server.stop @*
+;;
+
+ restart)
+	echo "restarting ${distro.name}"
+	shift
+	$runcommand server.restart @*
+;;
+
+  *)
+echo "*** Usage: ${distro.name} {start | stop | restart}"
+exit 1
+esac]]></echo>
+		<chmod file="/etc/init.d/${distro.name}" perm="ugo+rx"/>
+		<exec executable="/sbin/chkconfig">
+			<arg value="--level"/>
+			<arg value="345"/>
+			<arg value="${distro.name}"/>
+			<arg value="on"/>
+		</exec>
+	</target>
+
+	<macrodef name="startscript">
+		<attribute name="script-path" />
+		<attribute name="cfdistro-path" default="${cfdistro.basedir}" />
+		<sequential>
+			<property name="dist.script.sh" value="@{script-path}" />
+			<property name="dist.script.bat" value="@{script-path}.bat" />
 			<echo file="${dist.script.sh}"><![CDATA[#! /bin/bash
 reldir=`dirname $0`
 cd $reldir/build
-export ANT_HOME=$reldir/build/cfdistro/ant
+export ANT_HOME=@{cfdistro-path}/ant
 if [ -z "$1" ]; then
 echo "${distro.name} control script"
 OPTIONS="start stop help list-targets update exit"
 select opt in $OPTIONS; do
 if [ "$opt" = "start" ]; then
-	cfdistro/ant/bin/ant -f build/build.xml build.start.launch
+	@{cfdistro-path}/ant/bin/ant -f build/build.xml build.start.launch
 	exit
 elif [ "$opt" = "stop" ]; then
-	cfdistro/ant/bin/ant -f build/build.xml server.stop
+	@{cfdistro-path}/ant/bin/ant -f build/build.xml server.stop
 	exit
 elif [ "$opt" = "help" ]; then
 	echo "usage (skips this prompt): ${distro.name}.sh [start|stop|{target}]"
 elif [ "$opt" = "list-targets" ]; then
-	cfdistro/ant/bin/ant -f build/build.xml help
+	@{cfdistro-path}/ant/bin/ant -f build/build.xml help
 elif [ "$opt" = "update" ]; then
-	cfdistro/ant/bin/ant -f build/build.xml project.update
+	@{cfdistro-path}/ant/bin/ant -f build/build.xml project.update
 elif [ "$opt" = "exit" ]; then
 	exit
 else
@@ -63,7 +170,7 @@ for var in "$@"
 do
     parameters="$parameters -D$var"
 done
-/bin/sh cfdistro/ant/bin/ant -f build.xml $target -Dbasedir=. $parameters
+/bin/sh @{cfdistro-path}/ant/bin/ant -f build.xml $target -Dbasedir=. $parameters
 	]]>
 			</echo>
 			<echo file="${dist.script.bat}"><![CDATA[@echo off
@@ -75,7 +182,7 @@ goto end
 cls
 echo.
 echo       ${distro.name} menu
-REM echo       usage: ${disstro.name}.bat [start|stop|{target}]
+REM echo       usage: ${distro.name}.bat [start|stop|{target}]
 echo.
 echo       1. Start server and open browser
 echo       2. Stop server
@@ -141,103 +248,9 @@ REM EXIT
 			</echo>
 			<fixcrlf file="${dist.script.bat}" eol="crlf" />
 			<chmod file="${dist.script.sh}" perm="ugo+rx"/>
-			<property name="osxappbundle.dir" location="${dist.root.dir}/${distro.name}.app"/>
+		</sequential>
+	</macrodef>
 
-			<!-- make OS X app bundle -->
-			<copy toDir="${osxappbundle.dir}" overwrite="yes">
-				<filterchain>
-				<expandproperties />
-				</filterchain>
-				<fileset dir="${cfdistro.basedir}/skeleton/osxappbundle" />
-			</copy>
-			<move file="${osxappbundle.dir}/Contents/Resources/icon.icns"
-				toFile="${osxappbundle.dir}/Contents/Resources/${distro.name}.icns" />
-			<move file="${osxappbundle.dir}/Contents/MacOS/start"
-				toFile="${osxappbundle.dir}/Contents/MacOS/${distro.name}" />
-			<chmod file="${osxappbundle.dir}/Contents/MacOS/${distro.name}" perm="ugo+rx"/>
-			<chmod file="${osxappbundle.dir}/Contents/MacOS/run.command" perm="ugo+rx"/>
-		</then>
-	
-	</antcontrib:if>
 
-	<add-system-path path="${user.home}/cfdistro/bin" keyword="cfdistro" />
-
-</target>
-
-	<target name="cfdistro.executable">
-		<echo file="${basedir}/bin/cfdistro"><![CDATA[#! /bin/sh
-reldir=`dirname $0`
-export ANT_HOME="$reldir/../ant/"
-props=""
-target=$1
-shift
-for var in "$@"
-do
-    props="$props -D$var"
-done
-#echo $reldir/../ant/bin/ant -f $reldir/build.xml $target $props
-/bin/sh $reldir/../ant/bin/ant -f $reldir/../build.xml $target -Dbasedir=. $props]]>
-		</echo>
-		<chmod file="${basedir}/bin/cfdistro" perm="ugo+rx"/>
-		<echo file="${basedir}/bin/cfdistro.bat"><![CDATA[@echo off
-if "%1" == "" goto error
-set ANT_HOME=%CD%\..\ant\
-call %CD%\..\ant\bin\ant.bat -f %CD%\build.xml %1
-goto end
-:error
-echo usage:
-echo cfdistro.bat start
-echo cfdistro.bat stop
-:end
-		]]>
-		</echo>
-
-	</target>
-
-	<target name="centos.onboot">
-		<echo file="/etc/init.d/${distro.name}"><![CDATA[#!/bin/sh
-# chkconfig: 345 99 01
-# description: ${distro.name} startup script
-# 
-runcommand=${basedir}/../${distro.name}.sh
-runuser=$(/usr/bin/whoami)
-echo Running as $runuser
-if [ $runuser != "cfml" ]; then
-	#su - cfml --session-command="/home/cfml/hazrating/hazrating.sh $1"
-	runcommand="sudo -u cfml -i -H $runcommand"
-	echo Switching to cfml user
-fi
-case "$1" in
-
-  start)
-	echo "starting ${distro.name}"
-	shift
-	$runcommand server.start @*
-;;
-
- stop)
-	echo "stopping ${distro.name}"
-	shift
-	$runcommand server.stop @*
-;;
-
- restart)
-	echo "restarting ${distro.name}"
-	shift
-	$runcommand server.restart @*
-;;
-
-  *)
-echo "*** Usage: ${distro.name} {start | stop | restart}"
-exit 1
-esac]]></echo>
-		<chmod file="/etc/init.d/${distro.name}" perm="ugo+rx"/>
-		<exec executable="/sbin/chkconfig">
-			<arg value="--level"/>
-			<arg value="345"/>
-			<arg value="${distro.name}"/>
-			<arg value="on"/>
-		</exec>
-	</target>
 </project>
 

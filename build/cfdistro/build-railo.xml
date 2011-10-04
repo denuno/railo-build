@@ -4,8 +4,42 @@
 	<property file="${build-railo.basedir}/build-railo.properties" />
 	
 	<target name="railo.requires">
+		<antcontrib:if>
+			<or>
+				<equals arg1="${railo.patch.version}" arg2="" />
+				<equals arg1="${railo.patch.version}" arg2="$${railo.patch.version}" />
+			</or>
+			<then>
+				<antcontrib:propertyregex override="yes" property="railo.patch.version" input="${railo.version}" 
+					regexp="\d+\.\d+\.\d+\.(\d+)+.*" select="\1" />
+					<antcontrib:if>
+						<not><or>
+							<equals arg1="${railo.patch.version}" arg2="" />
+							<equals arg1="${railo.patch.version}" arg2="000" />
+							<equals arg1="${railo.patch.version}" arg2="$${railo.patch.version}" />
+						</or></not>
+						<then>
+							<antcontrib:var name="railo.patch.version" value="${railo.version}" />
+						</then>
+					</antcontrib:if>
+			</then>
+			<else>
+				<antcontrib:var name="railo.version" value="${railo.patch.version}" />
+			</else>
+		</antcontrib:if>
+		
+		<version-splitter property="railo.version" version="${railo.version}"/>
+
+		<echo message="Railo version: Major ${railo.version.major} Minor ${railo.version.minor} Build ${railo.version.build} Revision ${railo.version.revision}"/>
+
+		<property name="ext.railo.war.version" value="${railo.version.major}.${railo.version.minor}.${railo.version.build}.000" />
+		<property name="ext.railo.dir" value="${ext.dir}/railo/${railo.version.major}" />
+		<property name="ext.railo.war.uri" value="http://www.getrailo.org/railo/remote/download/${ext.railo.war.version}/custom/all/railo-${ext.railo.war.version}.war" />
+		<property name="ext.railo.war" value="${ext.railo.dir}/railo-${ext.railo.war.version}.war" />
+		<antcontrib:var name="cfml.engine.war" value="${ext.railo.war}" />
 		<mkdir dir="${ext.railo.dir}"/>
 		<mkdir dir="${ext.railo.dir}/patches"/>
+
 		<required-resource
 			src="${ext.railo.war.uri}" 
 			dest="${ext.railo.war}" />
@@ -31,6 +65,10 @@
 
 	<target name="railo.war.init" depends="clean,railo.requires">		
 		<unzip src="${ext.railo.war}" dest="${war.target.dir}"/>
+		<!-- hack for bad xml in 3.3.1 -->
+		<replace file="${war.target.dir}/WEB-INF/web.xml" value="">
+		  <replacetoken><![CDATA[< !-- this id must be unique for every defintion of the MessageBrokerServlet -- >]]></replacetoken>
+		</replace>
 		<property name="extracted" location="${java.io.tmpdir}/extracted"/> 
 		<mkdir dir="${extracted}"/> 
 		<unzip src="${war.target.dir}/WEB-INF/lib/railo.jar" dest="${extracted}">

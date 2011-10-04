@@ -28,6 +28,16 @@
 		uri="http://svn.model-glue.com/trunk/ModelGlue/" 
 		user="" password="" />
  -->
+<!--	Mach-II
+		<src dest="@src.dir@/MachII" type="svn" 
+		uri="http://svn.mach-ii.com/machii/framework/1-8-1/trunk/" 
+		user="" password="" />
+ -->
+<!--	Mach-II skeleton
+		<src dest="@src.dir@/MachIIapp" type="svn" 
+		uri="http://svn.mach-ii.com/machii/skeleton/1-8-0/trunk/" 
+		user="" password="" />
+ -->
 <!--	FW/1  (to src/${distro.name}/org)
 		<src dest="@src.dir@/@distro.name@/org" type="git" 
 		uri="https://github.com/seancorfield/fw1.git"
@@ -43,6 +53,11 @@
 <!--	ColdBox
 		<src dest="@src.dir@/coldbox" type="git" 
 		uri="http://github.com/ColdBox/coldbox-platform.git" 
+		user="" password="" />
+ -->
+<!--	ColdBox sample app
+		<src dest="@src.dir@/coldbox/samples" type="git" 
+		uri="https://github.com/ColdBox/coldbox-samples" 
 		user="" password="" />
  -->
 <!--	ColdSpring 1.2

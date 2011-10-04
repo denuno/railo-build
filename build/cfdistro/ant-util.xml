@@ -56,7 +56,7 @@
 		</sequential>
 	</macrodef>
 
-	<scriptdef name="relpath" language="javascript">
+	<scriptdef name="relpath-js" language="javascript">
 		  <attribute name="property"/>
 		  <attribute name="from"/>
 		  <attribute name="to"/>
@@ -82,6 +82,80 @@
 		  ]]>
 	</scriptdef>
 
+	<macrodef name="version-splitter" description="splits a @{version} (3.9.12.333) into @{property}.major (3)  @{property}.minor (9) @{property}.build (12) @{property}.revision (333).  Optionally bumps one of [major|minor|build|revision] if specified.">
+	  <attribute name="version"/>
+	  <attribute name="property"/>
+	  <attribute name="bump" default=""/>
+		<sequential>
+			<antcontrib:propertyregex override="no" property="@{property}.major" input="@{version}" 
+				regexp="(\d)\.+.*" select="\1" />
+			<antcontrib:propertyregex override="no" property="@{property}.minor" input="@{version}" 
+				regexp="\d+\.(\d+)" select="\1" />
+			<antcontrib:propertyregex override="no" property="@{property}.build" input="@{version}" 
+				regexp="\d+\.\d+\.(\d+)" select="\1" />
+			<property name="@{property}.build" value="00" />
+			<antcontrib:propertyregex override="no" property="@{property}.revision" input="@{version}" 
+				regexp="\d+\.\d+\.\d+\.(\d+)+.*" select="\1" />
+			<property name="@{property}.revision" value="000" />
+			<antcontrib:var name="@{property}.long" value="${@{property}.major}.${@{property}.minor}.${@{property}.build}.${@{property}.revision}" />
+			<mkdir dir="${temp.dir}"/>
+			<echoproperties destfile="${temp.dir}/version.temp.properties" prefix="@{property}"/>
+			<antcontrib:var name="@{property}.major" unset="true" />
+			<antcontrib:var name="@{property}.minor" unset="true" />
+			<antcontrib:var name="@{property}.build" unset="true" />
+			<antcontrib:var name="@{property}.revision" unset="true"/>
+			<antcontrib:switch value="@{bump}">
+				  <case value="major">
+				    <propertyfile  file="${temp.dir}/version.temp.properties">
+			            <entry key="@{property}.major" type="int" operation="+" value="1" pattern="00"/>
+			            <entry key="@{property}.minor" type="int" value="0" pattern="00"/>
+			            <entry key="@{property}.build" type="int" value="0" pattern="00"/>
+			            <entry key="@{property}.revision" type="int" value="0" pattern="000"/>
+				    </propertyfile>
+				  	<echo message="bumped major" />
+				  </case>
+				  <case value="minor">
+				    <propertyfile  file="${temp.dir}/version.temp.properties">
+			            <entry key="@{property}.major" type="int" operation="+" value="1" pattern="00"/>
+			            <entry key="@{property}.build" type="int" value="0" pattern="00"/>
+			            <entry key="@{property}.revision" type="int" value="0" pattern="000"/>
+				    </propertyfile>
+				  	<echo message="bumped minor" />
+				  </case>
+				  <case value="build">
+				    <propertyfile  file="${temp.dir}/version.temp.properties">
+			            <entry key="@{property}.build" type="int" operation="+" value="1" pattern="00"/>
+			            <entry key="@{property}.revision" type="int" value="0" pattern="000"/>
+				    </propertyfile>
+				  	<echo message="bumped build" />
+				  </case>
+				  <case value="revision">
+				    <propertyfile  file="${temp.dir}/version.temp.properties">
+				            <entry key="@{property}.revision" type="int" operation="+" value="1" pattern="000"/>
+				    </propertyfile>
+				  	<echo message="bumped revision" />
+				  </case>
+				  <default>
+				    <antcontrib:var file="${temp.dir}/version.temp.properties" />
+				  </default>
+			</antcontrib:switch>
+		    <property file="${temp.dir}/version.temp.properties"/>
+			<antcontrib:var name="@{property}.long" value="${@{property}.major}.${@{property}.minor}.${@{property}.build}.${@{property}.revision}" />
+			<echo message="Version ${@{property}.long}: Major ${@{property}.major} Minor ${@{property}.minor} Build ${@{property}.build} Revision ${@{property}.revision}"/>
+		</sequential>
+	</macrodef>
+	
+	<macrodef name="relpath">
+	  <attribute name="property"/>
+	  <attribute name="from"/>
+	  <attribute name="to"/>
+		<sequential>
+			<antcontrib:var name="relpathprop" unset="true" />
+			<relpath-js property="relpathprop" from="@{from}" to="@{to}" />
+			<antcontrib:var name="@{property}" value="${relpathprop}" />			
+		</sequential>
+	</macrodef>
+	
 	<macrodef name="javac-ecj">
 		<attribute name="srcdir" />
 		<attribute name="destdir" />
@@ -167,10 +241,10 @@
 					<!-- note="do it twice to catch any already defined deals" -->
 					<antcontrib:var file="${basedir}/build.@{buildtype}.properties" />
 					<antcontrib:var file="${basedir}/build.@{buildtype}.properties" />
-					<echo message="loaded custom properties: build.@{buildtype}.properties" />
+					<echo message="loaded custom properties: ${basedir}/build.@{buildtype}.properties" />
 				</try>
 				<catch>
-					<echo message="no custom properties: build.@{buildtype}.properties" />
+					<echo message="no custom properties: ${basedir}/build.@{buildtype}.properties" />
 					<antcontrib:trycatch>
 						<try>
 							<!-- note="do it twice to catch any already defined deals" -->
@@ -179,7 +253,7 @@
 							<echo message="loaded built-in custom properties: ${cfdistro.basedir}/build.@{buildtype}.properties" />
 						</try>
 						<catch>
-							<echo message="no built-in custom properties: build.@{buildtype}.properties" />
+							<echo message="no built-in custom properties: ${cfdistro.basedir}/build.@{buildtype}.properties" />
 						</catch>
 					</antcontrib:trycatch>
 				</catch>

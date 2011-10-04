@@ -1,19 +1,53 @@
 You can theoretically just click the "download source" button to download the 
-project (14M).
+project (24.6M).
 
-If you don't have a 1.5 JDK already (1.6 is the default now), you'll need to 
-install one.  
+Then, again theoretically, all you have to do is run the railo-build batch or sh
+script and pick the "build" option, or put it in at the command prompt
+
+Ex: railo-build.sh build
+
+With a little luck, you'll end up with a new .rc file, a railo.jar, and a WAR in
+the ./dist directory.  Use whatever deliverable you want, but usually the .rc is
+all you need.
+
+It *will* take a while, the first time you run it, as it pulls the Git repo.
+Subsequent builds are fast as fast can be though.
+
+The default "build" target now defaults to the "3.3" branch.  There is a
+"build.32" target for the code in the stable branch (though I think you
+currently have to edit the src.xml file and change the branch manually as well).
+
+To build versions < 3.3, if you don't have a 1.5 JDK already (1.6 is the default 
+now), you'll need to install one.  
 For OS X this is easy: http://wiki.oneswarm.org/index.php/OS_X_10.6_Snow_Leopard
 
 The script has a rudimentary search for the JDK1.5 location, but if it can't 
 find it, set the jdk5.home property in build/build.xml to the location of the 
 1.5 JDK.
 
-Then run the batch or sh script.  Or go into the build directory and type: ant
+Railo 3.3 and above (4 is the current develop branch), use 1.6 instead.  Yay!
 
-With a little luck, you'll end up with a new .rc file.
+There's a property in the build/build.xml file called railo.build.bump that 
+controls the version number.  It defaults to bumping the revision/patch number 
+(the last number of the version, 3.3.1.[revision]), but you can change it to
+major, minor, or build if you want to bump one of the first three.  If you set
+it to an empty value the version will not be bumped with the build.
 
-There's a property in the build/build.xml file called railo.build.number that 
-controls the version number.  It is easy enough to increment it with each build,
-but I haven't bothered.  Uncomment the increment line in the build file if you 
-want that behavior.
+Lastly, you don't need Git installed on your system to use this tool, as it uses
+JGit to download the sources.  The idea is that it just runs.  If it don't, 
+holler and we'll see why not.  If you want to use the build.branch target (an
+easy way to select the branch to build) you do need to have git installed, as
+JGit doesn't handle forced checkouts very well.
+
+Ok, one last last thing-- there's a "po-boy" CI system included, which does
+builds triggered by any commits to the targeted git repository, along with a
+railo extension for installing the integration .rc files into a running Railo
+instance, but I haven't had time to document it or keep it running anywhere,
+so pretty much just ignore that stuff unless you need it, and if so, hit me up.
+
+Basically it's just:
+
+./railo-build.sh ci.build
+./railo-build.sh ci.start
+
+Though.

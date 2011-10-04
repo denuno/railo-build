@@ -277,7 +277,6 @@
 	</target>
 
 	<target name="cfdistro.skeleton" description="creates a distro skeleton in ${target.dir} named ${distro.name}">
-		<antcontrib:var name="distro.name" unset="true"/>  
 		<input
 		    message="Please enter project name:"
 		    addproperty="distro.name"
@@ -335,8 +334,7 @@
 		<antcontrib:propertyregex property="project.build.file" input="${project.build.file}" global="true" override="yes" regexp="(\s)src.dir=.*" replace="\1src.dir=${src.dir}" />
 -->
 		<echo file="${target.dir}/build/build.properties" message="${project.build.file}" />
-		<antcontrib:var name="dist.root.dir" value="${target.dir}" />
-		<antcontrib:runtarget target="startscripts.create" />
+		<startscript script-path="${target.dir}/${distro.name}" />
 	</target>
 
 	<target name="war.init">
@@ -363,8 +361,8 @@
 		<echo file="${war.target.dir}/META-INF/context.xml">
 			<![CDATA[<Context path="${war.contextpath}" override="true" docBase="./" />]]></echo>
 		<!-- jboss -->
-		<mkdir dir="${ext.dir}/jboss" />
 		<requires-ext resource="${ext.dir}/jboss/jboss-classloading.xml" />
+		<mkdir dir="${ext.dir}/jboss" />
 		<copy file="${ext.dir}/jboss/jboss-classloading.xml" tofile="${war.target.dir}/WEB-INF/jboss-classloading.xml" overwrite="true" />
 	</target>
 
@@ -1199,10 +1197,15 @@
 <antcontrib:switch value="${dist.type}">
 	<case value="minimal">
 		<echo message="miminal dist, build and cfdistro only ${creds.token.file}" />
-		<loadfile property="ext.requires" srcFile="${basedir}/requires.txt" />
-		<copy todir="${dist.dir}/${distro.name}/build/cfdistro/ext/" verbose="true">
-			<filelist id="ext_requires" dir="${ext.dir}" files="${ext.requires}"/>
-		</copy>
+		<antcontrib:if>
+			<available file="${basedir}/requires.txt"/>
+			<then>
+				<loadfile property="ext.requires" srcFile="${basedir}/requires.txt" />
+				<copy todir="${dist.dir}/${distro.name}/build/cfdistro/ext/" verbose="true">
+					<filelist id="ext_requires" dir="${ext.dir}" files="${ext.requires}"/>
+				</copy>
+			</then>
+		</antcontrib:if>
 		<copy todir="${dist.dir}/${distro.name}/" file="${basedir}/../${distro.name}.sh"/>
 		<copy todir="${dist.dir}/${distro.name}/build" verbose="false">
 			<fileset dir="${basedir}/">
@@ -1216,10 +1219,15 @@
 	</case>
 	<case value="src">
 		<echo message="Everything except requirements in the cfdistro ext/ resource repository (medium zip)" />
-		<loadfile property="ext.requires" srcFile="${basedir}/requires.txt" />
-		<copy todir="${dist.dir}/${distro.name}/build/cfdistro/ext/" verbose="true">
-			<filelist id="ext_requires" dir="${ext.dir}" files="${ext.requires}"/>
-		</copy>
+		<antcontrib:if>
+			<available file="${basedir}/requires.txt"/>
+			<then>
+				<loadfile property="ext.requires" srcFile="${basedir}/requires.txt" />
+				<copy todir="${dist.dir}/${distro.name}/build/cfdistro/ext/" verbose="true">
+					<filelist id="ext_requires" dir="${ext.dir}" files="${ext.requires}"/>
+				</copy>
+			</then>
+		</antcontrib:if>
 		<copy todir="${dist.dir}/${distro.name}" verbose="false">
 			<fileset dir="${basedir}/../">
 				<exclude name="${temp.dir}" />

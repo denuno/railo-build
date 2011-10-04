@@ -9,5 +9,5 @@ do
     props="$props -D$var"
 done
 #echo $reldir/../ant/bin/ant -f $reldir/build.xml $target $props
-/bin/sh $reldir/../ant/bin/ant -f $reldir/../build.xml $target -Dbasedir=. $props
+/bin/sh $reldir/../ant/bin/ant -f build/build.xml $target -Dcfdistro.build.file=$reldir/../build.xml $props
 		

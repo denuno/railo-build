@@ -76,12 +76,16 @@
 		<antcontrib:if>
 			<equals arg1="${server.sharedlibs}" arg2="true" />
 			<then>
-				<unzip src="${cfml.engine.war}" dest="${jetty.dir}/lib">
+				<antcontrib:runtarget target="railo.requires" />
+				<mkdir dir="${jetty.dir}/lib/railo" />
+				<unzip src="${cfml.engine.war}" dest="${jetty.dir}/lib/ext">
 			        <patternset>
 						<include name="WEB-INF/lib/**" />
 			        </patternset>
 					<regexpmapper from="WEB-INF/lib/(.*)$" to="\1"/>
 				</unzip>
+				<!-- current railo ships incompatible logger -->
+				<delete file="${jetty.dir}/lib/ext/railo-sl4j.jar"/>
 			</then>
 		</antcontrib:if>
 		<antcontrib:runtarget target="jetty.configure" />
@@ -91,6 +95,24 @@
 	<target name="jetty.configure">
 		<chmod dir="${jetty.dir}/bin" perm="ugo+rx" 
 		       includes="**/*.sh"/>
+		<echo file="${jetty.dir}/contexts/${server.host}.xml"><![CDATA[<Configure class="org.eclipse.jetty.webapp.WebAppContext">
+			<Set name="war">${war.target.dir}</Set>
+			<Set name="contextPath">/</Set>
+			<Set name="virtualHosts">
+				<Array type="java.lang.String">
+					<Item>${server.host}</Item>
+				</Array>
+			</Set>
+			<Set name="welcomeFiles">
+			    <Array type="String">
+			      <Item>index.cfm</Item>
+			      <Item>index.cfml</Item>
+			      <Item>index.htm</Item>
+			      <Item>index.html</Item>
+			    </Array>
+			</Set>
+			</Configure>]]>
+		</echo>
 		<!--
 		<xmltask source="${jetty.dir}/conf/server.xml" dest="${jetty.dir}/conf/server.xml">
 			<replace path="Server/Service/Connector[@protocol='HTTP/1.1']/@port" withText="${jetty.port.http}"/>
@@ -99,8 +121,6 @@
 		<antcontrib:runtarget target="jetty.host.add" />
 		<fixcrlf srcdir="${jetty.dir}/conf" includes="**/*.xml" eol="crlf" />
 		-->
-		<echo message="${jetty.deploy.dir}"/>
-		<echo message="${server.deploy.dir}"/>
 	</target>
 
 	<target name="jetty.start" depends="jetty.install">

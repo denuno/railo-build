@@ -3,6 +3,7 @@
 	<macrodef name="git">
 		<attribute name="command" />
 		<attribute name="dir" default="${basedir}" />
+		<attribute name="use-jgit" default="true" />
 		<element name="args" optional="true" />
 		<sequential>
 			<antcontrib:var name="git.results" unset="true" />
@@ -10,6 +11,7 @@
 				<or>
 					<equals arg1="@{command}" arg2="archive" />
 					<equals arg1="@{command}" arg2="pull" />
+					<equals arg1="@{use-jgit}" arg2="false" />
 				</or>
 				<then>
 					<echo message="Using system Git - command: @{command}" />
@@ -24,6 +26,12 @@
 						<arg value="@{command}" />
 						<args />
 		            </java>
+					<antcontrib:propertyregex override="yes" property="jgit.exception" input="${git.results}" 
+						regexp=".*?(org.eclipse.jgit.api.errors.JGitInternalException)+.*?" select="\1" />
+					<antcontrib:if>
+						<equals arg1="${jgit.exception}" arg2="org.eclipse.jgit.api.errors.JGitInternalException" />
+						<then><fail message="${git.results}"/></then>
+					</antcontrib:if>
 				</else>
 			</antcontrib:if>
 			<echo message="${git.results}" />
@@ -105,6 +113,16 @@
 					<arg value="@{dest}" />
 				</args>
 			</git>
+		</sequential>
+	</macrodef>
+
+	<macrodef name="git-currentbranch">
+		<attribute name="dir" />
+		<sequential>
+			<git command="branch" dir="@{dir}" />
+			<antcontrib:propertyregex override="yes" property="git.current.branch" input="${git.results}" 
+				regexp=".*?\*\s(.*)?\s" select="\1" />
+			<echo message="******** current branch: ${git.current.branch}"/>
 		</sequential>
 	</macrodef>
 

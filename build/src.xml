@@ -32,7 +32,7 @@
 -->
         <src dest="@src.dir@/" type="git"
         uri="http://github.com/getrailo/railo.git"
-        user="" password="" branch="origin/develop" />
+        user="" password="" branch="origin/3.3" />
 
 	</project>
 	<sources>
