@@ -1,0 +1,70 @@
+<project name="Railo" default="Railo.package" basedir=".">
+    
+	<description>Ant build file to build the railo.jar</description>
+	
+	<!-- Load properties -->
+	<property file="build.properties"/>
+	
+	<!-- Set jars -->
+	<path id="classpath">
+		<fileset dir="${build-railo.lib.dir}"/>
+	</path>
+	
+	<!-- ================================= 
+          target: clean              
+         ================================= -->
+    <target name="Railo.clean" description="Clears the build and dist directories.">
+    	<echo>Deleting ${build-railo.build.dir} and ${build-railo.dist.dir}</echo>
+    	<delete dir="${build-railo.build.dir}" />
+    	<delete dir="${build-railo.dist.dir}"/>
+    </target>
+	
+	<!-- ================================= 
+          target: init              
+         ================================= -->
+    <target name="Railo.init" depends="Railo.clean" description="Creates nessesary directories.">
+    	<echo>Creating the build and dist directories.</echo>
+    	<mkdir dir="${build-railo.build.dir}/classes"/>
+    	<mkdir dir="${build-railo.dist.dir}"/>
+    </target>
+	
+	<!-- ================================= 
+          target: compile              
+         ================================= -->
+    <target name="Railo.compile" depends="Railo.init" description="Compiles the src classes.">
+        <echo>Compile the src.</echo>
+        <javac-ecj srcdir="${build-railo.src.dir}" destdir="${build-railo.build.dir}/classes" 
+        	compliance="${railo.javac.compiler}" classpath="${toString:classpath}" 
+        	encoding="ISO-8859-1" fork="true" maxmemory="512m"
+        />
+    </target>
+	
+	<!-- ================================= 
+          target: copy              
+         ================================= -->
+    <target name="Railo.copy" depends="Railo.compile" description="Copies the resources.">
+        <echo>Copy the version file. (Needed, but not yet clear how to generate it the right way automaticllay).</echo>
+    	<copy todir="${build-railo.build.dir}/classes/railo">
+    		<fileset file="${build-railo.src.dir}/railo/version"/>
+    	</copy>
+    	<echo>Creating core directory</echo>
+    	<mkdir dir="${build-railo.build.dir}/classes/core/" />
+    	<echo>Copy the core.rc to the classes/core directory.</echo>   	
+    	<copy todir="${build-railo.build.dir}/classes/core/">
+    		<fileset dir="${build-railo.core.dir}"/>
+    	</copy>
+    </target>
+	
+	<!-- ================================= 
+          target: package              
+         ================================= -->
+    <target name="Railo.package" depends="Railo.copy" description="Creates the railo.jar file.">
+        <echo>Packaging the railo.jar file.</echo>
+    	<jar destfile="${build-railo.dist.dir}/railo.jar">
+    		<fileset dir="${build-railo.build.dir}/classes"/>
+    	</jar>
+    	<!-- we created a cheasey temp to build the admin, let us replace it with the real deal -->
+    	<copy file="${build-railo.dist.dir}/railo.jar" todir="${war.target.dir}/WEB-INF/lib" />
+    </target>
+		
+</project>

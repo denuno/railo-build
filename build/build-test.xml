@@ -1,0 +1,64 @@
+<project name="RailoTest" default="test" basedir="." xmlns:antcontrib="antlib:net.sf.antcontrib">
+    
+	<description>Ant build file to test Railo builds</description>
+
+	<!-- Load properties -->
+	<property file="build.properties"/>
+	
+	<target name="build.and.test" depends="build,test">
+	</target>
+
+	<target name="test">
+		<property file="${src.dir}/railo-java/railo-core/src/railo/runtime/Info.ini" prefix="railoini"/>
+		<version-splitter property="railo.build.version" version="${railoini.number}" bump=""/>
+		<copy file="${railobuild.dist.dir}/${railo.build.version.long}.rc" todir="${war.target.dir}/WEB-INF/lib/railo-server/patches/" />
+		<!-- 
+		<copy todir="${war.target.dir}/WEB-INF/railo/context/admin/plugin/">
+			<fileset dir="${basedir}/../ci/extension/src/plugin/" />
+		</copy>
+		 -->
+		<mapping physical="${src.dir}/../tests" virtual="/tests"/>
+		<customtag physical="${src.dir}/../tests/jira" virtual="/tests/jira"/>
+		<railo-datasource name="railo_mirror" jdbcstring="jdbc:h2:${temp.dir}/h2dbs/railo-db/railo-db"/>
+		<antcontrib:runtarget target="server.start"/>
+<!-- 
+ 		<antcontrib:runtarget target="server.openUrl"/>
+ -->
+		<antcontrib:trycatch reference="bar">
+		<try>
+			<get src="${server.url}" dest="${tests.dir}/results/jira.html" verbose="true" ignoreerrors="false" retries="0" maxtime="777" />
+		</try>
+		<catch>
+			<antcontrib:runtarget target="server.stop"/>
+			<property name="baz" refid="bar" />
+			<fail message="Something failed: ${baz}"/>
+		</catch>
+		</antcontrib:trycatch>
+		<antcontrib:runtarget target="server.stop"/>
+	</target>
+	
+	<target name="build.and.loadtest" depends="build,loadtest">
+	</target>
+
+	<target name="loadtest">
+		<antcontrib:runtarget target="server.start"/>
+		<antcontrib:trycatch reference="bar">
+		<try>
+			<antcontrib:runtarget target="jmeter.run.and.report"/>
+			<sleep seconds="3"/>
+		</try>
+		<catch>
+			<antcontrib:runtarget target="server.stop"/>
+			<property name="baz" refid="bar" />
+			<echo>From reference: ${baz}</echo>
+			<fail message="Something failed"/>
+		</catch>
+		</antcontrib:trycatch>
+		<antcontrib:runtarget target="server.stop"/>
+	</target>
+	
+	<target name="loadtest.running">
+		<antcontrib:runtarget target="jmeter.runtests"/>
+	</target>
+
+</project>

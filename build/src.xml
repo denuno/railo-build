@@ -2,58 +2,19 @@
 <src>
 	<project>
 	<!--
-		<src dest="@src.dir@/../" type="svn" 
-		uri="http://subversion.assembla.com/svn/cfdistro/trunk/cfdistro" 
-		user="" password="" />
-
-        <src dest="@src.dir@/" type="git"
-        uri="http://github.com/getrailo/railo.git"
-        user="" password="" />
-
-        <src dest="@src.dir@/" type="git"
-        uri="https://denuno@github.com/denuno/railo-build.git"
-        user="" password="" />
-
-        <src dest="@src.dir@/" type="git"
-        uri="https://denuno@github.com/denuno/railo.git"
-        user="" password="" />
-
-        <src dest="@src.dir@/" type="git"
-        uri="http://github.com/getrailo/railo.git"
-        user="" password="" />
-
-        <src dest="@src.dir@/" type="git"
-        uri="http://github.com/getrailo/railo.git"
-        user="" password="" branch="origin/develop" />
-        
-	<src dest="@src.dir@/" type="git"
+		<src dest="@src.dir@/" type="git"
         uri="https://denuno@github.com/denuno/railo.git"
         user="" password="" branch="origin/3.3" />
--->
+	-->
         <src dest="@src.dir@/" type="git"
         uri="http://github.com/getrailo/railo.git"
         user="" password="" branch="origin/3.3" />
-
 	</project>
 	<sources>
-
-<!-- 
-		<src dest="@src.dir@/mxunit" type="svn" 
-		uri="http://mxunit.googlecode.com/svn/mxunit/trunk"
-		user="" password="" />
-
-		<src dest="@src.dir@/cfwheels" type="svn" 
-		uri="http://cfwheels.googlecode.com/svn/trunk/" 
-		user="" password="" />
-				
-		<src dest="@src.dir@/ModelGlue" type="svn" 
-		uri="http://svn.model-glue.com/trunk/ModelGlue/" 
-		user="" password="" />
-
-		<src dest="@src.dir@/coldspring" type="git" 
-		uri="git://coldspring.git.sourceforge.net/gitroot/coldspring/coldspring" 
-		user="" password="" />
- -->
-		
+	<!-- 
+		<src dest="@src.dir@/../build/CFML-Installers" type="git" 
+		uri="git://github.com/utdream/CFML-Installers.git"
+		user="" password="" branch="origin/master"/>
+ 	-->
 	</sources>
 </src>

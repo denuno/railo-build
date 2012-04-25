@@ -1,0 +1,11 @@
+<project name="build-installer" default="build.installer" basedir=".">
+	
+	<target name="build.installer">
+		<property name="bitrock.cmd" value="${user.home}/bitrock/bin/Builder.app/Contents/MacOS/installbuilder.sh"/>
+		<property name="bitrock.platform" value="osx"/>
+		<exec executable="${bitrock.cmd}" dir="${basedir}/CFML-Installers/">
+	        <arg line="build railo_installer_files/railo.xml ${bitrock.platform}"></arg>
+	    </exec>
+	</target>
+		
+</project>

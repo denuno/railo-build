@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<classpath>
-	<classpathentry kind="src" path="src"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="/workspace/cfdistro/src/cfdistro/lib/jetty-runner-7.3.1.v20110307.jar"/>
-	<classpathentry kind="lib" path="PasswordEncrypt.jar"/>
-	<classpathentry kind="output" path="bin"/>
-</classpath>

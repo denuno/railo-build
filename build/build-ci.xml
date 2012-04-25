@@ -1,0 +1,48 @@
+<project name="RailoCI" default="ci.build" basedir="." xmlns:antcontrib="antlib:net.sf.antcontrib">
+
+	<target name="ci.build">
+		<antcontrib:propertyselector property="z1.list"
+			delimiter="," match="(.*)" select="\1" override="true"
+			distinct="true" casesensitive="false" />
+		<removePropsByRegex regex="[^z]+.*"/>
+		<property name="build.type" value="ci"/>
+		<property name="basedir" location="."/>
+		<load-buildtype-properties buildtype="ci" />
+		<antcontrib:antfetch target="check.creds" inheritall="true" return="${z1.list}" />
+		<antcontrib:runtarget target="cfdistro.build"/>
+		<antcontrib:runtarget target="server.install"/>
+	</target>
+
+	<target name="ci.start">
+		<antcontrib:propertyselector property="z1.list"
+			delimiter="," match="(.*)" select="\1" override="true"
+			distinct="true" casesensitive="false" />
+		<removePropsByRegex regex="[^z]+.*"/>
+		<property name="build.type" value="ci"/>
+		<property name="basedir" location="."/>
+		<load-buildtype-properties buildtype="ci" />
+		<antcontrib:antfetch target="check.creds" inheritall="true" return="${z1.list}" />
+		<antcontrib:if>
+			<not><available file="${war.target.dir}" /></not>
+			<then>
+				<antcontrib:runtarget target="cfdistro.build"/>
+				<antcontrib:runtarget target="set.mappings"/>
+			</then>
+		</antcontrib:if>
+		<antcall target="server.start"/>
+		<antcall target="server.openUrl"/>
+		<copy todir="${war.target.dir}/WEB-INF/railo/context/admin/plugin/">
+			<fileset dir="${basedir}/../ci/extension/src/plugin/" />
+		</copy>
+		<echo message="The admin password is: testtest" />
+		<echo message="to stop server run: ./${distro.name}.sh ci.stop" />
+		<echo message="or on windows run: ${distro.name}.bat ci.stop" />
+		<echo message="or just: build/ant ci.stop" />
+	</target>
+
+	<target name="ci.stop">
+		<load-buildtype-properties buildtype="ci" />
+		<antcontrib:runtarget target="server.stop"/>
+	</target>
+	
+</project>

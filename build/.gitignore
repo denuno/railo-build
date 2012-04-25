@@ -1,6 +1,7 @@
 /temp
-/git.last.rev.txt
-/git.current.rev.txt
-/ci-server
-/dist
+/scm.cache
+/jmeter-*
+/creds.txt
 /buildinfo.properties
+/customtags.xml
+/ci-server

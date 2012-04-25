@@ -1,0 +1,228 @@
+<project name="RailoCore" default="RailoCore.install" basedir="." xmlns:antcontrib="antlib:net.sf.antcontrib">
+    
+	<description>Ant build file to build the railo.rc</description>
+
+	<!-- Load properties -->
+	<property file="build.properties"/>
+	
+	<!-- Set jars -->
+	<path id="classpath">
+		<fileset dir="${build-core.lib.dir}"/>
+	</path>
+	
+	<!-- ================================= 
+          target: getInfo
+		  This target extracts the version name for the rc file from the INI file                        
+         ================================= -->
+    <target name="RailoCore.getInfo" description="Clears the build and dist directories.">
+		<echo message="Extracting version information from file src/railo/runtime/Info.ini" />
+    	<loadfile property="build-core.core.version" srcFile="${build-core.dir}/src/railo/runtime/Info.ini">
+			<filterchain>
+				<linecontainsregexp>
+					<regexp pattern="number=[0-4]+.[0-9]+.[0-9]+.[0-9]+"/>
+				</linecontainsregexp>
+				<replacetokens begintoken="n" endtoken="=">
+					<token key="umber" value=""/>
+				</replacetokens>
+				<striplinebreaks/>
+			</filterchain>
+		</loadfile>
+		<echo message="Version is: ${build-core.core.version}.rc" />
+    </target>
+
+	<!-- ================================= 
+          target: clean              
+         ================================= -->
+    <target name="RailoCore.clean" depends="RailoCore.getInfo" description="Clears the build and dist directories.">
+    	<echo>Deleting ${build-core.build.dir} and ${build-core.dist.dir}</echo>
+    	<delete dir="${build-core.build.dir}" />
+    	<delete dir="${build-core.dist.dir}"/>
+    </target>
+	
+	<!-- ================================= 
+          target: init              
+         ================================= -->
+    <target name="RailoCore.init" depends="RailoCore.clean" description="Creates nessesary directories.">
+    	<echo>Creating the build, admin and dist directories.</echo>
+    	<mkdir dir="${build-core.build.dir}/classes"/>
+    	<mkdir dir="${build-core.build.dir}/admin"/>
+    	<mkdir dir="${build-core.dist.dir}"/>
+    </target>
+	
+	<!-- ================================= 
+          target: compile railo classes             
+         ================================= -->
+    <target name="RailoCore.compile" depends="RailoCore.init" description="Compiles the src classes.">
+    	<mkdir dir="${build-core.build.dir}/classes"/>
+    	<mkdir dir="${build-core.build.dir}/admin"/>
+    	<mkdir dir="${build-core.dist.dir}"/>
+        <echo>Compile Railo src.</echo>
+        <javac-ecj srcdir="${build-core.src.dir}" destdir="${build-core.build.dir}/classes" 
+        	compliance="${railo.javac.compiler}" classpath="${toString:classpath}"
+        	encoding="ISO-8859-1" fork="true" maxmemory="512m" />
+    </target>
+        	
+	<!-- ================================= 
+          target: build temp war for compiling admin             
+         ================================= -->
+    <target name="RailoCore.tempwar" description="Creates a temp war for building admin.">
+		<delete dir="${temp.dir}/railo.war"/>
+		<delete dir="${temp.dir}/temprc"/>
+		<mkdir dir="${temp.dir}/railo.war/WEB-INF/lib"/>
+    	<!-- copy the WAR template, css, etc. -->
+		<copy todir="${temp.dir}/railo.war">
+			<fileset dir="${basedir}/resource/railo-war-template" />
+		</copy>
+
+		<copy todir="${temp.dir}/railo.war/WEB-INF/lib">
+			<fileset dir="${src.dir}/railo-java/libs" excludes="railo-loader.jar" />
+		</copy>
+    	<copy todir="${temp.dir}/temprc/resource">
+    		<fileset dir="${build-core.src.dir}/resource"/>
+    	</copy>
+		<copy todir="${temp.dir}/temprc/resource/context">
+			<fileset dir="${build-core.build.dir}/admin"/>
+		</copy>
+    	<!-- copy version information inside info.ini into the dist directory -->
+		<copy tofile="${temp.dir}/temprc/railo/runtime/Info.ini" file="${build-core.src.dir}/railo/runtime/Info.ini" overwrite="yes"/>
+
+    	<jar destfile="${temp.dir}/temprc/resource/context/railo-context.ra">
+			<fileset dir="${src.dir}/railo-cfml/railo-admin" />
+		</jar>
+		
+		<copy todir="${temp.dir}/temprc">
+			<fileset dir="${build-core.build.dir}/classes" excludes="**/servlet/**"/>
+		</copy>
+		<mkdir dir="${temp.dir}/temprc/core"/>
+    	<jar destfile="${temp.dir}/temprc/core/core.rc">
+			<fileset dir="${temp.dir}/temprc" excludes="**/core.rc"/>
+		</jar>
+		<delete dir="${temp.dir}/temprc" includes="*"/>
+		<mkdir dir="${temp.dir}/temprc/railo"/>
+		<copy tofile="${temp.dir}/temprc/railo/version" file="${build-railo.src.dir}/railo/version" />
+		<copy tofile="${temp.dir}/temprc/railo.jar" file="${src.dir}/railo-java/libs/railo-loader.jar" />
+		<zip destfile="${temp.dir}/temprc/railo.jar" update="true">
+			<fileset dir="${temp.dir}/temprc/" includes="railo/**,core/**"/>
+		</zip>
+		<copy tofile="${temp.dir}/railo.war/WEB-INF/lib/railo.jar" file="${temp.dir}/temprc/railo.jar" />
+
+		<copy file="${src.dir}/railo-java/railo-core/src/resource/config/web.xml" 
+			tofile="${temp.dir}/railo.war/WEB-INF/railo/railo-web.xml.cfm" />
+			<echo message="${temp.dir}/railo.war/WEB-INF/railo/railo-web.xml.cfm"/>
+		<mapping physical="${src.dir}/railo-cfml" virtual="/railo-cfml"/>
+		<!-- 
+		<copy file="${basedir}/resource/railo-${railo.build.version.major}.jar" 
+			tofile="${temp.dir}/railo.war/WEB-INF/lib/railo.jar" />
+		 -->
+		<cfmlengcrypt engine="railo" plaintext="${cfadmin.password}" property="railo.password.encrypted" />
+<!-- 
+		<xmltask source="${railo.server.config.file}" dest="${railo.server.config.file}">
+			<attr path="/railo-configuration" attr="password" value="${railo.password.encrypted}" />
+			<attr path="/railo-configuration" attr="default-password" value="${railo.password.encrypted}" />
+		</xmltask>
+ -->
+		<xmltask source="${railo.web.config.file}" dest="${railo.web.config.file}">
+			<attr path="/railo-configuration" attr="password" value="${railo.password.encrypted}" />
+		</xmltask>
+		<xmltask source="${railo.web.config.file}" dest="${railo.web.config.file}">
+			<insert path="//railo-configuration" position="under" xml="&lt;charset/&gt;" />
+			<attr path="/railo-configuration/charset" attr="resource-charset" value="${railo.charset.resource}" />
+			<attr path="/railo-configuration/charset" attr="template-charset" value="${railo.charset.template}" />
+			<attr path="/railo-configuration/charset" attr="web-charset" value="${railo.charset.web}" />
+		</xmltask>
+<!-- 
+		<copy tofile="${build-core.build.dir}/classes/railo/runtime/Info.ini" file="${build-core.src.dir}/railo/runtime/Info.ini" overwrite="yes"/>
+    	<jar destfile="${build-core.core.dir}/${build-core.core.version}.rc">
+			<fileset dir="${build-core.build.dir}/classes" excludes="**/servlet/**"/>
+		</jar>
+		<antcontrib:runtarget target="RailoLoader.package"/>						
+ -->
+    </target>
+        	
+	<!-- ================================= 
+          target: createadmin              
+         ================================= -->
+    <target name="RailoCore.createadmin" depends="RailoCore.compile,RailoCore.tempwar" description="Create the railo-context.ra">
+		<property name="railo.url" value="http://${server.host}:${server.port.http}/railo-cfml/compileAdmin.cfm" />
+    	<property name="build-core.railo.admin_source_abs" location="${build-core.railo.admin_source}"/>
+    	<replace-windows-slashes input="${build-core.railo.admin_source_abs}" property="build-core.railo.admin_source_abs" />
+    	<input message="Please enter Railo-Admin password:" addproperty="build-core.railo.password" defaultvalue="your admin password"/>
+	   	<property name="server.memory.max" value="64M"/>
+		<antcontrib:runtarget target="server.start"/>						
+		<antcontrib:trycatch property="foo" reference="bar">
+			<try>
+				<echo>Compiling Railo Administrator</echo>
+				<antcontrib:urlencode name="admincfml.location" location="${build-core.railo.admin_source_abs}" />
+				<get src="${build-core.railo.url}?password=${build-core.railo.password}&amp;admin_source=${admincfml.location}" verbose="on" dest="${temp.dir}/generate.html"/>
+		    	<loadfile property="build-core.railo.compile_message" srcFile="${temp.dir}/generate.html" />
+			</try>
+			<catch>
+				<echo message="Something bad happened while trying to build.  Gonna abort now, yo. Sorries."/>
+				<property name="baz" refid="bar" />
+				<echo>From reference: ${baz}</echo>
+				<antcontrib:runtarget target="server.stop"/>
+				<fail message="error occurred running the builds" />
+			</catch>
+		</antcontrib:trycatch>
+		<antcontrib:propertyregex override="yes" property="build-core.generate.error" input="${build-core.railo.compile_message}" regexp=".*rror(.+).*" select="\1" />
+		<antcontrib:if>
+			<equals arg1="${build-core.generate.error}" arg2="$${build-core.generate.error}"/>
+			<then/>
+			<else>
+				<antcontrib:runtarget target="server.stop"/>
+				<fail message="Error generating admin! Message from railo: Error${build-core.generate.error}" />
+			</else>
+		</antcontrib:if>
+		<echo>Message from Railo: ${build-core.railo.compile_message}</echo>
+    	<echo>Admin compiled to: ${build-core.railo.admin_source_abs}/railo-context.ra</echo>
+    	<echo>Copying Railo Admin archive...</echo>
+		<copy tofile="${build-core.src.dir}/resource/context/railo-context.ra" file="${build-core.railo.admin_source_abs}/railo-context.ra" overwrite="yes"/>
+		<copy todir="${build-core.src.dir}/resource/context/admin/dbdriver">
+			<fileset dir="${build-core.railo.admin_source_abs}/admin/dbdriver"/>
+		</copy>
+		<copy todir="${build-core.src.dir}/resource/context/admin/plugin">
+			<fileset dir="${build-core.railo.admin_source_abs}/admin/plugin"/>
+		</copy>
+		<copy todir="${build-core.src.dir}/resource/context/templates">
+			<fileset dir="${build-core.railo.admin_source_abs}/templates"/>
+		</copy>
+		<antcontrib:runtarget target="server.stop"/>
+    </target>
+	
+	<!-- ================================= 
+          target: copy railo.rc dependencies              
+         ================================= -->
+    <target name="RailoCore.copy" depends="RailoCore.createadmin" description="Copies the resource directory.">
+        <echo>Copy resource directory to build.</echo>
+    	<copy todir="${build-core.build.dir}/classes/resource">
+    		<fileset dir="${build-core.src.dir}/resource"/>
+    	</copy>
+		<echo>Copy railo-context.ra (admin) to context (Not yet implemented).</echo>
+		<copy todir="${build-core.build.dir}/classes/resource/context">
+			<fileset dir="${build-core.build.dir}/admin"/>
+		</copy>
+    	<!-- copy version information inside info.ini into the dist directory -->
+		<copy tofile="${build-core.build.dir}/classes/railo/runtime/Info.ini" file="${build-core.src.dir}/railo/runtime/Info.ini" overwrite="yes"/>
+    </target>
+	
+	<!-- ================================= 
+          target: package railo.rc              
+         ================================= -->
+    <target name="RailoCore.package" depends="RailoCore.copy" description="Creates the the core.rc file.">
+        <echo>Packaging the core.rc</echo>
+    	<jar destfile="${build-core.dist.dir}/${build-core.core.version}.rc">
+			<fileset dir="${build-core.build.dir}/classes" excludes="**/servlet/**"/>
+		</jar>
+    </target>
+		
+	<!-- ================================= 
+          target: install              
+         ================================= -->
+    <target name="RailoCore.install" depends="RailoCore.package" description="Copies the railo.jar file to the core directory.">
+        <echo>Copy the railo.rc file to the RailoLoader.</echo>
+    	<copy todir="${build-core.core.dir}">
+    		<fileset dir="${build-core.dist.dir}"/>
+    	</copy>
+    </target>
+
+</project>
