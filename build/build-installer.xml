@@ -1,4 +1,4 @@
-<project name="build-installer" default="build.installer" basedir=".">
+<project name="build-installer" default="build.installer" xmlns:antcontrib="antlib:net.sf.antcontrib"  xmlns:artifact="antlib:org.apache.maven.artifact.ant" basedir=".">
 	
 	<target name="build.installer">
 		<property name="bitrock.cmd" value="${user.home}/bitrock/bin/Builder.app/Contents/MacOS/installbuilder.sh"/>
@@ -7,5 +7,155 @@
 	        <arg line="build railo_installer_files/railo.xml ${bitrock.platform}"></arg>
 	    </exec>
 	</target>
+
+	<target name="package.rpm.rc">
+		<property name="distro.name" value="railo" />
+		<property name="distro.version" value="${railo.version}" />
+		<property name="rpm.user" value="railo" />
+		<property name="rpm.prefix" value="/opt/railo-${railo.version}" />
+		
+		<delete dir="${temp.dir}/rpmbuild"/>
+		<mkdir dir="${temp.dir}/rpmbuild" />
+		<mkdir dir="${temp.dir}/rpmbuild/SOURCES/" />
+		<mkdir dir="${temp.dir}/rpmbuild/SPECS/" />
+		<mkdir dir="${temp.dir}/rpmbuild/SRPMS/" />
+		<mkdir dir="${temp.dir}/rpmbuild/BUILD/" />
+		<mkdir dir="${temp.dir}/rpmbuild/RPMS" />
+		<mkdir dir="${temp.dir}/rpmbuild/RPMS/noarch" />
+	
+		<echo file="${dist.dir}/${distro.name}/postinst.sh" message='cd $(dirname $0);echo "fart" > fartrock.txt' />
+		<property name="rpm.post" value="sh /opt/${distro.name}-${railo.version}/postinst.sh" />
+		
+		<tar destfile="${temp.dir}/rpmbuild/SOURCES/release.tar.gz" compression="gzip">
+			<tarfileset dir="${railo.lib.dir}" prefix="${distro.name}-${distro.version}/lib" />
+			<tarfileset file="${cfdistro.basedir}/lib/runwar.jar" prefix="${distro.name}-${distro.version}/run/" />
+			<tarfileset file="${cfdistro.basedir}/lib/${jetty-runner.jar}" prefix="${distro.name}-${distro.version}/run/" />
+		</tar>
+		<copy file="${basedir}/rpmbuild/${distro.name}.spec" tofile="${temp.dir}/rpmbuild/SPECS/${distro.name}.spec" overwrite="true">
+			<filterchain>
+				<expandproperties />
+			</filterchain>
+		</copy>
+		<!-- command="-bb -vv" for verbose -->
+	    <rpm 
+	        specFile="${distro.name}.spec"
+	        topDir="${temp.dir}/rpmbuild/"
+	        cleanBuildDir="true"
+	    	failOnError="true"/>
+	</target>
+		
+	<target name="package.rpm.libs">
+		<property name="distro.name" value="railo" />
+		<property name="distro.version" value="${railo.version}" />
+		<property name="rpm.user" value="railo" />
+		<property name="rpm.prefix" value="/opt/railo-${railo.version}" />
+		
+		<delete dir="${temp.dir}/rpmbuild"/>
+		<mkdir dir="${temp.dir}/rpmbuild" />
+		<mkdir dir="${temp.dir}/rpmbuild/SOURCES/" />
+		<mkdir dir="${temp.dir}/rpmbuild/SPECS/" />
+		<mkdir dir="${temp.dir}/rpmbuild/SRPMS/" />
+		<mkdir dir="${temp.dir}/rpmbuild/BUILD/" />
+		<mkdir dir="${temp.dir}/rpmbuild/RPMS" />
+		<mkdir dir="${temp.dir}/rpmbuild/RPMS/noarch" />
+	
+		<echo file="${dist.dir}/${distro.name}/postinst.sh" message='cd $(dirname $0);echo "fart" > fartrock.txt' />
+		<property name="rpm.post" value="sh /opt/${distro.name}-${railo.version}/postinst.sh" />
+		
+		<tar destfile="${temp.dir}/rpmbuild/SOURCES/release.tar.gz" compression="gzip">
+			<tarfileset dir="${railo.lib.dir}" prefix="${distro.name}-${distro.version}/lib" />
+			<tarfileset file="${cfdistro.basedir}/lib/runwar.jar" prefix="${distro.name}-${distro.version}/run/" />
+			<tarfileset file="${cfdistro.basedir}/lib/${jetty-runner.jar}" prefix="${distro.name}-${distro.version}/run/" />
+		</tar>
+		<copy file="${basedir}/rpmbuild/${distro.name}.spec" tofile="${temp.dir}/rpmbuild/SPECS/${distro.name}.spec" overwrite="true">
+			<filterchain>
+				<expandproperties />
+			</filterchain>
+		</copy>
+		<!-- command="-bb -vv" for verbose -->
+	    <rpm 
+	        specFile="${distro.name}.spec"
+	        topDir="${temp.dir}/rpmbuild/"
+	        cleanBuildDir="true"
+	    	failOnError="true"/>
+	</target>
+
+<!-- 
+**************** MAVEN STUFF *****************
+ -->
+
+    <property name="maven.repo.local" location="${pub.dir}/maven2" />
+    <property name="maven.ant.tasks.jar" value="${ant.home}/lib/maven-ant-tasks-2.1.3.jar" />
+    <property name="maven.ant.tasks.bootstrap.location" value="http://apache.osuosl.org/maven/binaries/maven-ant-tasks-2.1.3.jar" />
+    <available property="maven.ant.tasks.jar.exists" file="${maven.ant.tasks.jar}" />
+
+    <!-- This will download the "latest version" of the maven-ant-tasks if needed -->
+    <target name="bootstrap_maven" unless="maven.ant.tasks.jar.exists">
+        <get src="${maven.ant.tasks.bootstrap.location}" dest="${maven.ant.tasks.jar}" />
+    </target>
+
+    <!-- This will initialize all the maven ant tasks and download the requested artifact and its dependencies -->
+    <target name="get" depends="bootstrap_maven" xmlns:artifact="antlib:org.apache.maven.artifact.ant">
+        <path id="maven.ant.tasks.classpath" path="${maven.ant.tasks.jar}" />
+        <typedef resource="org/apache/maven/artifact/ant/antlib.xml" uri="urn:maven-artifact-ant" classpathref="maven.ant.tasks.classpath" />
+        <condition property="maven.repo.local" value="${maven.repo.local}" else="${user.home}/.m2/repository">
+            <isset property="maven.repo.local" />
+        </condition>
+        <echo>maven.repo.local=${maven.repo.local}</echo>
+        <artifact:localRepository id="local.repository" path="${maven.repo.local}" />
+        <artifact:dependencies pathId="build.classpath" sourcesFilesetId="sources.id">
+            <dependency groupId="${mvn.get.groupId}" artifactId="${mvn.get.artifactId}" version="${mvn.get.version}"/>
+            <localRepository refid="local.repository" />
+        </artifact:dependencies>
+    </target>
+
+    <!-- This will initialize all the maven ant tasks and download the requested artifact and its dependencies -->
+    <target name="mvn.deploy.libs" depends="bootstrap_maven,set.build.info" xmlns:artifact="antlib:org.apache.maven.artifact.ant">
+		<path id="maven.ant.tasks.classpath" path="${maven.ant.tasks.jar}" />
+		<typedef resource="org/apache/maven/artifact/ant/antlib.xml"
+			uri="antlib:org.apache.maven.artifact.ant" classpathref="maven.ant.tasks.classpath" />
+           			
+		<condition property="maven.repo.local" value="${maven.repo.local}"
+			else="${user.home}/.m2/repository">
+			<isset property="maven.repo.local" />
+		</condition>
+
+		<artifact:pom id="railolibs.pom" groupId="railo" artifactId="railo.libs" version="${railo.build.version.major}.0" name="railo.libs" packaging="zip">
+		</artifact:pom>
+		<bug170workaround pomid="railolibs.pom" />
+    	<property name="railo.libs.zip.file" value="${railobuild.dist.dir}/railo-${railo.build.version.major}.${railo.build.version.minor}.${railo.build.version.build}.000-jars.zip" />
+    	<property name="mvn.type" value="SNAPSHOT" />
+    	<property name="mvn.remote.repo" 
+    		value="http://127.0.0.1:8081/nexus/content/repositories/railo-${mvn.type}s/" />
+		<artifact:deploy file="${railo.libs.zip.file}">
+		  <remoteRepository url="file://${maven.repo.local}"/>
+		  <pom refid="railolibs.pom"/>
+		</artifact:deploy>
+
+		<copy file="${basedir}/resource/maven/railo.pom" tofile="${temp.dir}/railo.pom" overwrite="true">
+			<filterchain>
+				<expandproperties />
+			</filterchain>
+		</copy>
+		<artifact:pom id="railopom" file="${temp.dir}/railo.pom" version="${railo.build.version.long}">
+          <dependency groupId="org.getrailo" artifactId="railo.libs" version="${railo.build.version.major}.0" type="zip"/>
+		</artifact:pom>
+    	<property name="railo.jar.file" value="${railobuild.dist.dir}/railo-${railo.build.version.long}.jar" />
+		<artifact:deploy file="${railo.jar.file}">
+		  <remoteRepository url="file://${maven.repo.local}"/>
+		  <pom refid="railopom"/>
+		</artifact:deploy>
+
+	</target>
+
+	<macrodef name="bug170workaround">
+		<attribute name="pomid" />
+		<attribute name="dir" default="/tmp" />
+		<sequential>
+			<artifact:writepom pomrefid="@{pomid}" file="@{dir}/tmppom.xml" trim="true"/>
+			<antcontrib:var name="@{pomid}" unset="true" />
+			<artifact:pom id="@{pomid}" file="@{dir}/tmppom.xml" />
+		</sequential>
+	</macrodef>
 		
 </project>

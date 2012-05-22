@@ -132,6 +132,15 @@
 						<copy file="${src.dir}/railo-java/railo/dist/railo.jar" tofile="${railobuild.dist.dir}/railo-${railo.build.version.long}.jar" />
 
 						<echo>*************************************</echo>
+				        <echo>***** Building railo-${railo.build.version.long}-jars.zip ************</echo>
+				    	<echo>*************************************</echo>
+				    	<property name="railo.libs.zip.file" value="${railobuild.dist.dir}/railo-${railo.build.version.major}.${railo.build.version.minor}.${railo.build.version.build}.000-jars.zip" />
+						<zip destfile="${railo.libs.zip.file}" update="true">
+							<fileset dir="${src.dir}/railo-java/libs/" excludes="railo-loader.jar"/>
+							<fileset file="${src.dir}/railo-java/railo/dist/railo.jar"/>
+						</zip>
+
+						<echo>*************************************</echo>
 				        <echo>***** Building railo.war ************</echo>
 				    	<echo>*************************************</echo>
 						<delete dir="${railobuild.dist.dir}/railo.war"/>

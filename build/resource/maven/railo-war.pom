@@ -1,0 +1,54 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>railo.maven.example</groupId>
+	<artifactId>artifact</artifactId>
+	<packaging>war</packaging>
+	<version>1.0.0-SNAPSHOT</version>
+	<name>Railo Maven Example</name>
+
+	<parent>
+		<groupId>railo</groupId>
+		<artifactId>railo</artifactId>
+		<version>4.0</version>
+	</parent>
+
+	<repositories>
+		<repository>
+			<id>railo-repo</id>
+			<url>file:///workspace/railo-build/build/mavenrepo/<!--http://127.0.0.1:8081/nexus/content/repositories/railo/--></url>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</repository>
+	</repositories>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-war-plugin</artifactId>
+				<version>2.1.1</version>
+				<configuration>
+					<warSourceDirectory>heroku</warSourceDirectory>
+					<!-- <webXml>heroku/WEB-INF/web.xml</webXml>  -->
+					<webResources>
+						<resource>
+							<!-- this is relative to the pom.xml directory -->
+							<directory>pub</directory>
+						</resource>
+						<resource>
+							<!-- this is relative to the pom.xml directory -->
+							<directory>src</directory>
+						</resource>
+					</webResources>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+</project>

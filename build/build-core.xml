@@ -143,12 +143,16 @@
           target: createadmin              
          ================================= -->
     <target name="RailoCore.createadmin" depends="RailoCore.compile,RailoCore.tempwar" description="Create the railo-context.ra">
-		<property name="railo.url" value="http://${server.host}:${server.port.http}/railo-cfml/compileAdmin.cfm" />
+		<property name="railo.url" value="http://${server.host}:${server.port.http}/compileAdmin.cfm" />
     	<property name="build-core.railo.admin_source_abs" location="${build-core.railo.admin_source}"/>
     	<replace-windows-slashes input="${build-core.railo.admin_source_abs}" property="build-core.railo.admin_source_abs" />
     	<input message="Please enter Railo-Admin password:" addproperty="build-core.railo.password" defaultvalue="your admin password"/>
 	   	<property name="server.memory.max" value="64M"/>
-		<antcontrib:runtarget target="server.start"/>						
+	   	<property name="background" value="true" />
+		<copy todir="${war.target.dir}">
+			<fileset file="${basedir}/resource/compileAdmin.cfm" />
+		</copy>
+		<antcontrib:runtarget target="server.start"/>					
 		<antcontrib:trycatch property="foo" reference="bar">
 			<try>
 				<echo>Compiling Railo Administrator</echo>
