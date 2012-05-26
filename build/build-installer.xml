@@ -32,6 +32,7 @@ fi
 		</echo>
 		<property name="rpm.railo.dir" value="/opt/railo/${railo.build.version.major}" />
 		<property name="rpm.packager" value="Railo" />
+
 		<!--  make libs rpm -->
 		<redline:rpm destination="rpms" release="1"
 			group="org.getrailo" name="railo-libs" version="${railo.build.version.major}"
@@ -41,6 +42,7 @@ fi
 				 filemode="644" username="railo" group="railo" excludes=".classpath, .project" />
 			<link path="/opt/railo/libs" target="${rpm.railo.dir}/libs" />
 		</redline:rpm>
+
 		<!--  make core rpm -->
 		<redline:rpm destination="rpms"  
 			provides="railo" release="1"
@@ -53,6 +55,7 @@ fi
 			<depends name="railo-libs" version="${railo.build.version.major}"/>
 			<link path="/opt/railo/railo-server" target="${rpm.railo.dir}/railo-server"/>
 		</redline:rpm>
+
 		<!--  make runner rpm -->
 		<echo file="${temp.dir}/postinstall.sh">
 		<![CDATA[echo "java -jar runwar.jar" > ${rpm.railo.dir}/railo.sh]]>
