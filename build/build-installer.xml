@@ -1,4 +1,4 @@
-<project name="build-installer" default="build.installer" xmlns:antcontrib="antlib:net.sf.antcontrib"  xmlns:artifact="antlib:org.apache.maven.artifact.ant" basedir=".">
+<project name="build-installer" default="build.installer" xmlns:antcontrib="antlib:net.sf.antcontrib" xmlns:redline="antlib:org.redline_rpm"  xmlns:artifact="antlib:org.apache.maven.artifact.ant" basedir=".">
 	
 	<target name="build.installer">
 		<property name="bitrock.cmd" value="${user.home}/bitrock/bin/Builder.app/Contents/MacOS/installbuilder.sh"/>
@@ -8,6 +8,105 @@
 	    </exec>
 	</target>
 
+    <property name="redline.ant.tasks.jar" value="${ant.home}/lib/redline-1.1.9.jar" />
+    <property name="redline.ant.tasks.bootstrap.location" value="https://cloud.github.com/downloads/craigwblake/redline/redline-1.1.9.jar" />
+    <available property="redline.ant.tasks.jar.exists" file="${redline.ant.tasks.jar}" />
+
+    <!-- This will download the "latest version" of the maven-ant-tasks if needed -->
+    <target name="bootstrap_redline" unless="redline.ant.tasks.jar.exists">
+        <get src="${redline.ant.tasks.bootstrap.location}" dest="${redline.ant.tasks.jar}" />
+    </target>
+    
+	<target name="rpm" depends="bootstrap_redline, set.build.info">
+		<mkdir dir="rpms" />
+		<!--  make RC rpm -->
+		<property name="rpm.user" value="railo" />
+		<echo file="${temp.dir}/preinstall.sh">
+		<![CDATA[if [ -e /home/${rpm.user} ]; then
+  echo "${rpm.user} user exists, thus not trying to add again" >&2
+else
+	mkdir -p /home/${rpm.user}
+	useradd -d /home/${rpm.user} ${rpm.user}
+fi
+]]>
+		</echo>
+		<property name="rpm.railo.dir" value="/opt/railo/${railo.build.version.major}" />
+		<property name="rpm.packager" value="Railo" />
+		<!--  make libs rpm -->
+		<redline:rpm destination="rpms" release="1"
+			group="org.getrailo" name="railo-libs" version="${railo.build.version.major}"
+			preinstallscript="${temp.dir}/preinstall.sh" packager="${rpm.packager}"
+			url="http://getrailo.org">
+			<tarfileset dir="${railo.lib.dir}" prefix="${rpm.railo.dir}/libs"
+				 filemode="644" username="railo" group="railo" excludes=".classpath, .project" />
+			<link path="/opt/railo/libs" target="${rpm.railo.dir}/libs" />
+		</redline:rpm>
+		<!--  make core rpm -->
+		<redline:rpm destination="rpms"  
+			provides="railo" release="1"
+			group="org.getrailo" name="railo-core" version="${railo.build.version.long}"
+			preinstallscript="${temp.dir}/preinstall.sh" packager="${rpm.packager}"
+			url="http://getrailo.org">
+			<tarfileset prefix="${rpm.railo.dir}/railo-server/patches" 
+					file="${railobuild.dist.dir}/rc/${railo.build.version.long}.rc"
+					filemode="644" username="${rpm.user}" group="${rpm.user}" />
+			<depends name="railo-libs" version="${railo.build.version.major}"/>
+			<link path="/opt/railo/railo-server" target="${rpm.railo.dir}/railo-server"/>
+		</redline:rpm>
+		<!--  make runner rpm -->
+		<echo file="${temp.dir}/postinstall.sh">
+		<![CDATA[echo "java -jar runwar.jar" > ${rpm.railo.dir}/railo.sh]]>
+		</echo>
+		<antcontrib:var name="runwar.jar.location" value="${temp.dir}/runwar.jar" />
+		<antcontrib:runtarget target="runwar.jetty.jar" />
+		<redline:rpm destination="rpms" release="1"
+			group="org.getrailo" name="railo-runner" version="${railo.build.version.long}"
+			postinstallscript="${temp.dir}/postinstall.sh" packager="${rpm.packager}"
+			url="http://getrailo.org">
+			<tarfileset file="${temp.dir}/runwar.jar" prefix="${rpm.railo.dir}/runner"
+				 filemode="644" username="railo" group="railo" excludes=".classpath, .project" />
+			<tarfileset dir="${basedir}/resource/railo-war-template" prefix="${rpm.railo.dir}/webroot"
+				 filemode="644" username="railo" group="railo"/>
+			<depends name="railo" version=""/>
+		</redline:rpm>
+	</target>
+
+	<target name="package.rpm.runner">
+		<property name="distro.name" value="railo" />
+		<property name="distro.version" value="${railo.version}" />
+		<property name="rpm.user" value="railo" />
+		<property name="rpm.prefix" value="/opt/railo-${railo.version}" />
+		
+		<delete dir="${temp.dir}/rpmbuild"/>
+		<mkdir dir="${temp.dir}/rpmbuild" />
+		<mkdir dir="${temp.dir}/rpmbuild/SOURCES/" />
+		<mkdir dir="${temp.dir}/rpmbuild/SPECS/" />
+		<mkdir dir="${temp.dir}/rpmbuild/SRPMS/" />
+		<mkdir dir="${temp.dir}/rpmbuild/BUILD/" />
+		<mkdir dir="${temp.dir}/rpmbuild/RPMS" />
+		<mkdir dir="${temp.dir}/rpmbuild/RPMS/noarch" />
+	
+		<echo file="${dist.dir}/${distro.name}/postinst.sh" message='cd $(dirname $0);echo "fart" > fartrock.txt' />
+		<property name="rpm.post" value="sh /opt/${distro.name}-${railo.version}/postinst.sh" />
+		
+		<tar destfile="${temp.dir}/rpmbuild/SOURCES/release.tar.gz" compression="gzip">
+			<tarfileset dir="${railo.lib.dir}" prefix="${distro.name}-${distro.version}/lib" />
+			<tarfileset file="${cfdistro.basedir}/lib/runwar.jar" prefix="${distro.name}-${distro.version}/run/" />
+			<tarfileset file="${cfdistro.basedir}/lib/${jetty-runner.jar}" prefix="${distro.name}-${distro.version}/run/" />
+		</tar>
+		<copy file="${basedir}/rpmbuild/${distro.name}.spec" tofile="${temp.dir}/rpmbuild/SPECS/${distro.name}.spec" overwrite="true">
+			<filterchain>
+				<expandproperties />
+			</filterchain>
+		</copy>
+		<!-- command="-bb -vv" for verbose -->
+	    <rpm 
+	        specFile="${distro.name}.spec"
+	        topDir="${temp.dir}/rpmbuild/"
+	        cleanBuildDir="true"
+	    	failOnError="true"/>
+	</target>
+		
 	<target name="package.rpm.rc">
 		<property name="distro.name" value="railo" />
 		<property name="distro.version" value="${railo.version}" />
@@ -44,11 +143,10 @@
 	    	failOnError="true"/>
 	</target>
 		
-	<target name="package.rpm.libs">
-		<property name="distro.name" value="railo" />
-		<property name="distro.version" value="${railo.version}" />
+	<target name="package.rpm.libs" depends="set.build.info">
+		<antcontrib:var name="distro.name" value="railo-libs" />
+		<antcontrib:var name="distro.version" value="${railo.build.version.major}.0" />
 		<property name="rpm.user" value="railo" />
-		<property name="rpm.prefix" value="/opt/railo-${railo.version}" />
 		
 		<delete dir="${temp.dir}/rpmbuild"/>
 		<mkdir dir="${temp.dir}/rpmbuild" />
@@ -63,9 +161,7 @@
 		<property name="rpm.post" value="sh /opt/${distro.name}-${railo.version}/postinst.sh" />
 		
 		<tar destfile="${temp.dir}/rpmbuild/SOURCES/release.tar.gz" compression="gzip">
-			<tarfileset dir="${railo.lib.dir}" prefix="${distro.name}-${distro.version}/lib" />
-			<tarfileset file="${cfdistro.basedir}/lib/runwar.jar" prefix="${distro.name}-${distro.version}/run/" />
-			<tarfileset file="${cfdistro.basedir}/lib/${jetty-runner.jar}" prefix="${distro.name}-${distro.version}/run/" />
+			<tarfileset dir="${railo.lib.dir}" prefix="${distro.name}-${distro.version}/" excludes=".classpath, .project" />
 		</tar>
 		<copy file="${basedir}/rpmbuild/${distro.name}.spec" tofile="${temp.dir}/rpmbuild/SPECS/${distro.name}.spec" overwrite="true">
 			<filterchain>
@@ -112,6 +208,9 @@
     <!-- This will initialize all the maven ant tasks and download the requested artifact and its dependencies -->
     <target name="mvn.deploy.libs" depends="bootstrap_maven,set.build.info" xmlns:artifact="antlib:org.apache.maven.artifact.ant">
 		<path id="maven.ant.tasks.classpath" path="${maven.ant.tasks.jar}" />
+
+    	<property name="mvn.type" value="SNAPSHOT" />
+
 		<typedef resource="org/apache/maven/artifact/ant/antlib.xml"
 			uri="antlib:org.apache.maven.artifact.ant" classpathref="maven.ant.tasks.classpath" />
            			
@@ -120,30 +219,57 @@
 			<isset property="maven.repo.local" />
 		</condition>
 
-		<artifact:pom id="railolibs.pom" groupId="railo" artifactId="railo.libs" version="${railo.build.version.major}.0" name="railo.libs" packaging="zip">
-		</artifact:pom>
+		<!-- wrap all the libs up into one dependency -->
+		<artifact:pom id="railolibs.pom" groupId="org.getrailo" artifactId="railo.libs" version="${railo.build.version.major}.0" name="railo.libs" packaging="zip" />
 		<bug170workaround pomid="railolibs.pom" />
-    	<property name="railo.libs.zip.file" value="${railobuild.dist.dir}/railo-${railo.build.version.major}.${railo.build.version.minor}.${railo.build.version.build}.000-jars.zip" />
-    	<property name="mvn.type" value="SNAPSHOT" />
+		<zip destfile="${temp.dir}/railo-libs.zip" update="true">
+			<fileset dir="${src.dir}/railo-java/libs" excludes="railo-loader.jar" />
+		</zip>
     	<property name="mvn.remote.repo" 
     		value="http://127.0.0.1:8081/nexus/content/repositories/railo-${mvn.type}s/" />
-		<artifact:deploy file="${railo.libs.zip.file}">
+		<artifact:deploy file="${temp.dir}/railo-libs.zip">
 		  <remoteRepository url="file://${maven.repo.local}"/>
 		  <pom refid="railolibs.pom"/>
 		</artifact:deploy>
+		<delete file="${temp.dir}/railo-libs.zip" />
 
-		<copy file="${basedir}/resource/maven/railo.pom" tofile="${temp.dir}/railo.pom" overwrite="true">
-			<filterchain>
-				<expandproperties />
-			</filterchain>
-		</copy>
-		<artifact:pom id="railopom" file="${temp.dir}/railo.pom" version="${railo.build.version.long}">
-          <dependency groupId="org.getrailo" artifactId="railo.libs" version="${railo.build.version.major}.0" type="zip"/>
+
+		<!-- deploy the railo.jar file (railo.core) -->
+		<artifact:pom id="railo.core.pom" groupId="org.getrailo" artifactId="railo.core" version="${railo.build.version.long}" name="railo.core" packaging="jar">
+        	<dependency groupId="org.getrailo" artifactId="railo.libs" version="${railo.build.version.major}.0" type="zip"/>
 		</artifact:pom>
-    	<property name="railo.jar.file" value="${railobuild.dist.dir}/railo-${railo.build.version.long}.jar" />
-		<artifact:deploy file="${railo.jar.file}">
+		<bug170workaround pomid="railo.core.pom" />
+		<artifact:deploy file="${railobuild.dist.dir}/jar/railo-${railo.build.version.long}.jar">
+		  <remoteRepository url="file://${maven.repo.local}"/>
+		  <pom refid="railo.core.pom"/>
+		</artifact:deploy>
+
+		<!-- deploy the railo archtype-ish projects -->
+		<copy file="${basedir}/resource/maven/railo.pom" tofile="${temp.dir}/railo.pom" overwrite="true">
+			<filterchain><expandproperties /></filterchain>
+		</copy>
+		<artifact:pom id="railopom" file="${temp.dir}/railo.pom"/>
+		<artifact:deploy file="${railobuild.dist.dir}/jar/railo-${railo.build.version.long}.jar">
 		  <remoteRepository url="file://${maven.repo.local}"/>
 		  <pom refid="railopom"/>
+		</artifact:deploy>
+
+		<copy file="${basedir}/resource/maven/railo-war.pom" tofile="${temp.dir}/railo-war.pom" overwrite="true">
+			<filterchain><expandproperties /></filterchain>
+		</copy>
+		<artifact:pom id="railo-war.pom" file="${temp.dir}/railo-war.pom"/>
+		<artifact:deploy file="${railobuild.dist.dir}/jar/railo-${railo.build.version.long}.jar">
+		  <remoteRepository url="file://${maven.repo.local}"/>
+		  <pom refid="railo-war.pom"/>
+		</artifact:deploy>
+
+		<copy file="${basedir}/resource/maven/railo-jetty.pom" tofile="${temp.dir}/railo-jetty.pom" overwrite="true">
+			<filterchain><expandproperties /></filterchain>
+		</copy>
+		<artifact:pom id="railo-jetty.pom" file="${temp.dir}/railo-jetty.pom"/>
+		<artifact:deploy file="${railobuild.dist.dir}/jar/railo-${railo.build.version.long}.jar">
+		  <remoteRepository url="file://${maven.repo.local}"/>
+		  <pom refid="railo-jetty.pom"/>
 		</artifact:deploy>
 
 	</target>

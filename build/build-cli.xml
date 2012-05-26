@@ -1,0 +1,119 @@
+<project name="build-cli" default="build.cli" xmlns:antcontrib="antlib:net.sf.antcontrib" basedir=".">
+
+
+    <property name="onejar.ant.tasks.jar" location="${ant.home}/lib/one-jar-ant-task-0.97.jar" />
+    <property name="onejarboot.ant.tasks.jar" location="${ant.home}/lib/one-jar-boot-0.97.jar" />
+    <property name="onejar.ant.tasks.bootstrap.location" value="http://softlayer.dl.sourceforge.net/project/one-jar/one-jar/one-jar-0.97/one-jar-ant-task-0.97.jar" />
+    <property name="onejarboot.ant.tasks.bootstrap.location" value="http://one-jar.cvs.sourceforge.net/*checkout*/one-jar/one-jar/dist/one-jar-boot-0.96.jar" />
+    <available property="onejar.ant.tasks.jar.exists" file="${onejar.ant.tasks.jar}" />
+
+    <!-- This will download the "latest version" of the maven-ant-tasks if needed -->
+    <target name="bootstrap_onejar" unless="onejar.ant.tasks.jar.exists">
+        <get src="${onejar.ant.tasks.bootstrap.location}" dest="${onejar.ant.tasks.jar}" />
+        <get src="${onejarboot.ant.tasks.bootstrap.location}" dest="${onejarboot.ant.tasks.jar}" />
+    </target>
+
+
+	
+	<target name="build.cli" depends="set.build.info,bootstrap_onejar">
+		<runwar.initprops />
+		<taskdef name="one-jar" classname="com.simontuffs.onejar.ant.OneJarTask" 
+        	classpath="${onejar.ant.tasks.jar}" onerror="report"/>
+   		<delete dir="${temp.dir}/cli" />
+		<mkdir dir="${temp.dir}/cli" />
+		<mkdir dir="${dist.dir}/cli" />
+        <javac-ecj srcdir="${basedir}/resource/cli/src" destdir="${temp.dir}/cli" 
+        	compliance="${railo.javac.compiler}" classpath="${toString:classpath}" />
+        <one-jar destfile="${dist.dir}/cli/railo-cli.jar">
+			<manifest>
+				<attribute name="Main-Class" value="com.simontuffs.onejar.Boot" />
+				<attribute name="One-Jar-Main-Class" value="railocli.CLIMain" />
+			</manifest>
+			<main>
+		        <fileset dir="${temp.dir}/cli" />
+			</main>
+            <lib>
+            	<fileset file="${railobuild.dist.dir}/jar/railo-${railo.build.version.long}.jar" />
+		        <fileset dir="${railo.lib.dir}">
+		            <exclude name="**/railo-loader.jar"/>
+		            <include name="**/*.jar"/>
+		        </fileset>
+            </lib>
+        </one-jar>
+        <concat destfile="${dist.dir}/cli/railo" force="yes" binary="true">
+          <fileset file="${basedir}/resource/cli/railo.sh" />
+          <fileset file="${dist.dir}/cli/railo-cli.jar" />
+        </concat>
+        <chmod file="${dist.dir}/cli/railo" perm="a+x"/>
+        <!-- 
+        <jar2exe jar="${dist.dir}/cli/railo-cli.jar" exe="${dist.dir}/cli/railo-cli.exe" icon="${basedir}/resource/railo.ico" />
+         -->
+	</target>	
+
+	<macrodef name="one-jar-macro">
+		<attribute name="destfile" default="one-jar.jar" />
+		<attribute name="manifest" />
+		<attribute name="mainmanifest" />
+		<attribute name="onejarboot"/>
+		<element name="main" />
+		<element name="top" optional="true"/>
+		<element name="lib" optional="true"/>
+		<element name="binlib" optional="true"/>
+        <element name="wrap" optional="true"/>      
+		<sequential>
+			<tempfile prefix="one-jar-" property="tmp.dir" />
+			<property name="tmp.jar.dir" value="${tmp.dir}/jars"/>
+			<echo>tmp.jar.dir=${tmp.jar.dir}</echo>
+			<mkdir dir="${tmp.jar.dir}"/>
+            <mkdir dir="${tmp.dir}/top" />
+			<copy todir="${tmp.dir}/top">
+				<top/>
+			</copy>
+            <mkdir dir="${tmp.dir}/main" />
+			<copy todir="${tmp.dir}/main" >
+				<main/>
+			</copy>
+			<mkdir dir="${tmp.jar.dir}/lib" />
+			<copy todir="${tmp.jar.dir}/lib">
+				<lib/>
+                <fileset dir="." excludes="**"/>
+			</copy>
+            <mkdir dir="${tmp.jar.dir}/wrap" />
+            <copy todir="${tmp.jar.dir}/wrap">
+                <wrap/>
+                <fileset dir="." excludes="**"/>
+            </copy>
+			<mkdir dir="${tmp.jar.dir}/binlib" />
+			<copy todir="${tmp.jar.dir}/binlib" >
+				<binlib/>
+				<fileset dir="." excludes="**"/>
+			</copy>
+			<unjar dest="${tmp.jar.dir}" src="@{onejarboot}">
+                <patternset>
+                    <include name="**/*.class"/>
+                    <include name=".version"/>   
+                    <include name="doc/**"/>   
+                </patternset>
+            </unjar>            
+			<mkdir dir="${tmp.jar.dir}/main"/>
+			<jar destfile="${tmp.jar.dir}/main/main.jar" manifest="@{mainmanifest}">
+				<fileset dir="${tmp.dir}/main">
+					<include name="**/*"/>
+				</fileset>
+			</jar>
+			<jar destfile="@{destfile}" manifest="@{manifest}">
+				<fileset dir="${tmp.jar.dir}">
+					<include name="**/*"/>
+				</fileset>
+				<fileset dir="${tmp.dir}/top">
+					<include name="**/*"/>
+				</fileset>
+			</jar>
+			<delete dir="${tmp.dir}"/>
+			<echo>Created @{destfile}</echo>
+		</sequential>
+	</macrodef>
+
+
+		
+</project>

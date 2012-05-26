@@ -48,6 +48,7 @@
 	<import file="build-test.xml"/>
 	<import file="build-installer.xml"/>
 	<import file="build-ci.xml"/>
+	<import file="build-cli.xml"/>
 
 	<!-- import all the macrodefs and whatnot -->
 	<import file="${cfdistro.build.file}"/>
@@ -90,6 +91,10 @@
 	<target name="build.main" depends="init">
 		<antcontrib:runtarget target="scminfo"/>
 		<mkdir dir="${railobuild.dist.dir}"/>
+		<mkdir dir="${railobuild.dist.dir}/jar"/>
+		<mkdir dir="${railobuild.dist.dir}/war"/>
+		<mkdir dir="${railobuild.dist.dir}/rc"/>
+		<mkdir dir="${railobuild.dist.dir}/express"/>
 		<echoproperties destfile="${temp.dir}/railo.properties" prefix="railo" />
 		<antcontrib:propertyregex override="yes" property="railo.build.version.major" input="${railo.build.version.long}" 
 			regexp="(\d).*" select="\1" />
@@ -124,17 +129,17 @@
 						
 						<!-- <copy file="${src.dir}/railo-cfml/railo-admin/railo-context.ra" todir="${railobuild.dist.dir}" /> -->
 						<copy file="${src.dir}/railo-java/railo-core/dist/${railo.build.version.long}.rc" tofile="${src.dir}/railo-java/railo-core/dist/core.rc" />
-						<move file="${src.dir}/railo-java/railo-core/dist/${railo.build.version.long}.rc" todir="${railobuild.dist.dir}" />
+						<move file="${src.dir}/railo-java/railo-core/dist/${railo.build.version.long}.rc" todir="${railobuild.dist.dir}/rc" />
 				    	<echo>*************************************</echo>
 				        <echo>***** Building railo.jar ************</echo>
 				    	<echo>*************************************</echo>
 						<antcontrib:runtarget target="Railo.package" />
-						<copy file="${src.dir}/railo-java/railo/dist/railo.jar" tofile="${railobuild.dist.dir}/railo-${railo.build.version.long}.jar" />
+						<copy file="${build-railo.dist.dir}/railo.jar" tofile="${railobuild.dist.dir}/jar/railo-${railo.build.version.long}.jar" />
 
 						<echo>*************************************</echo>
 				        <echo>***** Building railo-${railo.build.version.long}-jars.zip ************</echo>
 				    	<echo>*************************************</echo>
-				    	<property name="railo.libs.zip.file" value="${railobuild.dist.dir}/railo-${railo.build.version.major}.${railo.build.version.minor}.${railo.build.version.build}.000-jars.zip" />
+				    	<property name="railo.libs.zip.file" value="${railobuild.dist.dir}/jar/railo-${railo.build.version.major}.${railo.build.version.minor}.${railo.build.version.build}.000-jars.zip" />
 						<zip destfile="${railo.libs.zip.file}" update="true">
 							<fileset dir="${src.dir}/railo-java/libs/" excludes="railo-loader.jar"/>
 							<fileset file="${src.dir}/railo-java/railo/dist/railo.jar"/>
@@ -151,16 +156,16 @@
 						<copy todir="${railobuild.dist.dir}/railo.war/WEB-INF/lib">
 							<fileset dir="${src.dir}/railo-java/libs" excludes="railo-loader.jar" />
 						</copy>
-						<copy file="${railobuild.dist.dir}/railo-${railo.build.version.long}.jar" tofile="${railobuild.dist.dir}/railo.war/WEB-INF/lib/railo.jar" />
+						<copy file="${railobuild.dist.dir}/jar/railo-${railo.build.version.long}.jar" tofile="${railobuild.dist.dir}/railo.war/WEB-INF/lib/railo.jar" />
 						<!-- compress war -->
 						<mkdir dir="${railobuild.dist.dir}/compressed" />
 						<jar jarfile="${railobuild.dist.dir}/compressed/railo-${railo.build.version.long}.war" basedir="${railobuild.dist.dir}/railo.war" />
 						<delete dir="${railobuild.dist.dir}/railo.war" />
-						<move file="${railobuild.dist.dir}/compressed/railo-${railo.build.version.long}.war" todir="${railobuild.dist.dir}" />
+						<move file="${railobuild.dist.dir}/compressed/railo-${railo.build.version.long}.war" todir="${railobuild.dist.dir}/war" />
 						<delete dir="${railobuild.dist.dir}/compressed" />
 						<echo>*** WAR file exported to ${railobuild.dist.dir}/railo-${railo.build.version.long}.war ***</echo>
 
-			<copy file="${railobuild.dist.dir}/${railo.build.version.long}.rc" tofile="${railobuild.dist.dir}/${railo.build.version.long}.${build.lastcommithash}.rc"  failonerror="false"/>
+			<copy file="${railobuild.dist.dir}/rc/${railo.build.version.long}.rc" tofile="${railobuild.dist.dir}/rc/${railo.build.version.long}.${build.lastcommithash}.rc"  failonerror="false"/>
 			<move file="${railobuild.dist.dir}/commit.log" tofile="${railobuild.dist.dir}/commit.${build.lastcommithash}.log"  failonerror="false"/>
 			<propertyfile file="${basedir}/buildinfo.properties" comment="Build Information">
 				<entry key="build.lastcommithash" value="${build.commithash}" />
