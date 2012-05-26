@@ -1,3 +1,5 @@
+%global railodir %{_libexecdir}/railo/${railo.build.version.major}
+%global libsdir %{railodir}/libs
 #===============================================================================
 # Name: railo.spec 
 #-------------------------------------------------------------------------------
@@ -11,7 +13,7 @@
 # %define _target   noarch
 %define _target_os  Linux
 %define name      ${distro.name}
-%define summary   Railo install
+%define summary   Railo Libraries
 %define version   ${distro.version}
 %define release   Base
 %define license   LGPL
@@ -19,10 +21,9 @@
 %define _topdir  %(echo $PWD)
 %define _tmppath  /tmp
 %define source    release.tar.gz
-%define url       http://google.com
+%define url       http://getrailo.org
 %define vendor    Railo Technologies
-%define packager  Railo 
-%define _prefix   ${rpm.prefix}
+%define packager  Railo
 %define _Rsourcedir  %{_topdir}/SOURCES
 %define buildroot %{_tmppath}/%{name}-root
 # %define exclude /home/cfml
@@ -34,7 +35,7 @@ License:   %{license}
 Group:     %{group}
 Source0:   %{source}
 BuildArch: noarch
-Requires:  filesystem, bash, grep, java-1.6.0-openjdk
+Requires:  filesystem, java-1.6.0-openjdk
 Provides:  %{name}
 URL:       %{url}
 Buildroot: %{buildroot}
@@ -44,7 +45,7 @@ This tool kicks ass and chews bubble-gum, and it's all outta gum.  Use it to cre
 %setup -q
 %build
 %pre
-rm -rf %{buildroot}%{_prefix}
+rm -rf %{buildroot}%{libsdir}
 if [ -e /home/${rpm.user} ]; then
   echo "${rpm.user} user exists, thus not trying to add again" >&2
 else
@@ -52,23 +53,19 @@ else
 	useradd -d /home/${rpm.user} ${rpm.user}
 fi
 %install
-install -d %{buildroot}%{_prefix}
-tar cf - . | (cd %{buildroot}%{_prefix}; tar xfp -)
+install -d %{buildroot}%{libsdir}
+tar cf - . | (cd %{buildroot}%{libsdir}; tar xfp -)
+rm -f  %{railodir}/libs
+ln -s  %{railodir}/libs %{buildroot}%{libsdir}
 %post
 echo "--------------------------------------------------------"
-echo "   %{name} installed in %{_prefix}"
+echo "   %{name} installed in %{libsdir}"
 echo "--------------------------------------------------------"
 ${rpm.post}
 %clean
-rm -rf %{buildroot}%{_prefix}
-rm -rf %{buildroot}%{_prefix}/${distro.name}
-rm -rf %{buildroot}%{_prefix}/../${distro.name}.sh
+rm -rf %{buildroot}%{libsdir}
 %postun
-rm -rf %{_prefix}/${distro.name}
+rm -rf %{libsdir}
 %files
 %defattr(-,${rpm.user},root)
-%{_prefix}/*
-# make executable
-#%attr(755,${rpm.user},root)%{_prefix}/../${distro.name}.sh
-#%attr(755,${rpm.user},root)%{_prefix}/${distro.name}.sh
-%attr(755,${rpm.user},root)%{_prefix}/${distro.name}/${distro.name}.sh
+%{libsdir}/*

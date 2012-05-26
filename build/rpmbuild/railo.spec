@@ -1,3 +1,6 @@
+%global railodir %{_libexecdir}/railo/${railo.build.version.major}
+%global serverdir %{railodir}/railo-server/
+%global patchesdir %{railodir}/railo-server/patches
 #===============================================================================
 # Name: railo.spec 
 #-------------------------------------------------------------------------------
@@ -10,8 +13,8 @@
 %define debug_package %{nil}
 # %define _target   noarch
 %define _target_os  Linux
-%define name      ${distro.name}
-%define summary   Railo install
+%define name      Railo Core
+%define summary   Railo Core Library
 %define version   ${distro.version}
 %define release   Base
 %define license   LGPL
@@ -19,10 +22,9 @@
 %define _topdir  %(echo $PWD)
 %define _tmppath  /tmp
 %define source    release.tar.gz
-%define url       http://google.com
+%define url       http://getrailo.org
 %define vendor    Railo Technologies
-%define packager  Railo 
-%define _prefix   ${rpm.prefix}
+%define packager  Railo
 %define _Rsourcedir  %{_topdir}/SOURCES
 %define buildroot %{_tmppath}/%{name}-root
 # %define exclude /home/cfml
@@ -34,7 +36,7 @@ License:   %{license}
 Group:     %{group}
 Source0:   %{source}
 BuildArch: noarch
-Requires:  filesystem, bash, grep, java-1.6.0-openjdk
+Requires:  filesystem, bash, grep, java-1.6.0-openjdk, railo-libs-${railo.build.version.major}
 Provides:  %{name}
 URL:       %{url}
 Buildroot: %{buildroot}
@@ -52,23 +54,23 @@ else
 	useradd -d /home/${rpm.user} ${rpm.user}
 fi
 %install
-install -d %{buildroot}%{_prefix}
-tar cf - . | (cd %{buildroot}%{_prefix}; tar xfp -)
+install -d %{buildroot}%{patchesdir}
+tar cf - . | (cd %{buildroot}%{patchesdir}; tar xfp -)
+rm -f  %{railodir}/railo-server
+ln -s  %{railodir}/railo-server %{buildroot}%{serverdir}
+
 %post
 echo "--------------------------------------------------------"
-echo "   %{name} installed in %{_prefix}"
+echo "   %{name} installed in %{patchesdir}"
 echo "--------------------------------------------------------"
 ${rpm.post}
 %clean
-rm -rf %{buildroot}%{_prefix}
-rm -rf %{buildroot}%{_prefix}/${distro.name}
-rm -rf %{buildroot}%{_prefix}/../${distro.name}.sh
+rm -rf %{buildroot}%{patchesdir}
 %postun
-rm -rf %{_prefix}/${distro.name}
+rm -rf %{patchesdir}/${distro.name}
 %files
 %defattr(-,${rpm.user},root)
-%{_prefix}/*
+%{patchesdir}/*
 # make executable
-#%attr(755,${rpm.user},root)%{_prefix}/../${distro.name}.sh
-#%attr(755,${rpm.user},root)%{_prefix}/${distro.name}.sh
-%attr(755,${rpm.user},root)%{_prefix}/${distro.name}/${distro.name}.sh
+#%attr(755,${rpm.user},root)%{patchesdir}/../${distro.name}.sh
+#%attr(755,${rpm.user},root)%{patchesdir}/${distro.name}.sh
