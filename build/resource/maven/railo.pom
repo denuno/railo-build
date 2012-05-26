@@ -2,7 +2,7 @@
 <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>railo</groupId>
+  <groupId>org.getrailo</groupId>
   <artifactId>railo</artifactId>
   <version>${railo.build.version.long}</version>
   <name>Railo</name>
@@ -10,12 +10,17 @@
 
   <dependencies>
     <dependency>
-      <groupId>railo</groupId>
-      <artifactId>railo.libs</artifactId>
-      <version>4.0</version>
-      <type>zip</type>
+      <groupId>org.getrailo</groupId>
+      <artifactId>railo.core</artifactId>
+      <version>${railo.build.version.long}</version>
+      <type>jar</type>
     </dependency>
   </dependencies>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+	</properties>
 
 	<build>
 		<plugins>
@@ -32,8 +37,8 @@
 				          <goal>unpack-dependencies</goal>
 				        </goals>
 				        <configuration>
-				          <includeGroupIds>railo</includeGroupIds>
-				          <includeArtifactIds>libs</includeArtifactIds>
+				          <includeGroupIds>org.getrailo</includeGroupIds>
+				          <includeArtifactIds>railo.libs</includeArtifactIds>
 				          <outputDirectory>
 				             ${project.build.directory}/${project.artifactId}-${project.version}/WEB-INF/lib
 				             <!-- or: ${project.basedir}/wherever/you/want/it -->

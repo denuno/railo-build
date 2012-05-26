@@ -2,30 +2,17 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>railo.maven.example</groupId>
-	<artifactId>artifact</artifactId>
-	<packaging>war</packaging>
-	<version>1.0.0-SNAPSHOT</version>
-	<name>Railo Maven Example</name>
+	<groupId>org.getrailo</groupId>
+	<artifactId>railo.war</artifactId>
+	<packaging>pom</packaging>
+  	<version>${railo.build.version.long}</version>
+	<name>Railo WAR</name>
 
 	<parent>
-		<groupId>railo</groupId>
+		<groupId>org.getrailo</groupId>
 		<artifactId>railo</artifactId>
-		<version>4.0</version>
+		<version>${railo.build.version.long}</version>
 	</parent>
-
-	<repositories>
-		<repository>
-			<id>railo-repo</id>
-			<url>file:///workspace/railo-build/build/mavenrepo/<!--http://127.0.0.1:8081/nexus/content/repositories/railo/--></url>
-			<releases>
-				<enabled>true</enabled>
-			</releases>
-			<snapshots>
-				<enabled>true</enabled>
-			</snapshots>
-		</repository>
-	</repositories>
 
 	<build>
 		<plugins>
@@ -34,7 +21,7 @@
 				<artifactId>maven-war-plugin</artifactId>
 				<version>2.1.1</version>
 				<configuration>
-					<warSourceDirectory>heroku</warSourceDirectory>
+					<warSourceDirectory>${web.xml}</warSourceDirectory>
 					<!-- <webXml>heroku/WEB-INF/web.xml</webXml>  -->
 					<webResources>
 						<resource>
