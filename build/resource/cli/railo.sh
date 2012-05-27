@@ -64,9 +64,9 @@ then
 	LESS=${LESS:-FSRX}
 	export LESS
 
-	"$java" $java_args com.simontuffs.onejar.Boot "$@" | $use_pager
+	"$java" $java_args railo.cli.CLI "$@" | $use_pager
 	exit
 else
-  exec "$java" $java_args com.simontuffs.onejar.Boot "$@"
+  exec "$java" $java_args railo.cli.CLI "$@"
   exit 1
 fi
