@@ -15,7 +15,7 @@
 
 
 	
-	<target name="build.cli" depends="set.build.info,bootstrap_onejar">
+	<target name="build.cli.onejar" depends="set.build.info,bootstrap_onejar">
 		<runwar.initprops />
 		<taskdef name="one-jar" classname="com.simontuffs.onejar.ant.OneJarTask" 
         	classpath="${onejar.ant.tasks.jar}" onerror="report"/>
@@ -49,6 +49,84 @@
         <jar2exe jar="${dist.dir}/cli/railo-cli.jar" exe="${dist.dir}/cli/railo-cli.exe" icon="${basedir}/resource/railo.ico" />
          -->
 	</target>	
+
+	<target name="build.cli" description="creates an jar with the libs embedded"  depends="set.build.info">
+		<property name="runembedded.jar.file" value="${dist.dir}/embedded/railocli.jar"/>
+   		<delete dir="${dist.dir}/embedded" />
+   		<delete dir="${temp.dir}/embedded" />
+		<mkdir dir="${temp.dir}/embedded" />
+		<mkdir dir="${dist.dir}/embedded" />
+        <javac-ecj srcdir="${basedir}/resource/cli/src" destdir="${temp.dir}/embedded" 
+        	compliance="${railo.javac.compiler}" classpath="${toString:classpath}" />
+
+		<jar destfile="${temp.dir}/embedded/railocli.jar" filesetmanifest="mergewithoutmain">
+			<manifest>
+				<attribute name="Main-Class" value="railocli.CLIMain" />
+			</manifest>
+			<fileset dir="${temp.dir}/embedded">
+				<exclude name="cliloader/*" />
+			</fileset>
+		</jar>
+		<delete dir="${temp.dir}/embedded/railocli" />
+
+
+<!-- 
+	    <unzip dest="${temp.dir}/embedded/">
+	        <fileset dir="${railo.lib.dir}">
+	            <include name="**/javax.servlet.jar"/>
+	            <include name="**/*xerces*"/>
+	            <include name="**/*commons-collections*"/>
+	            <include name="**/*xalan*"/>
+	            <include name="**/dom4j.jar"/>
+	            <include name="**/hypersonic-hsqldb.jar"/>
+	        </fileset>
+          	<fileset file="${railobuild.dist.dir}/jar/railo-${railo.build.version.long}.jar" />
+	    </unzip>
+ -->
+	    <unzip dest="${temp.dir}/embedded/">
+	        <fileset dir="${railo.lib.dir}">
+	            <include name="**/javax.servlet.jar"/>
+	        </fileset>
+	    </unzip>
+
+<!--
+	    <unzip dest="${temp.dir}/embedded/">
+	        <fileset dir="${railo.lib.dir}">
+	            <include name="**/javax.servlet.jar"/>
+	        </fileset>
+	        <fileset dir="${railo.lib.dir}">
+	            <include name="**/railo-loader.jar"/>
+	        </fileset> 
+	    </unzip>
+
+ 	    <copy todir="${temp.dir}/embedded/railo/runtime" file="${build-core.dir}/src/railo/runtime/Info.ini" />
+	    <copy todir="${temp.dir}/embedded/railo" file="${build-railo.src.dir}/railo/version" />
+ -->
+		<zip destfile="${temp.dir}/embedded/libs.zip">
+			<!-- <fileset dir="${cfdistro.basedir}/lib/" includes="${jetty-runner.jar}" /> -->
+          	<fileset file="${railobuild.dist.dir}/jar/railo-${railo.build.version.long}.jar" />
+	        <fileset dir="${railo.lib.dir}">
+	            <exclude name="**/railo-loader.jar"/>
+	            <exclude name="**/javax.servlet.jar"/>
+<!-- 	        
+	            <exclude name="**/*xerces*"/>
+	            <exclude name="**/*xalan*"/>
+	            <exclude name="**/dom4j.jar"/>
+	            <exclude name="**/*commons-collections*"/>
+ -->
+	            <include name="**/*.jar"/>
+	        </fileset>
+	        <fileset file="${temp.dir}/embedded/railocli.jar" />
+		</zip>
+		<delete file="${temp.dir}/embedded/railocli.jar" />
+		<jar destfile="${runembedded.jar.file}" filesetmanifest="mergewithoutmain">
+			<manifest>
+				<attribute name="Main-Class" value="cliloader.LoaderCLIMain" />
+			</manifest>
+			<fileset dir="${temp.dir}/embedded" />
+		</jar>
+	</target>
+
 
 	<macrodef name="one-jar-macro">
 		<attribute name="destfile" default="one-jar.jar" />
