@@ -10,6 +10,10 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 
@@ -20,24 +24,67 @@ public class LoaderCLIMain {
 
 	public static void main(String[] args) throws Throwable {
 		ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-		File currentDir = new File(LoaderCLIMain.class.getProtectionDomain().getCodeSource().getLocation().getPath()).getParentFile();
-		System.out.println(currentDir.getPath());
+		Map<String,String> config=toMap(args);
+		Boolean debug = false, updateLibs = false;
+		Boolean startServer = false;
+		File currentDir;
+		String userHome = System.getProperty("user.home");
+		if(userHome != null) {
+			currentDir = new File(userHome + "/.railo/");
+			if(!currentDir.exists())
+				System.out.println("Configuring "+ userHome + "/.railo/" + " (change with -lib=/path/to/dir)");
+			currentDir.mkdir();
+		} else {
+			currentDir = new File(LoaderCLIMain.class.getProtectionDomain().getCodeSource().getLocation().getPath()).getParentFile();
+		}
+		//System.out.println(currentDir.getPath());
 		File libDir=new File(currentDir,"lib").getCanonicalFile();
-		System.out.println(libDir);
+		
+		// debug
+		if(config.get("debug") != null) {
+			debug = true;
+			System.out.println("Using configuration in "+ userHome + "/.railo/" + " (change with -lib=/path/to/dir)");
+		}
+		// update/overwrite libs
+		if(config.get("update") != null) {
+			updateLibs = true;
+			args = removeElementThenAdd(args,"-update","");
+		}
+		
+		if(config.get("?") != null || args.length == 0) {
+			System.out.println("USAGE: railo /path/to/script [-libs=/path/to/libs/dir -webroot=/path/to/web -uri=/webroot/script/path -config-server=/path/to/dir -config-web=/path/to/dir] [-form=name=susi -cgi=user_agent=urs]");
+			System.out.println("Ex: railo test.cfm");
+			System.out.println("Or for server mode: railo -server --port=8088");
+			System.out.println("And to update libs after updating binary: railo -update");
+			Thread.sleep(3000);
+			System.exit(0);
+		}
+		
+		// libs dir
+		String strLibs=config.get("lib");
+		if(strLibs != null && strLibs.length() != 0) {
+			libDir=new File(strLibs);
+		}
 
-		File libsFile = new File(currentDir.getCanonicalPath() + "/" + ZIP_PATH);
+		String strStart=config.get("server");
+		if(strStart != null) {
+			startServer=true;
+		}
 
-		if (!libDir.exists()) {
+
+        if(libDir.toString().equals("/Users/mic/Projects/Railo/Source2/railo/railo-java/railo-loader"))
+			libDir=new File("/Users/mic/temp/ext");
+
+		if(debug) System.out.println("lib dir: " + libDir);
+
+		if (!libDir.exists() || updateLibs) {
 			libDir.mkdir();
 			URL resource = classLoader.getResource(ZIP_PATH);
 			if (resource == null) {
 				System.err.println("Could not find the " + ZIP_PATH + " on classpath!");
 				System.exit(1);
 			}
-			System.out.println("Extracting " + ZIP_PATH + " to " + libsFile + " ...");
-			//writeStreamTo(resource.openStream(), new FileOutputStream(libsFile), 8 * KB);
-
-			System.out.println("Extracting " + ZIP_PATH);
+			if(debug) System.out.println("Extracting " + ZIP_PATH);
 
 			try {
 
@@ -72,17 +119,48 @@ public class LoaderCLIMain {
         }
         
         URL[] urls = new URL[children.length];
-        System.out.println("Loading Jars");
+        if(debug) System.out.println("Loading Jars");
         for(int i=0;i<children.length;i++){
-        	urls[i]=new URL ("jar:file://" + children[i] + "!/");
-        	System.out.println("- "+urls[i]);
+        	urls[i]=children[i].toURI().toURL();
+        	if(debug) System.out.println("- "+urls[i]);
         }
-        System.out.println();
         //URLClassLoader cl = new URLClassLoader(urls,ClassLoader.getSystemClassLoader());
         //URLClassLoader cl = new URLClassLoader(urls,null);
         URLClassLoader cl = new URLClassLoader(urls,classLoader);
 		//Thread.currentThread().setContextClassLoader(cl);
-        Class cli = cl.loadClass("railocli.CLIMain");
+        Class cli;
+        if(!startServer) {
+	        cli = cl.loadClass("railocli.CLIMain");
+        } else {
+        	File curDir = new File("./").getCanonicalFile();
+	        cli = cl.loadClass("runwar.Start");
+	        /*
+	        System.out.println(libDir.getPath()+"/");
+	        Boolean addWarArg = true;
+			for (String s : args)
+			    if (s.toLowerCase().startsWith("-war"))
+			        addWarArg = false;
+			String[] newArgs;
+        	if(addWarArg) {
+				newArgs = new String[] {"-war",curDir.getPath(),"-background","false"};
+        	} else {
+				newArgs = new String[] {"-background","false"};
+        	}
+			String[] temp = new String[args.length + newArgs.length];
+			System.arraycopy(newArgs, 0, temp, 0, newArgs.length)
+			System.arraycopy(args, 0, temp, newArgs.length, args.length);
+			newArgs = temp;        	
+	        args = new String[] { "-war",curDir.getPath()
+        		,"-background","false"
+        		,"-loglevel","WARN"
+        		//,"-port","8078"
+        		//,"-dirs",curDir.getPath()
+        		//,"-libs",libDir.getPath()
+    		};
+    		*/
+    		args = removeElementThenAdd(args,"-server","-war "+curDir.getPath()+" --background false");
+
+        } 
         Method main = cli.getMethod("main",new Class[]{String[].class});
 		try{
         	main.invoke(null, new Object[]{args});
@@ -93,6 +171,18 @@ public class LoaderCLIMain {
         
 	}
 	
+	public static String[] removeElementThenAdd(String[] input, String deleteMe, String addList) {
+	    List<String> result = new LinkedList<String>();
+	    for(String item : input)
+	        if(!deleteMe.equals(item))
+	            result.add(item);
+
+	    for(String item : addList.split(" "))
+	    		result.add(item);
+	    
+	    return result.toArray(input);
+	}
+
 
 	public static class ExtFilter implements FilenameFilter {
 		
@@ -117,4 +207,25 @@ public class LoaderCLIMain {
 		return answer;
 	}
 
+	private static Map<String, String> toMap(String[] args) {
+		int index;
+		Map<String, String> config=new HashMap<String, String>();
+		String raw,key,value;
+		if(args!=null)for(int i=0;i<args.length;i++){
+			raw=args[i].trim();
+			if(raw.length() == 0) continue;
+			if(raw.startsWith("-"))raw=raw.substring(1).trim();
+			index=raw.indexOf('=');
+			if(index==-1) {
+				key=raw;
+				value="";
+			}
+			else {
+				key=raw.substring(0,index).trim();
+				value=raw.substring(index+1).trim();
+			}
+			config.put(key.toLowerCase(), value);
+		}
+		return config;
+	}
 }

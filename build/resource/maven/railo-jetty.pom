@@ -19,12 +19,6 @@
 			<groupId>org.mortbay.jetty</groupId>
 			<artifactId>jetty-runner</artifactId>
 			<version>7.5.4.v20111024</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>junit</groupId>
-                    <artifactId>junit</artifactId>
-                </exclusion>
-            </exclusions>
 		</dependency>
 	</dependencies>
 

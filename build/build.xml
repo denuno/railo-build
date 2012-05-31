@@ -49,6 +49,8 @@
 	<import file="build-installer.xml"/>
 	<import file="build-ci.xml"/>
 	<import file="build-cli.xml"/>
+	<import file="build-maven.xml"/>
+	<import file="build-rpm.xml"/>
 
 	<!-- import all the macrodefs and whatnot -->
 	<import file="${cfdistro.build.file}"/>

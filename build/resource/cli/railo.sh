@@ -64,9 +64,9 @@ then
 	LESS=${LESS:-FSRX}
 	export LESS
 
-	"$java" $java_args railo.cli.CLI "$@" | $use_pager
+	"$java" $java_args cliloader.LoaderCLIMain "$@" | $use_pager
 	exit
 else
-  exec "$java" $java_args railo.cli.CLI "$@"
+  exec "$java" $java_args cliloader.LoaderCLIMain "$@"
   exit 1
 fi

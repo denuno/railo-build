@@ -115,7 +115,11 @@ public class CLIContext implements ServletContext {
 		if(realpath.startsWith("/WEB-INF")) {
 			return new File(webInf,realpath);
 		}
-		return new File(root,realpath);
+		File relPath = new File(root,realpath);
+		if(relPath.exists()) {
+			return relPath;
+		}
+		return new File(realpath);
 	}
 
 	public File getRoot() {

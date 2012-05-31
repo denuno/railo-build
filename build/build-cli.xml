@@ -1,64 +1,25 @@
 <project name="build-cli" default="build.cli" xmlns:antcontrib="antlib:net.sf.antcontrib" basedir=".">
 
+	<property name="cli.version" value="0.1.1" />
+	<property name="cli.packager.name" value="Railo Technologies" />
+	<property name="cli.packager.email" value="railo@getrailo.com" />
 
-    <property name="onejar.ant.tasks.jar" location="${ant.home}/lib/one-jar-ant-task-0.97.jar" />
-    <property name="onejarboot.ant.tasks.jar" location="${ant.home}/lib/one-jar-boot-0.97.jar" />
-    <property name="onejar.ant.tasks.bootstrap.location" value="http://softlayer.dl.sourceforge.net/project/one-jar/one-jar/one-jar-0.97/one-jar-ant-task-0.97.jar" />
-    <property name="onejarboot.ant.tasks.bootstrap.location" value="http://one-jar.cvs.sourceforge.net/*checkout*/one-jar/one-jar/dist/one-jar-boot-0.96.jar" />
-    <available property="onejar.ant.tasks.jar.exists" file="${onejar.ant.tasks.jar}" />
-
-    <!-- This will download the "latest version" of the maven-ant-tasks if needed -->
-    <target name="bootstrap_onejar" unless="onejar.ant.tasks.jar.exists">
-        <get src="${onejar.ant.tasks.bootstrap.location}" dest="${onejar.ant.tasks.jar}" />
-        <get src="${onejarboot.ant.tasks.bootstrap.location}" dest="${onejarboot.ant.tasks.jar}" />
-    </target>
-
-
-	
-	<target name="build.cli.onejar" depends="set.build.info,bootstrap_onejar">
-		<runwar.initprops />
-		<taskdef name="one-jar" classname="com.simontuffs.onejar.ant.OneJarTask" 
-        	classpath="${onejar.ant.tasks.jar}" onerror="report"/>
-   		<delete dir="${temp.dir}/cli" />
-		<mkdir dir="${temp.dir}/cli" />
-		<mkdir dir="${dist.dir}/cli" />
-        <javac-ecj srcdir="${basedir}/resource/cli/src" destdir="${temp.dir}/cli" 
-        	compliance="${railo.javac.compiler}" classpath="${toString:classpath}" />
-        <one-jar destfile="${dist.dir}/cli/railo-cli.jar">
-			<manifest>
-				<attribute name="Main-Class" value="com.simontuffs.onejar.Boot" />
-				<attribute name="One-Jar-Main-Class" value="railocli.CLIMain" />
-			</manifest>
-			<main>
-		        <fileset dir="${temp.dir}/cli" />
-			</main>
-            <lib>
-            	<fileset file="${railobuild.dist.dir}/jar/railo-${railo.build.version.long}.jar" />
-		        <fileset dir="${railo.lib.dir}">
-		            <exclude name="**/railo-loader.jar"/>
-		            <include name="**/*.jar"/>
-		        </fileset>
-            </lib>
-        </one-jar>
-        <concat destfile="${dist.dir}/cli/railo" force="yes" binary="true">
-          <fileset file="${basedir}/resource/cli/railo.sh" />
-          <fileset file="${dist.dir}/cli/railo-cli.jar" />
-        </concat>
-        <chmod file="${dist.dir}/cli/railo" perm="a+x"/>
-        <!-- 
-        <jar2exe jar="${dist.dir}/cli/railo-cli.jar" exe="${dist.dir}/cli/railo-cli.exe" icon="${basedir}/resource/railo.ico" />
-         -->
-	</target>	
-
-	<target name="build.cli" description="creates an jar with the libs embedded"  depends="set.build.info">
-		<property name="runembedded.jar.file" value="${dist.dir}/embedded/railocli.jar"/>
+	<target name="build.cli" description="creates an jar with the libs embedded" depends="set.build.info">
+		<property name="runembedded.jar.file" value="${dist.dir}/embedded/railo-cli.jar"/>
    		<delete dir="${dist.dir}/embedded" />
    		<delete dir="${temp.dir}/embedded" />
 		<mkdir dir="${temp.dir}/embedded" />
 		<mkdir dir="${dist.dir}/embedded" />
         <javac-ecj srcdir="${basedir}/resource/cli/src" destdir="${temp.dir}/embedded" 
         	compliance="${railo.javac.compiler}" classpath="${toString:classpath}" />
+        <copy file="${basedir}/resource/railo.png" todir="${temp.dir}/embedded/railocli" />
+		<!-- use custom icon in runwar -->
+        <copy file="${cfdistro.basedir}/lib/runwar.jar" todir="${temp.dir}" />
+        <zip destfile="${temp.dir}/runwar.jar" update="true">
+        	<zipfileset file="${temp.dir}/embedded/railocli/railo.png" fullpath="runwar/icon.png" />
+        </zip>
 
+       	<!-- we put the loader into a jar in libs.zip for classloading reasons -->
 		<jar destfile="${temp.dir}/embedded/railocli.jar" filesetmanifest="mergewithoutmain">
 			<manifest>
 				<attribute name="Main-Class" value="railocli.CLIMain" />
@@ -68,65 +29,95 @@
 			</fileset>
 		</jar>
 		<delete dir="${temp.dir}/embedded/railocli" />
-
-
-<!-- 
 	    <unzip dest="${temp.dir}/embedded/">
-	        <fileset dir="${railo.lib.dir}">
-	            <include name="**/javax.servlet.jar"/>
-	            <include name="**/*xerces*"/>
-	            <include name="**/*commons-collections*"/>
-	            <include name="**/*xalan*"/>
-	            <include name="**/dom4j.jar"/>
-	            <include name="**/hypersonic-hsqldb.jar"/>
-	        </fileset>
-          	<fileset file="${railobuild.dist.dir}/jar/railo-${railo.build.version.long}.jar" />
+			<fileset dir="${cfdistro.basedir}/lib/" includes="${jetty-runner.jar}" /> 
 	    </unzip>
- -->
+	    <delete dir="${temp.dir}/embedded/org/objectweb/" />
+		<!-- 
 	    <unzip dest="${temp.dir}/embedded/">
 	        <fileset dir="${railo.lib.dir}">
 	            <include name="**/javax.servlet.jar"/>
 	        </fileset>
 	    </unzip>
-
-<!--
-	    <unzip dest="${temp.dir}/embedded/">
-	        <fileset dir="${railo.lib.dir}">
-	            <include name="**/javax.servlet.jar"/>
-	        </fileset>
-	        <fileset dir="${railo.lib.dir}">
-	            <include name="**/railo-loader.jar"/>
-	        </fileset> 
-	    </unzip>
-
- 	    <copy todir="${temp.dir}/embedded/railo/runtime" file="${build-core.dir}/src/railo/runtime/Info.ini" />
-	    <copy todir="${temp.dir}/embedded/railo" file="${build-railo.src.dir}/railo/version" />
- -->
+		-->
 		<zip destfile="${temp.dir}/embedded/libs.zip">
-			<!-- <fileset dir="${cfdistro.basedir}/lib/" includes="${jetty-runner.jar}" /> -->
           	<fileset file="${railobuild.dist.dir}/jar/railo-${railo.build.version.long}.jar" />
 	        <fileset dir="${railo.lib.dir}">
 	            <exclude name="**/railo-loader.jar"/>
 	            <exclude name="**/javax.servlet.jar"/>
-<!-- 	        
-	            <exclude name="**/*xerces*"/>
-	            <exclude name="**/*xalan*"/>
-	            <exclude name="**/dom4j.jar"/>
-	            <exclude name="**/*commons-collections*"/>
- -->
+
 	            <include name="**/*.jar"/>
 	        </fileset>
 	        <fileset file="${temp.dir}/embedded/railocli.jar" />
+	        <fileset file="${temp.dir}/runwar.jar" />
 		</zip>
 		<delete file="${temp.dir}/embedded/railocli.jar" />
+		<delete file="${temp.dir}/runwar.jar" />
+
 		<jar destfile="${runembedded.jar.file}" filesetmanifest="mergewithoutmain">
 			<manifest>
 				<attribute name="Main-Class" value="cliloader.LoaderCLIMain" />
 			</manifest>
 			<fileset dir="${temp.dir}/embedded" />
 		</jar>
+		<!-- wrap the executable jar in native wrapers -->
+        <concat destfile="${dist.dir}/embedded/railo" force="yes" binary="true">
+          <fileset file="${basedir}/resource/cli/railo.sh" />
+          <fileset file="${dist.dir}/embedded/railo-cli.jar" />
+        </concat>
+        <chmod file="${dist.dir}/embedded/railo" perm="a+x"/>
+        <jar2exe
+        	jar="${dist.dir}/embedded/railo-cli.jar" exe="${dist.dir}/embedded/railo.exe"  
+        	icon="${basedir}/resource/railo.ico" mutexName="railo.cli.Console" 
+        	headerType="console" customProcName="false" stayAlive="true"/>
+ 	</target>
+ 	
+ 	<target name="build.cli.mvn" depends="set.build.info">
+		<pom-and-sshit pomid="cli.pom" packaging="pom"
+			groupId="org.getrailo" artifactId="railo.cli" version="${cli.version}"
+			name="railo.cli">
+			<attachments>
+				<attach file="${dist.dir}/embedded/railo-cli.jar" type="jar" />
+				<attach file="${dist.dir}/embedded/railo" type="bin" />
+				<attach file="${dist.dir}/embedded/railo.exe" type="exe" />
+				<attach file="${dist.dir}/railo-cli-${cli.version}-1_all.deb" type="deb" />
+				<attach file="${dist.dir}/embedded/railo-cli.rpm" type="rpm" />
+			</attachments>
+		</pom-and-sshit>
 	</target>
 
+	<target name="build.cli.rpm" depends="bootstrap_redline, set.build.info"  xmlns:redline="antlib:org.redline_rpm">
+		<redline:rpm destination="rpms" release="1"
+			group="org.getrailo" name="railo-cli" version="${cli.version}"
+			packager="${cli.packager.name} ${cli.packager.email}"
+			url="http://getrailo.org">
+			<depends name="java" version=""/>
+			<tarfileset file="${dist.dir}/embedded/railo" prefix="/usr/bin"
+				 filemode="744" username="root" group="root"/>
+		</redline:rpm>
+	</target>
+
+	<target name="build.cli.deb" depends="set.build.info" description="builds a .deb file for debian-based systems">
+	    <taskdef name="deb" classname="com.googlecode.ant_deb_task.Deb" classpathref="build.lib.path"/>
+	   	<echo message="Creating debian .deb file from: ${dist.dir}"/>
+	   	<delete file="${dist.dir}/railo-cli-${cli.version}-1_all.deb" />
+	   	<deb
+	        todir="${dist.dir}"
+	        package="railo-cli"
+	        section="web"
+	        depends="sun-java6-jre | openjdk-6-jre">
+	        <version upstream="${cli.version}"/>
+	        <maintainer name="${cli.packager.name}" email="${cli.packager.email}"/>
+	        <description synopsis="Railo CFML Engine">Railo is a high performance CFML engine.  Version: ${railo.build.version.long}.</description>
+	   		<tarfileset file="${dist.dir}/embedded/railo" prefix="usr/local/bin" filemode="755"/>
+	   	</deb>
+	</target>
+
+<!-- 
+**************************************************************************
+ONE JAR version.  Eats a *lot* of memory but doesn't write anything to disk
+**************************************************************************
+-->
 
 	<macrodef name="one-jar-macro">
 		<attribute name="destfile" default="one-jar.jar" />
@@ -191,6 +182,53 @@
 			<echo>Created @{destfile}</echo>
 		</sequential>
 	</macrodef>
+
+    <property name="onejar.ant.tasks.jar" location="${ant.home}/lib/one-jar-ant-task-0.97.jar" />
+    <property name="onejarboot.ant.tasks.jar" location="${ant.home}/lib/one-jar-boot-0.97.jar" />
+    <property name="onejar.ant.tasks.bootstrap.location" value="http://softlayer.dl.sourceforge.net/project/one-jar/one-jar/one-jar-0.97/one-jar-ant-task-0.97.jar" />
+    <property name="onejarboot.ant.tasks.bootstrap.location" value="http://one-jar.cvs.sourceforge.net/*checkout*/one-jar/one-jar/dist/one-jar-boot-0.96.jar" />
+    <available property="onejar.ant.tasks.jar.exists" file="${onejar.ant.tasks.jar}" />
+
+    <!-- This will download the "latest version" of the maven-ant-tasks if needed -->
+    <target name="bootstrap_onejar" unless="onejar.ant.tasks.jar.exists">
+        <get src="${onejar.ant.tasks.bootstrap.location}" dest="${onejar.ant.tasks.jar}" />
+        <get src="${onejarboot.ant.tasks.bootstrap.location}" dest="${onejarboot.ant.tasks.jar}" />
+    </target>
+
+	<target name="build.cli.onejar" depends="set.build.info,bootstrap_onejar">
+		<runwar.initprops />
+		<taskdef name="one-jar" classname="com.simontuffs.onejar.ant.OneJarTask" 
+        	classpath="${onejar.ant.tasks.jar}" onerror="report"/>
+   		<delete dir="${temp.dir}/cli" />
+		<mkdir dir="${temp.dir}/cli" />
+		<mkdir dir="${dist.dir}/cli" />
+        <javac-ecj srcdir="${basedir}/resource/cli/src" destdir="${temp.dir}/cli" 
+        	compliance="${railo.javac.compiler}" classpath="${toString:classpath}" />
+        <one-jar destfile="${dist.dir}/cli/railo-cli.jar">
+			<manifest>
+				<attribute name="Main-Class" value="com.simontuffs.onejar.Boot" />
+				<attribute name="One-Jar-Main-Class" value="railocli.CLIMain" />
+			</manifest>
+			<main>
+		        <fileset dir="${temp.dir}/cli" />
+			</main>
+            <lib>
+            	<fileset file="${railobuild.dist.dir}/jar/railo-${railo.build.version.long}.jar" />
+		        <fileset dir="${railo.lib.dir}">
+		            <exclude name="**/railo-loader.jar"/>
+		            <include name="**/*.jar"/>
+		        </fileset>
+            </lib>
+        </one-jar>
+        <concat destfile="${dist.dir}/cli/railo" force="yes" binary="true">
+          <fileset file="${basedir}/resource/cli/railo.sh" />
+          <fileset file="${dist.dir}/cli/railo-cli.jar" />
+        </concat>
+        <chmod file="${dist.dir}/cli/railo" perm="a+x"/>
+        <!-- 
+        <jar2exe jar="${dist.dir}/cli/railo-cli.jar" exe="${dist.dir}/cli/railo-cli.exe" icon="${basedir}/resource/railo.ico" />
+         -->
+	</target>	
 
 
 		
