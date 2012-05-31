@@ -80,8 +80,8 @@
 				<attach file="${dist.dir}/embedded/railo-cli.jar" type="jar" />
 				<attach file="${dist.dir}/embedded/railo" type="bin" />
 				<attach file="${dist.dir}/embedded/railo.exe" type="exe" />
-				<attach file="${dist.dir}/railo-cli-${cli.version}-1_all.deb" type="deb" />
-				<attach file="${dist.dir}/embedded/railo-cli.rpm" type="rpm" />
+				<attach file="${dist.dir}/railo-cli_${cli.version}-1_all.deb" type="deb" />
+				<attach file="${basedir}/rpms/railo-cli-${cli.version}-1.noarch.rpm" type="rpm" />
 			</attachments>
 		</pom-and-sshit>
 	</target>

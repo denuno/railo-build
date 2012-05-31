@@ -158,6 +158,7 @@ public class LoaderCLIMain {
         		//,"-libs",libDir.getPath()
     		};
     		*/
+    		//args = removeElementThenAdd(args,"-server","-war "+curDir.getPath()+" --background false --logdir " + libDir.getParent());
     		args = removeElementThenAdd(args,"-server","-war "+curDir.getPath()+" --background false");
 
         } 

@@ -17,11 +17,12 @@
       	<authentication username="${repository.username}" privateKey="${repository.privatekey}"/>
     </artifact:remoteRepository>
        	
-   	<property name="mvn.remote.repo" 
+  	<property name="mvn.remote.repo" 
    		value="http://127.0.0.1:8081/nexus/content/repositories/railo-${mvn.type}s/" />
 
     <property name="maven.ant.tasks.jar" value="${ant.home}/lib/maven-ant-tasks-2.1.3.jar" />
     <property name="maven.ant.tasks.bootstrap.location" value="http://apache.osuosl.org/maven/binaries/maven-ant-tasks-2.1.3.jar" />
+	<path id="maven.ant.tasks.classpath" path="${maven.ant.tasks.jar}" />
     <available property="maven.ant.tasks.jar.exists" file="${maven.ant.tasks.jar}" />
 
     <!-- This will download the "latest version" of the maven-ant-tasks if needed -->
@@ -45,16 +46,9 @@
     </target>
 
     <target name="mvn.deploy.libs" depends="bootstrap_maven,set.build.info" xmlns:artifact="antlib:org.apache.maven.artifact.ant">
-		<path id="maven.ant.tasks.classpath" path="${maven.ant.tasks.jar}" />
-
 		<typedef resource="org/apache/maven/artifact/ant/antlib.xml"
 			uri="antlib:org.apache.maven.artifact.ant" classpathref="maven.ant.tasks.classpath" />
            			
-		<condition property="maven.repo.local" value="${maven.repo.local}"
-			else="${user.home}/.m2/repository">
-			<isset property="maven.repo.local" />
-		</condition>
-
 		<!-- wrap all the libs up into one dependency -->
 		<zip destfile="${temp.dir}/railo-libs.zip" update="true">
 			<fileset dir="${src.dir}/railo-java/libs" excludes="railo-loader.jar" />
@@ -66,7 +60,11 @@
 			</attachments>
 		</pom-and-sshit>
 		<delete file="${temp.dir}/railo-libs.zip" />
+	</target>
 
+    <target name="mvn.deploy.core" depends="bootstrap_maven,set.build.info" xmlns:artifact="antlib:org.apache.maven.artifact.ant">
+		<typedef resource="org/apache/maven/artifact/ant/antlib.xml"
+			uri="antlib:org.apache.maven.artifact.ant" classpathref="maven.ant.tasks.classpath" />
 		<!-- deploy the railo.jar file (railo.core) -->
 		<pom-and-sshit pomid="railo.core.pom" packaging="pom"
 		 groupId="org.getrailo" artifactId="railo.core" version="${railo.build.version.long}" name="railo.core">
@@ -75,6 +73,7 @@
         	</dependencies>
         	<attachments>
         		<attach file="${railobuild.dist.dir}/jar/railo-${railo.build.version.long}.jar" type="jar"/>
+        		<attach file="${railobuild.dist.dir}/rc/${railo.build.version.long}.rc" type="rc"/>
         	</attachments>
 		</pom-and-sshit>
 
