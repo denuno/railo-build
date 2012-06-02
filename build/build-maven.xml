@@ -9,13 +9,13 @@
     <property name="mvn.repo.id" value="mvn.repo.${mvn.repo.dest}" />
     <property name="maven.repo.local" location="${pub.dir}/maven2" />
 
-	<artifact:remoteRepository id="mvn.repo.local" url="file://${maven.repo.local}" />
+	<mvn-repo id="mvn.repo.local" url="file://${maven.repo.local}" />
 
     <property name="repository.username" value="cfml" />
     <property name="repository.privatekey" value="${basedir}/mvnkey.key" />
-    <artifact:remoteRepository id="mvn.repo.remote" url="scp://loganberry.viviotech.net:10022/home/cfml/railo-build/pub/maven2">
+    <mvn-repo id="mvn.repo.remote" url="scp://loganberry.viviotech.net:10022/home/cfml/railo-build/pub/maven2">
       	<authentication username="${repository.username}" privateKey="${repository.privatekey}"/>
-    </artifact:remoteRepository>
+    </mvn-repo>
        	
   	<property name="mvn.remote.repo" 
    		value="http://127.0.0.1:8081/nexus/content/repositories/railo-${mvn.type}s/" />
@@ -96,6 +96,19 @@
 		<pom-and-sshit pomid="railo-jetty.pom" file="${temp.dir}/railo-jetty.pom" packaging="pom"
 			artifact="${rai5lobuild.dist.dir}/jar/railo-${railo.build.version.long}.jar" />
 	</target>
+
+
+	<macrodef name="mvn-repo">
+		<attribute name="id" />
+		<attribute name="url"/>
+		<element name="authentication" optional="true" />
+		<sequential>
+			<antcontrib:runtarget target="bootstrap_maven" />
+		    <artifact:remoteRepository id="@{id}" url="@{url}">
+		      	<authentication />
+		    </artifact:remoteRepository>
+		</sequential>
+	</macrodef>
 
 	<macrodef name="pom-and-sshit">
 		<attribute name="pomid" />
