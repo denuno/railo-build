@@ -4,10 +4,11 @@
    	<property name="mvn.type" value="snapshot" />
    	-->
    	<property name="mvn.type" value="release" />
-    <property name="mvn.repo.dest" value="remote" />
     <property name="mvn.repo.dest" value="local" />
+    <property name="mvn.repo.dest" value="remote" />
     <property name="mvn.repo.id" value="mvn.repo.${mvn.repo.dest}" />
-    <property name="maven.repo.local" location="${pub.dir}/maven2" />
+    <property name="maven.repo.local" location="${pub.dir}/mvnrepo" />
+	<import file="${cfdistro.basedir}/maven.xml" />
 
 	<mvn-repo id="mvn.repo.local" url="file://${maven.repo.local}" />
 
@@ -16,39 +17,44 @@
     <mvn-repo id="mvn.repo.remote" url="scp://loganberry.viviotech.net:10022/home/cfml/railo-build/pub/maven2">
       	<authentication username="${repository.username}" privateKey="${repository.privatekey}"/>
     </mvn-repo>
+	<!-- default jre to use for building jre bundles -->
+	<property name="mvn.jre.version" value="1.7.0_04" />
        	
   	<property name="mvn.remote.repo" 
    		value="http://127.0.0.1:8081/nexus/content/repositories/railo-${mvn.type}s/" />
 
-    <property name="maven.ant.tasks.jar" value="${ant.home}/lib/maven-ant-tasks-2.1.3.jar" />
-    <property name="maven.ant.tasks.bootstrap.location" value="http://apache.osuosl.org/maven/binaries/maven-ant-tasks-2.1.3.jar" />
-	<path id="maven.ant.tasks.classpath" path="${maven.ant.tasks.jar}" />
-    <available property="maven.ant.tasks.jar.exists" file="${maven.ant.tasks.jar}" />
-
-    <!-- This will download the "latest version" of the maven-ant-tasks if needed -->
-    <target name="bootstrap_maven" unless="maven.ant.tasks.jar.exists">
-        <get src="${maven.ant.tasks.bootstrap.location}" dest="${maven.ant.tasks.jar}" />
-    </target>
-
-    <!-- This will initialize all the maven ant tasks and download the requested artifact and its dependencies -->
-    <target name="get" depends="bootstrap_maven" xmlns:artifact="antlib:org.apache.maven.artifact.ant">
-        <path id="maven.ant.tasks.classpath" path="${maven.ant.tasks.jar}" />
-        <typedef resource="org/apache/maven/artifact/ant/antlib.xml" uri="urn:maven-artifact-ant" classpathref="maven.ant.tasks.classpath" />
-        <condition property="maven.repo.local" value="${maven.repo.local}" else="${user.home}/.m2/repository">
-            <isset property="maven.repo.local" />
-        </condition>
-        <echo>maven.repo.local=${maven.repo.local}</echo>
-        <artifact:localRepository id="local.repository" path="${maven.repo.local}" />
-        <artifact:dependencies pathId="build.classpath" sourcesFilesetId="sources.id">
-            <dependency groupId="${mvn.get.groupId}" artifactId="${mvn.get.artifactId}" version="${mvn.get.version}"/>
-            <localRepository refid="local.repository" />
-        </artifact:dependencies>
-    </target>
+    <target name="mvn.deploy.jre" depends="bootstrap_maven,set.build.info" xmlns:artifact="antlib:org.apache.maven.artifact.ant">
+		<!-- only used to fill repo initially - put exploded JREs in arch subdirs -->
+		<property name="mvn.jre.tmp" location="${temp.dir}/jre" />
+		<property name="mvn.jre.version" value="1.7.0_04" />
+		<property name="mvn.jre.version" value="1.6.0_32" />
+		<property name="mvn.jre.dir" value="${basedir}/../jre" />
+		
+		<zip destfile="${mvn.jre.tmp}/jre-linux32.zip" update="false">
+			<zipfileset dir="${mvn.jre.dir}/linux32/jre${mvn.jre.version}" prefix="jre/"/>
+		</zip>
+		<zip destfile="${mvn.jre.tmp}/jre-linux64.zip" update="false">
+			<zipfileset dir="${mvn.jre.dir}/linux64/jre${mvn.jre.version}" prefix="jre/"/>
+		</zip>
+		<zip destfile="${mvn.jre.tmp}/jre-win32.zip" update="false">
+			<zipfileset dir="${mvn.jre.dir}/win32/jre${mvn.jre.version}" prefix="jre/"/>
+		</zip>
+		<zip destfile="${mvn.jre.tmp}/jre-win64.zip" update="false">
+			<zipfileset dir="${mvn.jre.dir}/win64/jre${mvn.jre.version}" prefix="jre/"/>
+		</zip>
+		<pom-and-sshit pomid="jre.pom" packaging="pom"
+		 groupId="oracle" artifactId="jre" version="${mvn.jre.version}" name="oracle.jre">
+			<attachments>
+        		<attach file="${mvn.jre.tmp}/jre-win32.zip" type="zip" classifier="win32"/>
+        		<attach file="${mvn.jre.tmp}/jre-win64.zip" type="zip" classifier="win64"/>
+        		<attach file="${mvn.jre.tmp}/jre-linux32.zip" type="zip" classifier="linux32"/>
+        		<attach file="${mvn.jre.tmp}/jre-linux64.zip" type="zip" classifier="linux64"/>
+			</attachments>
+		</pom-and-sshit>
+		<delete dir="${mvn.jre.tmp}" />
+	</target>
 
     <target name="mvn.deploy.libs" depends="bootstrap_maven,set.build.info" xmlns:artifact="antlib:org.apache.maven.artifact.ant">
-		<typedef resource="org/apache/maven/artifact/ant/antlib.xml"
-			uri="antlib:org.apache.maven.artifact.ant" classpathref="maven.ant.tasks.classpath" />
-           			
 		<!-- wrap all the libs up into one dependency -->
 		<zip destfile="${temp.dir}/railo-libs.zip" update="true">
 			<fileset dir="${src.dir}/railo-java/libs" excludes="railo-loader.jar" />
@@ -63,8 +69,6 @@
 	</target>
 
     <target name="mvn.deploy.core" depends="bootstrap_maven,set.build.info" xmlns:artifact="antlib:org.apache.maven.artifact.ant">
-		<typedef resource="org/apache/maven/artifact/ant/antlib.xml"
-			uri="antlib:org.apache.maven.artifact.ant" classpathref="maven.ant.tasks.classpath" />
 		<!-- deploy the railo.jar file (railo.core) -->
 		<pom-and-sshit pomid="railo.core.pom" packaging="pom"
 		 groupId="org.getrailo" artifactId="railo.core" version="${railo.build.version.long}" name="railo.core">
@@ -97,77 +101,4 @@
 			artifact="${rai5lobuild.dist.dir}/jar/railo-${railo.build.version.long}.jar" />
 	</target>
 
-
-	<macrodef name="mvn-repo">
-		<attribute name="id" />
-		<attribute name="url"/>
-		<element name="authentication" optional="true" />
-		<sequential>
-			<antcontrib:runtarget target="bootstrap_maven" />
-		    <artifact:remoteRepository id="@{id}" url="@{url}">
-		      	<authentication />
-		    </artifact:remoteRepository>
-		</sequential>
-	</macrodef>
-
-	<macrodef name="pom-and-sshit">
-		<attribute name="pomid" />
-		<attribute name="artifact" default="" />
-		<attribute name="file" default="" />
-		<attribute name="groupId" default="" />
-		<attribute name="artifactId" default="" />
-		<attribute name="version" default="" />
-		<attribute name="name" default="" />
-		<attribute name="packaging" default="jar" />
-		<element name="dependencies" optional="true" />
-		<element name="attachments" optional="true" />
-		 <!-- <attach file="${basedir}/target/my-project-1.0-sources.jar" type="jar" classifier="sources"/> -->
-		<sequential>
-			<artifact:install-provider artifactId="wagon-ssh" version="1.0-beta-2"/>
-    		<echoproperties prefix="repository." />
-			<antcontrib:if>
-				<equals arg1="@{file}" arg2="" />
-				<then>
-					<artifact:pom id="@{pomid}" groupId="@{groupId}" artifactId="@{artifactId}" version="@{version}" name="@{name}" packaging="@{packaging}">
-			        	<dependencies />
-					</artifact:pom>
-					<bug170workaround pomid="@{pomid}" />
-				</then>
-				<else>
-					<artifact:pom id="@{pomid}" file="@{file}">
-			        	<dependencies />
-					</artifact:pom>
-				</else>
-			</antcontrib:if>
-
-			<antcontrib:if>
-				<equals arg1="@{artifact}" arg2="" />
-				<then>
-					<artifact:deploy>
-					  <remoteRepository refid="${mvn.repo.id}" />
-			          <attachments />
-					  <pom refid="@{pomid}"/>
-					</artifact:deploy>
-				</then>
-				<else>
-					<artifact:deploy file="@{artifact}">
-					  <remoteRepository refid="${mvn.repo.id}" />
-			          <attachments />
-					  <pom refid="@{pomid}"/>
-					</artifact:deploy>
-				</else>
-			</antcontrib:if>
-		</sequential>
-	</macrodef>
-		
-	<macrodef name="bug170workaround">
-		<attribute name="pomid" />
-		<attribute name="dir" default="/tmp" />
-		<sequential>
-			<artifact:writepom pomrefid="@{pomid}" file="@{dir}/tmppom.xml" trim="true"/>
-			<antcontrib:var name="@{pomid}" unset="true" />
-			<artifact:pom id="@{pomid}" file="@{dir}/tmppom.xml" />
-		</sequential>
-	</macrodef>
-		
 </project>

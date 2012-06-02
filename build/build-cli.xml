@@ -71,7 +71,36 @@
         	icon="${basedir}/resource/railo.ico" mutexName="railo.cli.Console" 
         	headerType="console" customProcName="false" stayAlive="true"/>
  	</target>
- 	
+
+ 	<target name="build.cli.jre" depends="build.cli">
+ 		<echo message="bundling ${mvn.jre.version} jre" />
+		<zip destfile="${dist.dir}/embedded/cli-jre-win32.zip">
+			<zipgroupfileset file="${maven.repo.local}/oracle/jre/${mvn.jre.version}/jre-${mvn.jre.version}-win32.zip"/>
+	        <fileset file="${dist.dir}/embedded/railo.exe" />
+		</zip>
+		<zip destfile="${dist.dir}/embedded/cli-jre-win64.zip">
+			<zipgroupfileset file="${maven.repo.local}/oracle/jre/${mvn.jre.version}/jre-${mvn.jre.version}-win64.zip"/>
+	        <fileset file="${dist.dir}/embedded/railo.exe" />
+		</zip>
+		<zip destfile="${dist.dir}/embedded/cli-jre-linux32.zip">
+			<zipgroupfileset file="${maven.repo.local}/oracle/jre/${mvn.jre.version}/jre-${mvn.jre.version}-linux32.zip"/>
+	        <fileset file="${dist.dir}/embedded/railo" />
+		</zip>
+		<zip destfile="${dist.dir}/embedded/cli-jre-linux64.zip">
+			<zipgroupfileset file="${maven.repo.local}/oracle/jre/${mvn.jre.version}/jre-${mvn.jre.version}-linux64.zip"/>
+	        <fileset file="${dist.dir}/embedded/railo" />
+		</zip>
+		<pom-and-sshit pomid="cli-jre.pom" packaging="pom"
+		 groupId="org.getrailo" artifactId="railo.cli.jre" version="${cli.version}" name="railo.cli.jre">
+			<attachments>
+        		<attach file="${dist.dir}/embedded/cli-jre-win32.zip" type="zip" classifier="win32"/>
+        		<attach file="${dist.dir}/embedded/cli-jre-win64.zip" type="zip" classifier="win64"/>
+        		<attach file="${dist.dir}/embedded/cli-jre-linux32.zip" type="zip" classifier="linux32"/>
+        		<attach file="${dist.dir}/embedded/cli-jre-linux64.zip" type="zip" classifier="linux64"/>
+			</attachments>
+		</pom-and-sshit>
+ 	</target>
+
  	<target name="build.cli.mvn" depends="set.build.info">
 		<pom-and-sshit pomid="cli.pom" packaging="pom"
 			groupId="org.getrailo" artifactId="railo.cli" version="${cli.version}"

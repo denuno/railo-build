@@ -41,6 +41,9 @@
 	<property name="server.port.http" value="8181" />
 	<property name="server.url" value="http://${server.host}:${server.port.http}/tests/jira/index.cfm" />
 
+	<!-- import all the macrodefs and whatnot -->
+	<import file="${cfdistro.build.file}"/>
+
 	<!-- railo loader build script -->
 	<import file="build-loader.xml"/>
 	<import file="build-core.xml"/>
@@ -51,9 +54,6 @@
 	<import file="build-cli.xml"/>
 	<import file="build-maven.xml"/>
 	<import file="build-rpm.xml"/>
-
-	<!-- import all the macrodefs and whatnot -->
-	<import file="${cfdistro.build.file}"/>
         
    	<target name="clean">
 		<delete dir="${railobuild.dist.dir}"/>
@@ -250,8 +250,9 @@ ${git.results}</echo>
 			<antcontrib:var name="ext.railo.war.version" value="3.2.1.000" />
 			<git-fetch-from-remote />
 			<!-- use the system git as jgit has trouble with conflicts -->
-			<git command="checkout" dir="${src.dir}" use-jgit="false">
+			<git command="checkout" dir="${src.dir}" use-jgit="true">
 				<args>
+					<arg value="-b" />
 					<arg value="--force" />
 					<arg value="origin/${branch}" />
 				</args>

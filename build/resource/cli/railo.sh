@@ -18,7 +18,7 @@ esac
 this_script=`which "$0" 2>/dev/null`
 [ $? -gt 0 -a -f "$0" ] && this_script="$0"
 cp=$this_script
-
+JRE=$(dirname $this_script)/jre
 if [ -n "$RAILO_CLASSPATH" ]
 then
 	cp="$cp:$RAILO_CLASSPATH"
@@ -51,6 +51,11 @@ java=java
 if [ -n "$JAVA_HOME" ]
 then
 	java="$JAVA_HOME/bin/java"
+fi
+
+if [ -d "$JRE" ]
+then
+	java="$JRE/bin/java"
 fi
 
 if [ -n "$use_pager" ]

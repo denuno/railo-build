@@ -130,8 +130,11 @@ public class LoaderCLIMain {
 		//Thread.currentThread().setContextClassLoader(cl);
         Class cli;
         if(!startServer) {
+        	if(debug) System.out.println("Running in CLI mode");
 	        cli = cl.loadClass("railocli.CLIMain");
-        } else {
+        } 
+        else {
+        	if(debug) System.out.println("Running in server mode");
         	File curDir = new File("./").getCanonicalFile();
 	        cli = cl.loadClass("runwar.Start");
 	        /*
@@ -160,7 +163,7 @@ public class LoaderCLIMain {
     		*/
     		//args = removeElementThenAdd(args,"-server","-war "+curDir.getPath()+" --background false --logdir " + libDir.getParent());
     		args = removeElementThenAdd(args,"-server","-war "+curDir.getPath()+" --background false");
-
+        	if(debug) System.out.println("Args: " + java.util.Arrays.toString(args));
         } 
         Method main = cli.getMethod("main",new Class[]{String[].class});
 		try{
