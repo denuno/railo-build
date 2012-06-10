@@ -27,6 +27,7 @@ public class LoaderCLIMain {
 		Map<String,String> config=toMap(args);
 		Boolean debug = false, updateLibs = false;
 		Boolean startServer = false;
+		Boolean background = false;
 		File currentDir;
 		String userHome = System.getProperty("user.home");
 		if(userHome != null) {
@@ -49,6 +50,11 @@ public class LoaderCLIMain {
 		if(config.get("update") != null) {
 			updateLibs = true;
 			args = removeElementThenAdd(args,"-update","");
+		}
+		// background
+		if(config.get("background") != null) {
+			background = true;
+			args = removeElementThenAdd(args,"-background","");
 		}
 		
 		if(config.get("?") != null || args.length == 0) {
@@ -137,6 +143,7 @@ public class LoaderCLIMain {
         	if(debug) System.out.println("Running in server mode");
         	File curDir = new File("./").getCanonicalFile();
 	        cli = cl.loadClass("runwar.Start");
+	        //Thread.currentThread().setContextClassLoader(cl);
 	        /*
 	        System.out.println(libDir.getPath()+"/");
 	        Boolean addWarArg = true;
@@ -154,15 +161,26 @@ public class LoaderCLIMain {
 			System.arraycopy(args, 0, temp, newArgs.length, args.length);
 			newArgs = temp;        	
 	        args = new String[] { "-war",curDir.getPath()
-        		,"-background","false"
+        		,"-background","true"
         		,"-loglevel","WARN"
         		//,"-port","8078"
         		//,"-dirs",curDir.getPath()
         		//,"-libs",libDir.getPath()
     		};
     		*/
+			String path = LoaderCLIMain.class.getProtectionDomain().getCodeSource().getLocation().getPath();
+			//System.out.println("yum from:"+path);
+			String decodedPath = java.net.URLDecoder.decode(path, "UTF-8");
+			decodedPath = new File(decodedPath).getPath();
+
     		//args = removeElementThenAdd(args,"-server","-war "+curDir.getPath()+" --background false --logdir " + libDir.getParent());
-    		args = removeElementThenAdd(args,"-server","-war "+curDir.getPath()+" --background false");
+    		String argstr;
+    		if(background) {
+    			argstr="-war "+curDir.getPath()+" --background true --jar \""+decodedPath.replace('\\','/')+"\" --libdir \"" + libDir.getPath() +"\"";
+    		} else {
+    			argstr="-war "+curDir.getPath()+" --background false";
+    		}
+    		args = removeElementThenAdd(args,"-server",argstr);
         	if(debug) System.out.println("Args: " + java.util.Arrays.toString(args));
         } 
         Method main = cli.getMethod("main",new Class[]{String[].class});

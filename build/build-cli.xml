@@ -12,9 +12,14 @@
 		<mkdir dir="${dist.dir}/embedded" />
         <javac-ecj srcdir="${basedir}/resource/cli/src" destdir="${temp.dir}/embedded" 
         	compliance="${railo.javac.compiler}" classpath="${toString:classpath}" />
-        <copy file="${basedir}/resource/railo.png" todir="${temp.dir}/embedded/railocli" />
-		<!-- use custom icon in runwar -->
+
         <copy file="${cfdistro.basedir}/lib/runwar.jar" todir="${temp.dir}" />
+		<!-- use custom icon in runwar -->
+        <copy file="${basedir}/resource/railo.png" todir="${temp.dir}/embedded/railocli" />
+        <!-- 
+		<property name="runwar.jar.location" value="${temp.dir}/runwar.jar" />
+		<antcontrib:runtarget target="runwar.jetty.jar"/>
+         -->
         <zip destfile="${temp.dir}/runwar.jar" update="true">
         	<zipfileset file="${temp.dir}/embedded/railocli/railo.png" fullpath="runwar/icon.png" />
         </zip>
@@ -30,16 +35,14 @@
 		</jar>
 		<delete dir="${temp.dir}/embedded/railocli" />
 	    <unzip dest="${temp.dir}/embedded/">
-			<fileset dir="${cfdistro.basedir}/lib/" includes="${jetty-runner.jar}" /> 
-	    </unzip>
-	    <delete dir="${temp.dir}/embedded/org/objectweb/" />
-		<!-- 
-	    <unzip dest="${temp.dir}/embedded/">
+			<!-- 
 	        <fileset dir="${railo.lib.dir}">
 	            <include name="**/javax.servlet.jar"/>
 	        </fileset>
+			--> 
+			<fileset dir="${cfdistro.basedir}/lib/" includes="${jetty-runner.jar}" /> 
 	    </unzip>
-		-->
+	    <delete dir="${temp.dir}/embedded/org/objectweb/" />
 		<zip destfile="${temp.dir}/embedded/libs.zip">
           	<fileset file="${railobuild.dist.dir}/jar/railo-${railo.build.version.long}.jar" />
 	        <fileset dir="${railo.lib.dir}">
@@ -50,6 +53,7 @@
 	        </fileset>
 	        <fileset file="${temp.dir}/embedded/railocli.jar" />
 	        <fileset file="${temp.dir}/runwar.jar" />
+			<fileset dir="${cfdistro.basedir}/lib/" includes="${jetty-runner.jar}" /> 
 		</zip>
 		<delete file="${temp.dir}/embedded/railocli.jar" />
 		<delete file="${temp.dir}/runwar.jar" />
