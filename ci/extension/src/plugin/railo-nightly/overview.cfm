@@ -1,13 +1,13 @@
 <cfset var configFile = getDirectoryFromPath(getCurrentTemplatepath()) & "remote.txt" />
 
 <cfif NOT fileExists(configFile)>
-	<cffile action="write" file="#configFile#" output="http://#cgi.HTTP_HOST#/">
+	<cffile action="write" file="#configFile#" output="http://#cgi.HTTP_HOST#/" addnewline="false">
 </cfif>
 <cffile action="read" file="#configFile#" variable="remoteuri">
-<cfhttp url="#remoteuri#index.cfm?list=1" result="builds">
+<cfhttp url="#trim(remoteuri)#index.cfm?json=1" result="builds">
 <cftry>
 <cfset builds = deserializeJSON(builds.filecontent) />
-<cfcatch>REMOTE URI UNAVAILABLE!<cfset builds=arrayNew(1)></cfcatch>
+<cfcatch>REMOTE URI UNAVAILABLE! <cfoutput>#builds.filecontent#</cfoutput><cfset builds=arrayNew(1)></cfcatch>
 </cftry>
 <cfoutput>
 <h2>Nightly Build</h2>
@@ -31,4 +31,3 @@
 </cfloop>
 </table>
 </cfoutput>
-

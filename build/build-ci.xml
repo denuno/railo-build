@@ -31,7 +31,7 @@
 		</antcontrib:if>
 		<antcall target="server.start"/>
 		<antcall target="server.openUrl"/>
-		<copy todir="${war.target.dir}/WEB-INF/railo/context/admin/plugin/">
+		<copy todir="${war.target.dir}/WEB-INF/lib/railo-server/context/context/admin/plugin/">
 			<fileset dir="${basedir}/../ci/extension/src/plugin/" />
 		</copy>
 		<echo message="The admin password is: testtest" />

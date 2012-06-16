@@ -1,5 +1,6 @@
 <project name="railobuild" default="build" basedir="./" xmlns:antcontrib="antlib:net.sf.antcontrib">
 
+
 	<antcontrib:if>
 		<equals arg1="${build.java.home}" arg2="$${build.java.home}" />
 		<then/>
@@ -142,10 +143,62 @@
 				        <echo>***** Building railo-${railo.build.version.long}-jars.zip ************</echo>
 				    	<echo>*************************************</echo>
 				    	<property name="railo.libs.zip.file" value="${railobuild.dist.dir}/jar/railo-${railo.build.version.major}.${railo.build.version.minor}.${railo.build.version.build}.000-jars.zip" />
-						<zip destfile="${railo.libs.zip.file}" update="true">
+						<zip destfile="${railo.libs.zip.file}" update="false">
 							<fileset dir="${src.dir}/railo-java/libs/" excludes="railo-loader.jar"/>
 							<fileset file="${src.dir}/railo-java/railo/dist/railo.jar"/>
 						</zip>
+
+						<echo>*************************************</echo>
+				        <echo>***** Building railo express  ************</echo>
+				    	<echo>*************************************</echo>
+				    	<property name="railo.express.zip.file" value="${railobuild.dist.dir}/express/railo-express-${railo.build.version.long}.zip" />
+						<delete dir="${railobuild.dist.dir}/railo-express"/>
+						<copy todir="${railobuild.dist.dir}/railo-express/webroot/">
+							<fileset dir="${basedir}/resource/railo-war-template" />
+						</copy>
+						<mkdir dir="${railobuild.dist.dir}/railo-express/webroot/WEB-INF/lib"/>
+        				
+						<!-- custom icon for runwar -->
+        				<copy file="${cfdistro.basedir}/lib/runwar.jar" todir="${railobuild.dist.dir}/railo-express/webroot/WEB-INF/lib" />
+				        <copy file="${basedir}/resource/railo.png" todir="${temp.dir}" />
+				        <zip destfile="${railobuild.dist.dir}/railo-express/webroot/WEB-INF/lib/runwar.jar" update="true">
+				        	<zipfileset file="${temp.dir}/railo.png" fullpath="runwar/icon.png" />
+				        </zip>
+				        <!--  create no asm jetty runner -->
+						<mkdir dir="${temp.dir}/jetty" />
+					    <unzip dest="${temp.dir}/jetty">
+							<!-- <fileset file="${railo.lib.dir}/javax.servlet.jar"/> --> 
+							<fileset dir="${cfdistro.basedir}/lib/" includes="${jetty-runner.jar}" /> 
+					    </unzip>
+					    <delete dir="${temp.dir}/jetty/org/objectweb/" />
+						<zip destfile="${railobuild.dist.dir}/railo-express/webroot/WEB-INF/lib/${jetty-runner.jar}">
+							<fileset dir="${temp.dir}/jetty" /> 
+						</zip>
+				   		<delete dir="${temp.dir}/jetty" />
+
+						<copy todir="${railobuild.dist.dir}/railo-express/webroot/WEB-INF/lib">
+							<fileset dir="${src.dir}/railo-java/libs" excludes="railo-loader.jar" />
+						</copy>
+						<copy file="${railobuild.dist.dir}/jar/railo-${railo.build.version.long}.jar" tofile="${railobuild.dist.dir}/railo-express/webroot/WEB-INF/lib/railo.jar" />
+						<echo file="${railobuild.dist.dir}/railo-express/start"><![CDATA[#!/bin/sh
+if test -n "${JAVA_HOME}"; then
+if test -z "${JAVA_EXE}"; then
+JAVA_EXE=$JAVA_HOME/bin/java
+fi
+fi
+
+if test -z "${JAVA_EXE}"; then
+JAVA_EXE=java
+fi
+cd $(dirname $0)
+exec $JAVA_EXE -jar webroot/WEB-INF/lib/runwar.jar --war webroot --port 8888 --osxprocessname Railo --logdir . --background true --open-browser true --open-url /]]>
+</echo>
+						<chmod file="${railobuild.dist.dir}/railo-express/start" perm="ugo+rx"/>
+						<echo file="${railobuild.dist.dir}/railo-express/start.bat"><![CDATA[java -jar %CD%\webroot\WEB-INF\lib\runwar.jar --war webroot --port 8888 --osxprocessname Railo --logdir . --background true --open-browser true --open-url /]]></echo>
+						<zip destfile="${railo.express.zip.file}" update="false">
+							<fileset dir="${railobuild.dist.dir}/railo-express/"/>
+						</zip>
+
 
 						<echo>*************************************</echo>
 				        <echo>***** Building railo.war ************</echo>
@@ -212,8 +265,8 @@ ${git.results}</echo>
 		<git-currentbranch dir="${src.dir}"/>
 		<git command="log" dir="${src.dir}"><args><arg value="-n"/><arg value="1"/></args></git>
 		<antcontrib:propertyregex override="yes" property="commithash" input="${git.results}" regexp=".*commit\s(.\w+).*" select="\1" />
-		<antcontrib:propertyregex override="yes" property="commitdate" input="${git.results}" regexp="(?ism).*Date:\s(.*\d+)" select="\1eee" />
-		<antcontrib:propertyregex override="yes" property="commitmessage" input="${git.results}" regexp="(?im).*Date:\s(.*\d+)?(.*)+" select="rrr\2" />
+		<antcontrib:propertyregex override="yes" property="commitdate" input="${git.results}" regexp="(?ism).*Date:\s(.*\d+)" select="\1" />
+		<antcontrib:propertyregex override="yes" property="commitmessage" input="${git.results}" regexp="(?im).*Date:\s(.*\d+)?(.*)+" select="\2" />
 		<echo message="${commithash}"/>
 		<echo message="${commitmessage}"/>
 		<echo message="${commitdate}"/>
@@ -250,10 +303,9 @@ ${git.results}</echo>
 			<antcontrib:var name="ext.railo.war.version" value="3.2.1.000" />
 			<git-fetch-from-remote />
 			<!-- use the system git as jgit has trouble with conflicts -->
-			<git command="checkout" dir="${src.dir}" use-jgit="true">
+			<git command="checkout" dir="${src.dir}" use-jgit="false">
 				<args>
-					<arg value="-b" />
-					<arg value="--force" />
+					<arg value="-f" />
 					<arg value="origin/${branch}" />
 				</args>
 			</git>

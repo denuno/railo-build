@@ -8,17 +8,28 @@
     <property name="mvn.repo.dest" value="remote" />
     <property name="mvn.repo.id" value="mvn.repo.${mvn.repo.dest}" />
     <property name="maven.repo.local" location="${pub.dir}/mvnrepo" />
+
 	<import file="${cfdistro.basedir}/maven.xml" />
 
-	<mvn-repo id="mvn.repo.local" url="file://${maven.repo.local}" />
-
+	<mvn-repo id="mvn.repo.local" url="file://${maven.repo.local}/" />
+<!-- 
+	if we decide we want to do snapshots and whatnot.
+	<mvn-repo id="mvn.repo.local" url="file://${maven.repo.local}/${mvn.type}/">
+		<enablement>
+			<releases enabled="false" updatePolicy="always" />
+			<snapshots enabled="true" updatePolicy="never" checksumPolicy="fail" />
+		</enablement>
+	</mvn-repo>
+ -->
     <property name="repository.username" value="cfml" />
     <property name="repository.privatekey" value="${basedir}/mvnkey.key" />
     <mvn-repo id="mvn.repo.remote" url="scp://loganberry.viviotech.net:10022/home/cfml/railo-build/pub/maven2">
       	<authentication username="${repository.username}" privateKey="${repository.privatekey}"/>
     </mvn-repo>
+
 	<!-- default jre to use for building jre bundles -->
 	<property name="mvn.jre.version" value="1.7.0_04" />
+	<property name="mvn.jre.version" value="1.6.0_32" />
        	
   	<property name="mvn.remote.repo" 
    		value="http://127.0.0.1:8081/nexus/content/repositories/railo-${mvn.type}s/" />
@@ -42,7 +53,7 @@
 		<zip destfile="${mvn.jre.tmp}/jre-win64.zip" update="false">
 			<zipfileset dir="${mvn.jre.dir}/win64/jre${mvn.jre.version}" prefix="jre/"/>
 		</zip>
-		<pom-and-sshit pomid="jre.pom" packaging="pom"
+		<pom-and-sshit pomid="jre.pom" packaging="pom" buildtype="${mvn.type}"
 		 groupId="oracle" artifactId="jre" version="${mvn.jre.version}" name="oracle.jre">
 			<attachments>
         		<attach file="${mvn.jre.tmp}/jre-win32.zip" type="zip" classifier="win32"/>
@@ -59,46 +70,67 @@
 		<zip destfile="${temp.dir}/railo-libs.zip" update="true">
 			<fileset dir="${src.dir}/railo-java/libs" excludes="railo-loader.jar" />
 		</zip>
-		<pom-and-sshit pomid="railolibs.pom" packaging="pom"
-		 groupId="org.getrailo" artifactId="railo.libs" version="${railo.build.version.major}.0" name="railo.libs">
-			<attachments>
-        		<attach file="${temp.dir}/railo-libs.zip" type="zip"/>
-			</attachments>
-		</pom-and-sshit>
+		<pom-and-sshit pomid="railolibs.pom" artifact="${temp.dir}/railo-libs.zip" packaging="zip" buildtype="${mvn.type}"
+		 groupId="org.getrailo" artifactId="railo.libs" version="${railo.build.version.major}.0" name="railo.libs" />
 		<delete file="${temp.dir}/railo-libs.zip" />
+		<!-- and what the hell, try adding all under one dependency -->
+		<property name="libsxml" value="" />
+		<property name="depsxml" value="" />
+		<antcontrib:for param="file">
+			<path>
+				<fileset dir="${src.dir}/railo-java/libs" excludes="railo-loader.jar" includes="*.jar" />
+			</path>
+			<sequential>
+				<antcontrib:var name="basename" unset="true" />
+				<basename file="@{file}" property="basename" suffix=".jar" />
+				<antcontrib:var name="libsxml"
+					value='${libsxml}&lt;attach file="@{file}" classifier="${basename}" type="jar"/&gt;' />
+				<antcontrib:var name="depsxml"
+					value='${depsxml}&lt;dependency groupId="org.getrailo" artifactId="railo.dep" version="${railo.build.version.major}.0" classifier="${basename}"/&gt;' />
+			</sequential>
+		</antcontrib:for>
+		<echo file="${basedir}/build-mvnlibs.xml"><![CDATA[<project><import file="${basedir}/build.xml"/>
+		<target name="libsxml.pom"><pom-and-sshit pomid="railo.dep.pom" packaging="pom" buildtype="${mvn.type}"
+	 		groupId="org.getrailo" artifactId="railo.dep" version="${railo.build.version.major}.0" name="railo.dep">
+       		<attachments>${libsxml}</attachments></pom-and-sshit>
+       		<pom-and-sshit pomid="railo" artifact="${railobuild.dist.dir}/jar/railo-${railo.build.version.long}.jar" packaging="jar" buildtype="${mvn.type}"
+	 		groupId="org.getrailo" artifactId="railo" version="${railo.build.version.long}" name="railo">
+       		<dependencies>${depsxml}</dependencies></pom-and-sshit>
+       		</target></project>]]></echo>
+		<ant antfile="${basedir}/build-mvnlibs.xml" inheritAll="true" target="libsxml.pom" />
+		<delete file="${basedir}/build-mvnlibs.xml" />
 	</target>
 
     <target name="mvn.deploy.core" depends="bootstrap_maven,set.build.info" xmlns:artifact="antlib:org.apache.maven.artifact.ant">
 		<!-- deploy the railo.jar file (railo.core) -->
-		<pom-and-sshit pomid="railo.core.pom" packaging="pom"
+		<pom-and-sshit pomid="railo.core.pom" packaging="jar" artifact="${railobuild.dist.dir}/jar/railo-${railo.build.version.long}.jar" buildtype="${mvn.type}"
 		 groupId="org.getrailo" artifactId="railo.core" version="${railo.build.version.long}" name="railo.core">
         	<dependencies>
         		<dependency groupId="org.getrailo" artifactId="railo.libs" version="${railo.build.version.major}.0" type="zip"/>
         	</dependencies>
         	<attachments>
-        		<attach file="${railobuild.dist.dir}/jar/railo-${railo.build.version.long}.jar" type="jar"/>
         		<attach file="${railobuild.dist.dir}/rc/${railo.build.version.long}.rc" type="rc"/>
         	</attachments>
 		</pom-and-sshit>
 
 		<!-- deploy the railo archtype-ish projects -->
-		<copy file="${basedir}/resource/maven/railo.pom" tofile="${temp.dir}/railo.pom" overwrite="true">
+		<copy file="${basedir}/resource/maven/railo.pomparent.pom" tofile="${temp.dir}/railo.pomparent.pom" overwrite="true">
 			<filterchain><expandproperties /></filterchain>
 		</copy>
-		<pom-and-sshit pomid="railopom" file="${temp.dir}/railo.pom"  packaging="pom"
+		<pom-and-sshit pomid="railopom" file="${temp.dir}/railo.pomparent.pom"  packaging="pom" buildtype="${mvn.type}"
 			artifact="${railobuild.dist.dir}/jar/railo-${railo.build.version.long}.jar"/>
-
-		<copy file="${basedir}/resource/maven/railo-war.pom" tofile="${temp.dir}/railo-war.pom" overwrite="true">
+		
+		<copy file="${basedir}/resource/maven/railo.pomparent.war.pom" tofile="${temp.dir}/railo.pomparent.war.pom" overwrite="true">
 			<filterchain><expandproperties /></filterchain>
 		</copy>
-		<pom-and-sshit pomid="railo-war.pom" file="${temp.dir}/railo-war.pom"
+		<pom-and-sshit pomid="railo.pomparent.war.pom" file="${temp.dir}/railo.pomparent.war.pom" buildtype="${mvn.type}"
 		  artifact="${railobuild.dist.dir}/jar/railo-${railo.build.version.long}.jar" packaging="pom" />
 
-		<copy file="${basedir}/resource/maven/railo-jetty.pom" tofile="${temp.dir}/railo-jetty.pom" overwrite="true">
+		<copy file="${basedir}/resource/maven/railo.pomparent.jetty.pom" tofile="${temp.dir}/railo.pomparent.jetty.pom" overwrite="true">
 			<filterchain><expandproperties /></filterchain>
 		</copy>
-		<pom-and-sshit pomid="railo-jetty.pom" file="${temp.dir}/railo-jetty.pom" packaging="pom"
-			artifact="${rai5lobuild.dist.dir}/jar/railo-${railo.build.version.long}.jar" />
+		<pom-and-sshit pomid="railo.pomparent.jetty.pom" file="${temp.dir}/railo.pomparent.jetty.pom" packaging="pom"
+			artifact="${rai5lobuild.dist.dir}/jar/railo-${railo.build.version.long}.jar" buildtype="${mvn.type}" />
 	</target>
 
 </project>

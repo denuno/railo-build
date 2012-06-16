@@ -3,14 +3,14 @@
 
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.getrailo</groupId>
-	<artifactId>railo.jetty</artifactId>
+	<artifactId>railo.pomparent.jetty</artifactId>
 	<packaging>pom</packaging>
 	<version>${railo.build.version.long}</version>
 	<name>Railo with Jetty</name>
 
 	<parent>
 		<groupId>org.getrailo</groupId>
-		<artifactId>railo.war</artifactId>
+		<artifactId>railo.pomparent.war</artifactId>
 		<version>${railo.build.version.long}</version>
 	</parent>
 
@@ -18,22 +18,51 @@
 		<dependency>
 			<groupId>org.mortbay.jetty</groupId>
 			<artifactId>jetty-runner</artifactId>
-			<version>7.5.4.v20111024</version>
+			<version>8.1.3.v20120416</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.eclipse.jetty</groupId>
+					<artifactId>jetty-plus</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.eclipse.jetty</groupId>
+					<artifactId>jetty-jndi</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.glassfish.web</groupId>
+					<artifactId>jsp-impl</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.eclipse.jetty</groupId>
+					<artifactId>jetty-plus</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>javax.servlet.jsp</groupId>
+					<artifactId>jsp-api</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>javax.transaction</groupId>
+					<artifactId>jta</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.eclipse.jetty</groupId>
+					<artifactId>jetty-plus</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.eclipse.jetty</groupId>
+					<artifactId>jetty-annotations</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.eclipse.jetty</groupId>
+					<artifactId>jetty-jndi</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.eclipse.jetty</groupId>
+					<artifactId>jetty-jsp</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 	</dependencies>
-
-	<repositories>
-		<repository>
-			<id>railo-repo</id>
-			<url>file:///workspace/railo-build/build/mavenrepo/<!--http://127.0.0.1:8081/nexus/content/repositories/railo/--></url>
-			<releases>
-				<enabled>true</enabled>
-			</releases>
-			<snapshots>
-				<enabled>true</enabled>
-			</snapshots>
-		</repository>
-	</repositories>
 
 	<build>
 		<plugins>
@@ -53,7 +82,7 @@
 								<artifactItem>
 									<groupId>org.mortbay.jetty</groupId>
 									<artifactId>jetty-runner</artifactId>
-									<version>7.5.4.v20111024</version>
+									<version>8.1.3.v20120416</version>
 									<type>jar</type>
 									<overWrite>false</overWrite>
 									<outputDirectory>${project.build.directory}</outputDirectory>

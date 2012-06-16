@@ -4,46 +4,52 @@
 	<property name="cli.packager.name" value="Railo Technologies" />
 	<property name="cli.packager.email" value="railo@getrailo.com" />
 
-	<target name="build.cli" description="creates an jar with the libs embedded" depends="set.build.info">
-		<property name="runembedded.jar.file" value="${dist.dir}/embedded/railo-cli.jar"/>
-   		<delete dir="${dist.dir}/embedded" />
-   		<delete dir="${temp.dir}/embedded" />
-		<mkdir dir="${temp.dir}/embedded" />
-		<mkdir dir="${dist.dir}/embedded" />
-        <javac-ecj srcdir="${basedir}/resource/cli/src" destdir="${temp.dir}/embedded" 
+	<target name="build.cli" description="creates an jar with the libs cli" depends="set.build.info">
+		<property name="runcli.jar.file" value="${dist.dir}/cli/railo-cli.jar"/>
+   		<delete dir="${dist.dir}/cli" />
+   		<delete dir="${temp.dir}/cli" />
+		<mkdir dir="${temp.dir}/cli" />
+		<mkdir dir="${dist.dir}/cli" />
+        <!--  create no asm jetty runner -->
+		<mkdir dir="${temp.dir}/cli/jetty" />
+	    <unzip dest="${temp.dir}/cli/jetty">
+			<!-- <fileset file="${railo.lib.dir}/javax.servlet.jar"/> --> 
+			<fileset dir="${cfdistro.basedir}/lib/" includes="${jetty-runner.jar}" /> 
+	    </unzip>
+	    <delete dir="${temp.dir}/cli/jetty/org/objectweb/" />
+		<zip destfile="${temp.dir}/cli/${jetty-runner.jar}">
+			<fileset dir="${temp.dir}/cli/jetty" /> 
+		</zip>
+   		<delete dir="${temp.dir}/cli/jetty" />
+        <!--  copy in runwar to set a custom icon, etc. -->
+        <copy file="${cfdistro.basedir}/lib/runwar.jar" todir="${temp.dir}/cli" />
+		<!--  compile the loader and the runner together, tho we will separate them into different jars -->
+        <javac-ecj srcdir="${basedir}/resource/cli/src" destdir="${temp.dir}/cli/bin" maxmemory="128M"
         	compliance="${railo.javac.compiler}" classpath="${toString:classpath}" />
-
-        <copy file="${cfdistro.basedir}/lib/runwar.jar" todir="${temp.dir}" />
-		<!-- use custom icon in runwar -->
-        <copy file="${basedir}/resource/railo.png" todir="${temp.dir}/embedded/railocli" />
+		<!-- icon for cli -->
+        <copy file="${basedir}/resource/railo.png" todir="${temp.dir}/cli/bin/railocli" />
+		<!-- use same icon for runwar -->
+        <zip destfile="${temp.dir}/cli/runwar.jar" update="true">
+        	<zipfileset file="${temp.dir}/cli/bin/railocli/railo.png" fullpath="runwar/icon.png" />
+        </zip>
         <!-- 
 		<property name="runwar.jar.location" value="${temp.dir}/runwar.jar" />
 		<antcontrib:runtarget target="runwar.jetty.jar"/>
          -->
-        <zip destfile="${temp.dir}/runwar.jar" update="true">
-        	<zipfileset file="${temp.dir}/embedded/railocli/railo.png" fullpath="runwar/icon.png" />
-        </zip>
-
-       	<!-- we put the loader into a jar in libs.zip for classloading reasons -->
-		<jar destfile="${temp.dir}/embedded/railocli.jar" filesetmanifest="mergewithoutmain">
+       	<!-- we put the loader into a jar and then into libs.zip for classloading reasons -->
+		<jar destfile="${temp.dir}/cli/railocli.jar" filesetmanifest="mergewithoutmain">
 			<manifest>
 				<attribute name="Main-Class" value="railocli.CLIMain" />
 			</manifest>
-			<fileset dir="${temp.dir}/embedded">
+			<fileset dir="${temp.dir}/cli/bin">
 				<exclude name="cliloader/*" />
 			</fileset>
+			<zipgroupfileset file="${temp.dir}/cli/jetty-runner.jar" />
 		</jar>
-		<delete dir="${temp.dir}/embedded/railocli" />
-	    <unzip dest="${temp.dir}/embedded/">
-			<!-- 
-	        <fileset dir="${railo.lib.dir}">
-	            <include name="**/javax.servlet.jar"/>
-	        </fileset>
-			--> 
-			<fileset dir="${cfdistro.basedir}/lib/" includes="${jetty-runner.jar}" /> 
-	    </unzip>
-	    <delete dir="${temp.dir}/embedded/org/objectweb/" />
-		<zip destfile="${temp.dir}/embedded/libs.zip">
+		<delete dir="${temp.dir}/cli/bin/railocli" />
+
+		<!--  create the libs zip including cli loader -->	    
+		<zip destfile="${temp.dir}/cli/libs.zip">
           	<fileset file="${railobuild.dist.dir}/jar/railo-${railo.build.version.long}.jar" />
 	        <fileset dir="${railo.lib.dir}">
 	            <exclude name="**/railo-loader.jar"/>
@@ -51,86 +57,146 @@
 
 	            <include name="**/*.jar"/>
 	        </fileset>
-	        <fileset file="${temp.dir}/embedded/railocli.jar" />
-	        <fileset file="${temp.dir}/runwar.jar" />
-			<fileset dir="${cfdistro.basedir}/lib/" includes="${jetty-runner.jar}" /> 
+	        <fileset file="${temp.dir}/cli/railocli.jar" />
+	        <fileset file="${temp.dir}/cli/runwar.jar" />
+			<fileset file="${temp.dir}/cli/${jetty-runner.jar}" />
 		</zip>
-		<delete file="${temp.dir}/embedded/railocli.jar" />
+		<delete file="${temp.dir}/cli/railocli.jar" />
 		<delete file="${temp.dir}/runwar.jar" />
 
-		<jar destfile="${runembedded.jar.file}" filesetmanifest="mergewithoutmain">
+		<jar destfile="${runcli.jar.file}" filesetmanifest="mergewithoutmain">
 			<manifest>
 				<attribute name="Main-Class" value="cliloader.LoaderCLIMain" />
 			</manifest>
-			<fileset dir="${temp.dir}/embedded" />
+			<zipgroupfileset file="${temp.dir}/cli/jetty-runner.jar" />
+			<fileset file="${temp.dir}/cli/libs.zip" />
+			<fileset dir="${temp.dir}/cli/bin" />
 		</jar>
 		<!-- wrap the executable jar in native wrapers -->
-        <concat destfile="${dist.dir}/embedded/railo" force="yes" binary="true">
+ 	</target>
+
+	<target name="build.cli.bin" description="creates an jar with the libs cli" depends="build.cli">
+        <concat destfile="${dist.dir}/cli/railo" force="yes" binary="true">
           <fileset file="${basedir}/resource/cli/railo.sh" />
-          <fileset file="${dist.dir}/embedded/railo-cli.jar" />
+          <fileset file="${dist.dir}/cli/railo-cli.jar" />
         </concat>
-        <chmod file="${dist.dir}/embedded/railo" perm="a+x"/>
+        <chmod file="${dist.dir}/cli/railo" perm="a+x"/>
+ 	</target>
+
+	<target name="build.cli.exe" description="creates an jar with the libs cli" depends="build.cli">
         <jar2exe
-        	jar="${dist.dir}/embedded/railo-cli.jar" exe="${dist.dir}/embedded/railo.exe"  
+        	jar="${dist.dir}/cli/railo-cli.jar" exe="${dist.dir}/cli/railo.exe"  
         	icon="${basedir}/resource/railo.ico" mutexName="railo.cli.Console" 
         	headerType="console" customProcName="false" stayAlive="true"/>
  	</target>
 
  	<target name="build.cli.jre" depends="build.cli">
  		<echo message="bundling ${mvn.jre.version} jre" />
-		<zip destfile="${dist.dir}/embedded/cli-jre-win32.zip">
+		<zip destfile="${dist.dir}/cli/cli-jre-win32.zip">
 			<zipgroupfileset file="${maven.repo.local}/oracle/jre/${mvn.jre.version}/jre-${mvn.jre.version}-win32.zip"/>
-	        <fileset file="${dist.dir}/embedded/railo.exe" />
+	        <fileset file="${dist.dir}/cli/railo.exe" />
 		</zip>
-		<zip destfile="${dist.dir}/embedded/cli-jre-win64.zip">
+		<zip destfile="${dist.dir}/cli/cli-jre-win64.zip">
 			<zipgroupfileset file="${maven.repo.local}/oracle/jre/${mvn.jre.version}/jre-${mvn.jre.version}-win64.zip"/>
-	        <fileset file="${dist.dir}/embedded/railo.exe" />
+	        <fileset file="${dist.dir}/cli/railo.exe" />
 		</zip>
-		<zip destfile="${dist.dir}/embedded/cli-jre-linux32.zip">
+		<zip destfile="${dist.dir}/cli/cli-jre-linux32.zip">
 			<zipgroupfileset file="${maven.repo.local}/oracle/jre/${mvn.jre.version}/jre-${mvn.jre.version}-linux32.zip"/>
-	        <fileset file="${dist.dir}/embedded/railo" />
+	        <fileset file="${dist.dir}/cli/railo" />
 		</zip>
-		<zip destfile="${dist.dir}/embedded/cli-jre-linux64.zip">
+		<zip destfile="${dist.dir}/cli/cli-jre-linux64.zip">
 			<zipgroupfileset file="${maven.repo.local}/oracle/jre/${mvn.jre.version}/jre-${mvn.jre.version}-linux64.zip"/>
-	        <fileset file="${dist.dir}/embedded/railo" />
+	        <fileset file="${dist.dir}/cli/railo" />
 		</zip>
 		<pom-and-sshit pomid="cli-jre.pom" packaging="pom"
 		 groupId="org.getrailo" artifactId="railo.cli.jre" version="${cli.version}" name="railo.cli.jre">
 			<attachments>
-        		<attach file="${dist.dir}/embedded/cli-jre-win32.zip" type="zip" classifier="win32"/>
-        		<attach file="${dist.dir}/embedded/cli-jre-win64.zip" type="zip" classifier="win64"/>
-        		<attach file="${dist.dir}/embedded/cli-jre-linux32.zip" type="zip" classifier="linux32"/>
-        		<attach file="${dist.dir}/embedded/cli-jre-linux64.zip" type="zip" classifier="linux64"/>
+        		<attach file="${dist.dir}/cli/cli-jre-win32.zip" type="zip" classifier="win32"/>
+        		<attach file="${dist.dir}/cli/cli-jre-win64.zip" type="zip" classifier="win64"/>
+        		<attach file="${dist.dir}/cli/cli-jre-linux32.zip" type="zip" classifier="linux32"/>
+        		<attach file="${dist.dir}/cli/cli-jre-linux64.zip" type="zip" classifier="linux64"/>
 			</attachments>
 		</pom-and-sshit>
  	</target>
 
- 	<target name="build.cli.mvn" depends="set.build.info">
+ 	<target name="build.cli.express" depends="build.cli">
+ 		<delete dir="${temp.dir}/express" />
+ 		<delete dir="${dist.dir}/express" />
+ 		<mkdir dir="${temp.dir}/express" />
+ 		<mkdir dir="${dist.dir}/express" />
+ 		<mkdir dir="${temp.dir}/express/webroot" />
+ 		<echo message="bundling ${mvn.jre.version} jre" />
+ 		<echo file="${temp.dir}/express/start.bat">%CD%\railo -server -background --port 8888 --war %CD%\webroot --open-browser true --open-url /</echo>
+ 		<echo file="${temp.dir}/express/start.cmd">#!/bin/bash
+reldir=`dirname $0`
+cd $reldir/build
+./railo -server -background --port 8888 --war %CD%\webroot --open-browser true --open-url /
+</echo>
+ 		<echo file="${temp.dir}/express/webroot/index.cfm"><![CDATA[<cfoutput><h2>Welcome to Railo!</h2><cfdump var="#server#"/></cfoutput>]]></echo>
+		<zip destfile="${dist.dir}/express/cli-express-jre-win32.zip">
+			<zipgroupfileset file="${maven.repo.local}/oracle/jre/${mvn.jre.version}/jre-${mvn.jre.version}-win32.zip"/>
+	        <fileset file="${dist.dir}/cli/railo.exe" />
+	        <fileset file="${temp.dir}/express/start.bat" />
+	        <zipfileset dir="${temp.dir}/express/webroot" prefix="webroot/" />
+		</zip>
+		<zip destfile="${dist.dir}/express/cli-express-jre-win64.zip">
+			<zipgroupfileset file="${maven.repo.local}/oracle/jre/${mvn.jre.version}/jre-${mvn.jre.version}-win64.zip"/>
+	        <fileset file="${dist.dir}/cli/railo.exe" />
+	        <fileset file="${temp.dir}/express/start.bat" />
+	        <zipfileset dir="${temp.dir}/express/webroot" prefix="webroot/" />
+		</zip>
+		<zip destfile="${dist.dir}/express/cli-express-jre-linux32.zip">
+			<zipgroupfileset file="${maven.repo.local}/oracle/jre/${mvn.jre.version}/jre-${mvn.jre.version}-linux32.zip"/>
+	        <fileset file="${dist.dir}/cli/railo" />
+	        <zipfileset dir="${temp.dir}/express/webroot" prefix="webroot/" />
+		</zip>
+		<zip destfile="${dist.dir}/express/cli-express-jre-linux64.zip">
+			<zipgroupfileset file="${maven.repo.local}/oracle/jre/${mvn.jre.version}/jre-${mvn.jre.version}-linux64.zip"/>
+	        <fileset file="${dist.dir}/cli/railo" />
+	        <zipfileset dir="${temp.dir}/express/webroot" prefix="webroot/" />
+		</zip>
+		<pom-and-sshit pomid="cli-express.pom" packaging="pom"
+		 groupId="org.getrailo" artifactId="railo.cli.express" version="${cli.version}" name="railo.cli.express">
+			<attachments>
+        		<attach file="${dist.dir}/express/cli-express-jre-win32.zip" type="zip" classifier="win32"/>
+        		<attach file="${dist.dir}/express/cli-express-jre-win64.zip" type="zip" classifier="win64"/>
+        		<attach file="${dist.dir}/express/cli-express-jre-linux32.zip" type="zip" classifier="linux32"/>
+        		<attach file="${dist.dir}/express/cli-express-jre-linux64.zip" type="zip" classifier="linux64"/>
+			</attachments>
+		</pom-and-sshit>
+ 	</target>
+
+ 	<target name="build.cli.mvn" depends="build.cli.rpm,build.cli.deb,build.cli.exe">
 		<pom-and-sshit pomid="cli.pom" packaging="pom"
 			groupId="org.getrailo" artifactId="railo.cli" version="${cli.version}"
 			name="railo.cli">
 			<attachments>
-				<attach file="${dist.dir}/embedded/railo-cli.jar" type="jar" />
-				<attach file="${dist.dir}/embedded/railo" type="bin" />
-				<attach file="${dist.dir}/embedded/railo.exe" type="exe" />
+				<attach file="${dist.dir}/cli/railo-cli.jar" type="jar" />
+				<attach file="${dist.dir}/cli/railo" type="bin" />
+				<attach file="${dist.dir}/cli/railo.exe" type="exe" />
 				<attach file="${dist.dir}/railo-cli_${cli.version}-1_all.deb" type="deb" />
-				<attach file="${basedir}/rpms/railo-cli-${cli.version}-1.noarch.rpm" type="rpm" />
+				<attach file="${dist.dir}/rpm/railo-cli-${cli.version}-1.noarch.rpm" type="rpm" />
 			</attachments>
 		</pom-and-sshit>
 	</target>
 
-	<target name="build.cli.rpm" depends="bootstrap_redline, set.build.info"  xmlns:redline="antlib:org.redline_rpm">
-		<redline:rpm destination="rpms" release="1"
+ 	<target name="build.cli.all" depends="build.cli.mvn,build.cli.express,build.cli.jre">
+	</target>
+
+	<target name="build.cli.rpm" depends="bootstrap_redline, build.cli.bin"  xmlns:redline="antlib:org.redline_rpm">
+		<mkdir dir="${dist.dir}/rpm" />
+		<echo message="Making rpm in ${dist.dir}/rpm/ Packager:${cli.packager.name} ${cli.packager.email} Version: ${cli.version}" />
+		<redline:rpm destination="${dist.dir}/rpm" release="1"
 			group="org.getrailo" name="railo-cli" version="${cli.version}"
 			packager="${cli.packager.name} ${cli.packager.email}"
 			url="http://getrailo.org">
 			<depends name="java" version=""/>
-			<tarfileset file="${dist.dir}/embedded/railo" prefix="/usr/bin"
+			<tarfileset file="${dist.dir}/cli/railo" prefix="/usr/bin"
 				 filemode="744" username="root" group="root"/>
 		</redline:rpm>
 	</target>
 
-	<target name="build.cli.deb" depends="set.build.info" description="builds a .deb file for debian-based systems">
+	<target name="build.cli.deb" depends="build.cli.bin" description="builds a .deb file for debian-based systems">
 	    <taskdef name="deb" classname="com.googlecode.ant_deb_task.Deb" classpathref="build.lib.path"/>
 	   	<echo message="Creating debian .deb file from: ${dist.dir}"/>
 	   	<delete file="${dist.dir}/railo-cli-${cli.version}-1_all.deb" />
@@ -142,7 +208,7 @@
 	        <version upstream="${cli.version}"/>
 	        <maintainer name="${cli.packager.name}" email="${cli.packager.email}"/>
 	        <description synopsis="Railo CFML Engine">Railo is a high performance CFML engine.  Version: ${railo.build.version.long}.</description>
-	   		<tarfileset file="${dist.dir}/embedded/railo" prefix="usr/local/bin" filemode="755"/>
+	   		<tarfileset file="${dist.dir}/cli/railo" prefix="usr/local/bin" filemode="755"/>
 	   	</deb>
 	</target>
 

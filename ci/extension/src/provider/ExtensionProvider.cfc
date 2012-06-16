@@ -8,7 +8,7 @@
        <cfset var info=structNew() />
        <cfset info.title="Extension Provider ("&cgi.HTTP_HOST&")" />
        <cfset info.description="Railo Extensions" />
-       <cfset info.image="http://www.getrailo.org/tasks/sites/railoorg/assets/Image/Images/railo-3-1-release.png" />
+       <cfset info.image="http://www.railo.ch/img.jpg" />
        <cfset info.url="http://"&cgi.HTTP_HOST />
        <cfset info.mode="develop" />
        <cfreturn info>
@@ -68,7 +68,8 @@
        <cfset QuerySetCell(apps,'created',exAry.extension.extensionCreated) />
        <cfset QuerySetCell(apps,'version',exAry.extension.extensionVersion) />
        <cfset QuerySetCell(apps,'category',exAry.extension.extensionCategory) />
-       <cfset QuerySetCell(apps,'download',"http://" & cgi.HTTP_HOST & exAry.extension.extensionDownload) />
+       <!--- <cfset QuerySetCell(apps,'download',"http://" & cgi.HTTP_HOST & exAry.extension.extensionDownload) /> --->
+       <cfset QuerySetCell(apps,'download',"http://" & cgi.HTTP_HOST & cgi.SCRIPT_NAME & "?metnod=download&id=" & exAry.extension.extensionName) />
 			</cfloop>
 		<cfreturn apps />
 	</cffunction>

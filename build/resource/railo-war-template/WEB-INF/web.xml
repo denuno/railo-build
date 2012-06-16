@@ -11,11 +11,13 @@
 	      		<description>Configuraton directory</description>
 	    	</init-param>	
 		<load-on-startup>1</load-on-startup>
+		<!-- 
 		<init-param>
-	      		<description>directory where railo root directory is stored</description>
+      		<description>directory where railo root directory is stored</description>
 			<param-name>railo-server-root</param-name>
-			<param-value>/</param-value>
+			<param-value>./</param-value>
 		</init-param>
+		 -->
 	</servlet>	
 	<servlet>
 		<servlet-name>AMFServlet</servlet-name>

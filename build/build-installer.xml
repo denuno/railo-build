@@ -1,10 +1,47 @@
 <project name="build-installer" default="build.installer" xmlns:antcontrib="antlib:net.sf.antcontrib" xmlns:redline="antlib:org.redline_rpm"  xmlns:artifact="antlib:org.apache.maven.artifact.ant" basedir=".">
 	
-	<target name="build.installer">
+	<target name="build.installer" depends="set.build.info">
+		<mkdir dir="${dist.dir}/installer/" />
+		<antcontrib:osfamily property="os.family" />
+		<property name="bitrock.git.repo" value="git://github.com/utdream/CFML-Installers.git"/>
+		<property name="bitrock.platform" value="${os.family}"/>
+		<property name="bitrock.installers" value="${basedir}/../CFML-Installers/" />
+		<property name="bitrock.license" location="${basedir}/license.xml"/>
+		<property name="bitrock.cmd" value="${user.home}/installbuilder-8.2.0/bin/builder"/>
 		<property name="bitrock.cmd" value="${user.home}/bitrock/bin/Builder.app/Contents/MacOS/installbuilder.sh"/>
-		<property name="bitrock.platform" value="osx"/>
-		<exec executable="${bitrock.cmd}" dir="${basedir}/CFML-Installers/">
+		<!-- we would need to give the build tons of ram to use jgit, so we don't -->
+		<antcontrib:if>
+			<available file="${bitrock.installers}" />
+			<then>
+				<git command="fetch" dir="${bitrock.installers}" use-jgit="false"/>
+				<git-checkout repository="${bitrock.installers}" branch="origin/master" force="true" use-jgit="false"/>
+			</then>
+			<else>
+				<echo message="Cloning repo.  This will take a *long* time." />
+				<git-clone repository="${bitrock.git.repo}" dest="${bitrock.installers}" use-jgit="false" />
+			</else>
+		</antcontrib:if>
+
+		<delete dir="${bitrock.installers}/railo_installer_files/railo-all/lib" />
+		<copy todir="${bitrock.installers}/railo_installer_files/railo-all/lib">
+			<fileset dir="${src.dir}/railo-java/libs" excludes="railo-loader.jar" />
+		</copy>
+		<xmltask source="${bitrock.installers}/railo_installer_files/railo.xml" dest="${bitrock.installers}/railo_installer_files/railo.xml">
+			<replace path="/project/version/text()" withText="${railo.build.version.long}-pl1"/>
+		</xmltask>
+		<copy file="${railobuild.dist.dir}/jar/railo-${railo.build.version.long}.jar" 
+			tofile="${bitrock.installers}/railo_installer_files/railo-all/lib/railo.jar" />
+		<!-- 
+		linux linux-x64 linux-ia64 windows osx solaris-sparc solaris-intel linux-ppc linux-s390 freebsd freebsd4 freebsd6 freebsd6-x64 freebsd7 freebsd7-x64 openbsd3 hpux aix irix-n32 rpm deb cdrom 
 	        <arg line="build railo_installer_files/railo.xml ${bitrock.platform}"></arg>
+		-->
+		<exec executable="${bitrock.cmd}" dir="${bitrock.installers}">
+	        <arg line="build railo_installer_files/railo.xml linux --setvars project.outputDirectory=${dist.dir}/installer/"></arg>
+	        <arg line="--license ${bitrock.license}"></arg>
+	    </exec>
+		<exec executable="${bitrock.cmd}" dir="${bitrock.installers}">
+            <arg line="build railo_installer_files/railo.xml windows --setvars project.outputDirectory=${dist.dir}/installer/"></arg>
+	        <arg line="--license ${bitrock.license}"></arg>
 	    </exec>
 	</target>
 		
