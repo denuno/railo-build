@@ -1,7 +1,7 @@
 #! /bin/bash
 reldir=`dirname $0`
 cd $reldir/build
-export ANT_HOME=$HOME/cfdistro/ant
+export ANT_HOME=cfdistro/ant
 ANTCMD="/bin/sh $ANT_HOME/bin/ant -nouserlib -f build.xml"
 if [ -z "$1" ]; then
 echo "railobuild control script"
