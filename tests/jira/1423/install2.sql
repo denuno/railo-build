@@ -1,0 +1,1 @@
+INSERT INTO system_logdata_1422(id,str) VALUES (2,now());

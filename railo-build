@@ -1,0 +1,42 @@
+#! /bin/bash
+reldir=`dirname $0`
+cd $reldir/build
+export ANT_HOME=$HOME/cfdistro/ant
+ANTCMD="/bin/sh $ANT_HOME/bin/ant -nouserlib -f build.xml"
+if [ -z "$1" ]; then
+echo "railobuild control script"
+OPTIONS="build build.and.test help list-targets update exit"
+select opt in $OPTIONS; do
+if [ "$opt" = "build" ]; then
+	$ANTCMD build
+	exit
+elif [ "$opt" = "build.and.test" ]; then
+	$ANTCMD build.and.test
+	exit
+elif [ "$opt" = "help" ]; then
+	echo "usage (skips this prompt): railobuild [build|test|{target}]"
+elif [ "$opt" = "list-targets" ]; then
+	$ANTCMD help
+elif [ "$opt" = "update" ]; then
+	$ANTCMD project.update
+elif [ "$opt" = "exit" ]; then
+	exit
+else
+	#clear
+	echo bad option
+fi
+done
+fi
+target=$1
+parameters=""
+shift
+for var in "$@"
+do
+    parameters="$parameters -D$var"
+    if [ ${var:0:15} = "build.java.home" ]; then
+    JAVA_HOME=${var:16}
+    echo JAVA HOME OVERRIDE! $JAVA_HOME
+    export JAVA_HOME
+    fi
+done
+$ANTCMD $target -Dbasedir=. $parameters

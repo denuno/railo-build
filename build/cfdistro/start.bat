@@ -1,0 +1,1 @@
+java -Xmx200m -jar "/workspace/cfdistro/src/cfdistro/lib/jetty-runner-7.2.2.v20101205.jar" --port 8088 --path /${distro.name} %1 "/workspace/cfdistro/src/cfdistro/dist/${distro.name}.war"

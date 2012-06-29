@@ -1,0 +1,1 @@
+<cfassociate basetag="cf_cfa" datacollection="test"><cfassociate basetag="cfa" datacollection="test">

@@ -1,0 +1,55 @@
+<project name="mxunit" basedir="./" xmlns:antcontrib="antlib:net.sf.antcontrib">
+
+	<property name="mxunit.version" value="2.1.1" />
+	<property name="ext.mxunit.dir" location="${ext.dir}/mxunit/${mxunit.version}" />
+	<property name="mxunit.dir" location="${war.target.dir}/mxunit" />
+	<property name="ext.mxunit.zip.uri" value="http://cloud.github.com/downloads/mxunit/mxunit/mxunit-${mxunit.version}.zip" />
+	
+	<property name="ext.mxunit.zip" location="${ext.mxunit.dir}/mxunit-${mxunit.version}.zip" />
+	
+	<target name="mxunit.install">
+		<mkdir dir="${ext.mxunit.dir}"/>
+		<sequential>
+		<antcontrib:if>
+			<available file="${ext.mxunit.zip}" />
+			<then/>
+			<else>
+				<get src="${ext.mxunit.zip.uri}" dest="${ext.mxunit.zip}" verbose="true" ignoreerrors="false" />
+			</else>
+		</antcontrib:if>
+		<unzip src="${ext.mxunit.zip}"
+		       dest="${mxunit.dir}">
+			<regexpmapper from="mxunit/(.*)$" to="\1"/>
+		</unzip>
+		</sequential>
+	</target>
+	
+	<target name="mxunit.uninstall">
+		<delete dir="${ext.mxunit.dir}"/>
+		<delete dir="${mxunit.dir}"/>
+	</target>
+	
+	<target name="mxunit.runtests">
+		<mkdir dir="${ext.mxunit.dir}"/>
+		<taskdef name="mxunit" classname="org.programmerplanet.ant.taskdefs.mxunit.mxunitTask"/>
+		<mxunit mxunithome="${mxunit.dir}" resultlog="${mxunit.tests.results.dir}">
+		    <property name="mxunit.save.saveservice.assertion_results" value="all"/>
+		    <property name="mxunit.save.saveservice.output_format" value="xml"/>
+		    <!-- 
+		    reference: http://www.programmerplanet.org/pages/projects/mxunit-ant-task.php
+		    <property name="request.threads" value="1"/>
+			<property name="request.loop" value="10"/>
+			<jvmarg value="-Xincgc"/>
+			<jvmarg value="-Xmx128m"/>
+			<jvmarg value="-Dproperty=value"/>
+		     -->
+			<testplans dir="${mxunit.tests.dir}" includes="*.jmx"/>
+		</mxunit>
+		<xslt
+		    in="${basedir}/loadtests/mxunitResults.jtl"
+		    out="${mxunit.tests.results.dir}/mxunitResults.html"
+		    style="${mxunit.dir}/extras/mxunit-results-report.xsl"
+		/>
+	</target>
+	
+</project>

@@ -1,53 +1,128 @@
-You can theoretically just click the "download source" button to download the 
-project (24.6M).
+USAGE
 
-Then, again theoretically, all you have to do is run the railo-build batch or sh
-script and pick the "build" option, or put it in at the command prompt
+BUILDING
 
-Ex: railo-build.sh build
+Some notes about building:
 
-With a little luck, you'll end up with a new .rc file, a railo.jar, and a WAR in
-the ./dist directory.  Use whatever deliverable you want, but usually the .rc is
-all you need.
+	Building *will* take a while, the first time, as it pulls the  Git repo.
+	Subsequent builds are fast as fast can be ish!  If you know your system has
+	git installed, the argument "use.jgit=false" will speed the clone up.
+	
+	You can specify the Git repo to pull from by editing the build/src.xml file.
+	
+	As the Railo repo is imported into the ./src directory, any git operations
+	for the sources should be done there.
 
-It *will* take a while, the first time you run it, as it pulls the Git repo.
-Subsequent builds are fast as fast can be though.
+	Different versions of Railo require different Java versions to compile. If 
+	you try to build with the wrong version of Java, the build will fail and 
+	tell you what the correct version to use is.  If you are on linux/OS X, 
+	you can pass in the location of JAVA_HOME via build.java.home
+	
+	ex: ./railobuild build branch=3.2.1.006 build.java.home=/path/to/java_home
+	
+	On Windows, if you set JAVA_HOME via command line, do not quote the path 
+	
+	ex: set JAVA_HOME=C:\Program Files\Java\jre6
+	
+	Using the "branch" or "commit" build options will do a *forced* checkout of
+	the corresponding sources.  If you have any changes, you sure as hell have
+	better committed them prior!  Only non-commited stuff will be dissapeared.
+	
+	Running a plain "build", without the branch or commit options, will only run
+	the build on the current sources.  Non-committed stuff is safe.
+	
+	The sources are compiled with the Eclipse ECJ compiler, so no JDK is needed.
+	
+	You will see a commit log after each build.  If you update your sources, the
+	log will be of the changes since you last built the sources.  The last commit
+	hash will be stored in buildinfo.properties, which you can then use for CI
+	checks (i.e., if lastbuild.hash != current.hash, something changed).
 
-The default "build" target now defaults to the "3.3" branch.  There is a
-"build.32" target for the code in the stable branch (though I think you
-currently have to edit the src.xml file and change the branch manually as well).
+Build the default (3.3) branch
 
-To build versions < 3.3, if you don't have a 1.5 JDK already (1.6 is the default 
-now), you'll need to install one.  
-For OS X this is easy: http://wiki.oneswarm.org/index.php/OS_X_10.6_Snow_Leopard
+ ./railo-build build 
 
-The script has a rudimentary search for the JDK1.5 location, but if it can't 
-find it, set the jdk5.home property in build/build.xml to the location of the 
-1.5 JDK.
+Build the "develop" branch (4.0) leveraging system git
 
-Railo 3.3 and above (4 is the current develop branch), use 1.6 instead.  Yay!
+ ./railo-build build branch=develop use.jgit=false
+ 
+Build a tag (uses the branch argument but specify the tag)
 
-There's a property in the build/build.xml file called railo.build.bump that 
-controls the version number.  It defaults to bumping the revision/patch number 
-(the last number of the version, 3.3.1.[revision]), but you can change it to
-major, minor, or build if you want to bump one of the first three.  If you set
-it to an empty value the version will not be bumped with the build.
+ ./railo-build build branch=3.3.1.006
+ 
+Build a random commit 
+ 
+ ./railo-build build commit=81a8897d1b9e273f8de819eb56a13d7bcf5d51cf
 
-Lastly, you don't need Git installed on your system to use this tool, as it uses
-JGit to download the sources.  The idea is that it just runs.  If it don't, 
-holler and we'll see why not.  If you want to use the build.branch target (an
-easy way to select the branch to build) you do need to have git installed, as
-JGit doesn't handle forced checkouts very well.
 
-Ok, one last last thing-- there's a "po-boy" CI system included, which does
-builds triggered by any commits to the targeted git repository, along with a
-railo extension for installing the integration .rc files into a running Railo
-instance, but I haven't had time to document it or keep it running anywhere,
-so pretty much just ignore that stuff unless you need it, and if so, hit me up.
+TESTING
 
-Basically it's just:
+Some notes on testing:
 
-./railo-build.sh ci.build
-./railo-build.sh ci.start
+	The tests are stored with the railobuild project, so you can change the
+	the version of Railo you are testing with, without having to commit the
+	tests to that branch.  We should probably create a separate repository for
+	all tests, and pull from that.  We should probably categorize things like
+	web/server admin tests by Railo version, so we can not run the new admin 
+	features on the old admin versions.
+	
+	tests/
+		/jira  (jira tests)
+		/jmeter (jmeter tests)
+		/results (generic test results dir)
+		/results/jmeter (jmeter results)
+		
+	Currently the Jira tests take about 3 mintues to run.  The webserver runs
+	for about another 2 mintues afterwards, but it will shut itself down when 
+	the threads spawned by the tests have exited.  Kill it if you're impatient.
 
-Though.
+Build and run the jira tests:
+ ./railobuild build.and.test
+
+Run the jira tests (starts server, runs tests, stops server):
+ ./railobuild test
+
+LOAD TESTS:  JMETER
+
+	Currently there is only one JMeter test, which goes through the web admin a 
+	few times.
+
+Downlaod and install JMeter (defaults to ./build/jmeter-{version}) by entering: 
+ ./railobuild jmeter.install
+
+Build and run the jmeter tests:
+ ./railobuild build.and.loadtest
+
+Run the jmeter tests (this will run jmeter.run and jmeter.report):
+ ./railobuild loadtest
+
+Run the jmeter tests alone (no report generation):
+ ./railobuild jmeter.run
+
+Run the jmeter report generation (no tests are run):
+ ./railobuild jmeter.report
+
+Clean the jmeter test results and reports:
+ ./railobuild jmeter.clean
+
+To run the test server by hand in the foreground (does not background):
+ ./railobuild server.start.fg
+
+Starting the test server by hand (goes to background):
+ ./railobuild server.start
+
+Stopping the test server by hand:
+ ./railobuild server.stop
+
+Editing JMeter tests:
+ ./railobuild server.start
+ ./build/jmeter-2.6.1/bin/jmeter.sh
+
+do yer editing or whatever, then
+ ./railobuild server.stop
+
+PACKAGING
+
+WAR
+	A WAR file is generated as part of the standard build, as is the railo.jar,
+	and core.rc file.

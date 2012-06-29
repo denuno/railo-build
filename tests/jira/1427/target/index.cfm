@@ -1,0 +1,1 @@
+<cflocation url="sub/index.cfm">

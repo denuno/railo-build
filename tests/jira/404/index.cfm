@@ -1,0 +1,1 @@
+<cflocation url="controller/index.cfm" addtoken="false" />

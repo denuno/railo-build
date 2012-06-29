@@ -1,0 +1,1 @@
+<cfif thisTag.executionMode IS "End"><cfoutput>#serialize(thisTag.test)#</cfoutput></cfif>

@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mach-ii PUBLIC "-//Mach-II//DTD Mach-II Configuration 1.6.0//EN"	"http://www.mach-ii.com/dtds/mach-ii_1_6_0.dtd" >
+	
+<mach-ii version="1.6">
+
+	<!-- INCLUDES -->
+	<includes>
+		<!-- <include file=""/> -->
+	</includes>
+	
+	<!-- MODULES -->
+	<modules>
+		<!--
+		<module name="dashboard" file="/MachIIDashboard/config/mach-ii_dashboard.xml">
+			<mach-ii>
+				<properties>
+					<property name="password" value="password" />
+				 </properties>
+			</mach-ii>
+		 </module>
+		 -->
+	</modules>
+
+	<!-- PROPERTIES -->
+	<properties>
+		<!-- Mach II properties -->
+		<property name="applicationRoot" value="/" />
+		<property name="defaultEvent" value="home" />
+		<property name="eventParameter" value="event" />
+		<property name="parameterPrecedence" value="form" />
+		<property name="maxEvents" value="10" />
+		<property name="exceptionEvent" value="exceptionEvent" />
+		
+		
+		<!-- Logging -->
+		<property name="Logging" type="MachII.logging.LoggingProperty">
+			<parameters>
+				<parameter name="loggingEnabled" value="true"/>
+				<!--<parameter name="CFLog">
+					<struct>
+						<key name="type" value="MachII.logging.loggers.CFLog.Logger" />
+						<key name="loggingEnabled" value="true" />
+						<key name="loggingLevel" value="warn" />
+						<key name="logFile" value="machiilog" />
+					</struct>
+				</parameter>-->
+				<parameter name="MachIILog">
+					<struct>
+						<key name="type" value="MachII.logging.loggers.MachIILog.Logger" />
+						<key name="loggingEnabled" value="true" />
+						<key name="loggingLevel" value="debug" />
+					</struct>
+				</parameter>
+			</parameters>
+		</property>
+		
+		<!-- Caches
+		<property name="Caching" type="MachII.caching.CachingProperty">
+			<parameters>
+				<parameter name="cachingEnabled" value="true"/>
+				<parameter name="defaultCacheName" value="defaultCache" />
+				<parameter name="defaultCache">
+					<struct>
+						<key name="type" value="MachII.caching.strategies.TimeSpanCache" />
+						<key name="scope" value="application" />
+						<key name="cacheFor" value="10" />
+						<key name="cacheUnit" value="minute" />
+					</struct>
+				</parameter>
+				<parameter name="LRUCache">
+					<struct>
+						<key name="type" value="MachII.caching.strategies.LRUCache" />
+						<key name="scope" value="application" />
+						<key name="size" value="5" />
+					</struct>
+				</parameter>
+			</parameters> 
+		</property>  -->
+	</properties>
+
+	<!-- LISTENERS -->
+	<listeners>
+		
+	</listeners>
+	
+	<!-- EVENT-FILTERS -->
+	<event-filters>
+		<!-- <event-filter name="yourEventFilterName" type="fullyQualifiedDotDelimitedPathToCFC">
+			<parameters>
+				<parameter name="yourParameterName" value="yourParameterValue" />
+			</parameters>
+		</event-filter> -->
+	</event-filters>
+	
+	<!-- PLUGINS -->
+	<plugins>
+		
+	</plugins>
+
+	<!-- EVENT-HANDLERS -->
+	<event-handlers>
+		<event-handler event="home" access="public">
+			<view-page name="home" />
+		</event-handler>
+		
+		<event-handler event="exceptionEvent" access="private">
+			<view-page name="exception" />
+		</event-handler>
+	</event-handlers>
+
+	<!-- SUBROUTINES -->
+	<subroutines>
+
+	</subroutines>
+	
+	<!-- PAGE-VIEWS -->
+	<page-views>
+		<page-view name="home" page="/views/home.cfm" />
+		<page-view name="exception" page="/views/exception.cfm" />
+	</page-views>
+	
+</mach-ii>
