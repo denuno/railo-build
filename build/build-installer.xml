@@ -1,6 +1,7 @@
 <project name="build-installer" default="build.installer" xmlns:antcontrib="antlib:net.sf.antcontrib" xmlns:redline="antlib:org.redline_rpm"  xmlns:artifact="antlib:org.apache.maven.artifact.ant" basedir=".">
 	
 	<target name="build.installer" depends="set.build.info">
+		<property name="installer.patchlevel" value="0"/>
 		<mkdir dir="${dist.dir}/installer/" />
 		<antcontrib:osfamily property="os.family" />
 		<property name="bitrock.git.repo" value="git://github.com/utdream/CFML-Installers.git"/>
@@ -27,7 +28,7 @@
 			<fileset dir="${src.dir}/railo-java/libs" excludes="railo-loader.jar" />
 		</copy>
 		<xmltask source="${bitrock.installers}/railo_installer_files/railo.xml" dest="${bitrock.installers}/railo_installer_files/railo.xml">
-			<replace path="/project/version/text()" withText="${railo.build.version.long}-pl1"/>
+			<replace path="/project/version/text()" withText="${railo.build.version.long}-pl${installer.patchlevel}"/>
 		</xmltask>
 		<copy file="${railobuild.dist.dir}/jar/railo-${railo.build.version.long}.jar" 
 			tofile="${bitrock.installers}/railo_installer_files/railo-all/lib/railo.jar" />
