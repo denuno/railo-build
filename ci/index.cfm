@@ -10,20 +10,23 @@
 			padding-top:60px;
 		}
 	</style>
-	<cflock scope="server" timeout="3">
-		<cfif not structKeyExists(server,"ci")>
-			<cfset server.ci = {"started"=now(),"runs"=arrayNew(1)} />
-			<cfset server.ci.runningbuild = "false" />
-		</cfif>
-		<cfset request.runningbuild = server.ci.runningbuild />
-	</cflock>
 	<meta http-equiv="refresh" content="30" />
 </head>
 <body>
+<cfset infoIni = getDirectoryFromPath(getCurrentTemplatePath()) & "../src/railo-java/railo-core/src/railo/runtime/Info.ini" />
+<cfset ciPropsPath = getDirectoryFromPath(getCurrentTemplatePath()) & "../build/build.ci.properties" />
+<cfset buildVersion = getProfileString(infoIni, "version", "number") />
 <cfoutput>
 	<cfif structKeyExists(url,"forceidle")>
 		<cfset server.ci.runningbuild = false />
 		<cflocation url="index.cfm" addtoken="false"/>
+	</cfif>
+	<cfif structKeyExists(url,"psaux")>
+		<cfexecute name="#expandPath('.')#/../build/psaux.sh" timeout="10"  variable="ps"/>
+		<cfdump var="#arrayLen(ps.split("cfml\s+\d+"))-1#" label="running java processes">
+		<pre>#ps#</pre>
+		<cfexecute name="/usr/bin/free" arguments="-m" timeout="10"  variable="free"/>
+		<pre>#free#</pre>
 	</cfif>
 	<div class="navbar navbar-fixed-top">
       <div class="navbar-inner">
@@ -31,24 +34,27 @@
           <a class="brand" href="?">Railo Build System</a>
           <div class="nav-collapse">
             <ul class="nav">
+<!---
              <li class="selected">
-                <a href="ci.cfm?target=build">Build</a>
+                <a href="ci.cfm?target=build" onclick="confirm('You wanna runna build #buildVersion#?')">build</a>
               </li>
+ --->
              <li class="">
                 <a href="?selectbranch=true">Branch</a>
               </li>
              <li class="nav">
                 <a href="?selecttag=true">Tag</a>
               </li>
+			<li> <span style="color:gray">|</span> </li>
+			  <li><a href="?psaux=true">ps</a></li>
 			  <li><a href="">Docs</a></li>
 			  <li><a href="?type=rc">rc</a></li>
 			  <li><a href="?type=war">WAR</a></li>
 			  <li><a href="?type=cli">CLI</a></li>
-			  <li><a href="?type=jar">Jar</a></li>
+			  <li><a href="?type=jar">Jar/Lib</a></li>
 			  <li><a href="?type=express">Express</a></li>
 			  <li><a href="?type=installer">Installer</a></li>
 			  <li><a href="?type=rpm">RPM</a></li>
-			  <li><a href="?type=libs">Libs</a></li>
 			  <li><a href="/artifacts/" target="_blank">ARTIFACTS</a></li>
             </ul>
           </div>
@@ -60,23 +66,17 @@
 	<div class="container-fluid">
 
 <cfoutput>
-<h2>Continious Integration :
-	<cfif server.ci.runningbuild>
-		<span style="font-size:88%">
-			<a href="?forceidle" onclick="return confirm('Force idle status?')" style="color:green">Running</a> -
-			<cfif isDate(server.ci.startedbuild) && server.ci.runningbuild>
-				<cfset dtDiff = (parseDateTime(now()) - parseDateTime(server.ci.startedbuild)) />
-				#dateDiff( "h",now(),server.ci.startedbuild)# Hour(s),
-				#TimeFormat( dtDiff, "m" )# Minute(s),
-				#TimeFormat( dtDiff, "s" )# Second(s)
-			</cfif>
-			<a href="?showoutput=true">output</a>
-		</span>
+<blockquote>Select a branch or tag to build ^-- up there. &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+	The rest of ---^ that stuff be build artifacts mostly. Arrr.</blockquote>
+<h2>
+	Continious Integration :
+	<cfif request.ci.runningbuild>
+	  <span  style="color:green">Running</span>
 	<cfelse>
 	  <span  style="color:silver">Idle</span>
 	</cfif>
+</h2>
 </cfoutput>
-
 
 
 <cfset variables.buildDirectory = getDirectoryFromPath(getCurrentTemplatePath()) & "../build/" />
@@ -118,26 +118,91 @@
 		<input type="submit" name="target" value="build">
 	</form>
 	<cfoutput><pre>#antTarget.outtext#</pre></cfoutput>
+<cfelseif structkeyExists(url,"selectcommit")>
+	<cfset arraydeleteat(branches,1) />
+	<form action="ci.cfm" method="get">
+		Commit: <input type="text" name="commit">
+		<input type="submit" name="target" value="build">
+	</form>
+	<cfoutput><pre>#antTarget.outtext#</pre></cfoutput>
 <cfelseif structkeyExists(url,"showoutput")>
 	<cfif structKeyExists(server,"buildthread")>
-		<pre><cfoutput>#toString(server.buildthread.outputstream)#</cfoutput></pre>
+		<h4>Build is running</h4>
+		<cfif structkeyexists(server.buildthread,"outputstream")>
+			<pre><cfoutput>#toString(server.buildthread.outputstream)#</cfoutput></pre>
+		<cfelse>
+			<cfexecute name="#expandPath('.')#/../build/psaux.sh" timeout="10"  variable="ps"/><br />
+			<br />The build thread output stream isn't there.  Forcing idle.
+			<cfset server.ci.runningbuild = false />
+			Current number of running java processes: <cfoutput>#arrayLen(ps.split("cfml\s+\d+"))#</cfoutput>
+			<pre><cfoutput>#ps#</cfoutput></pre>
+		</cfif>
 	<cfelse>
 		<h4>No build currently running.</h4>
 	</cfif>
 <cfelse>
 	<h3>
+	<cfif request.ci.runningbuild>
+		<cfoutput>
+		<a href="?forceidle" onclick="return confirm('Force idle status?')" style="color:green">Running Target: #request.currentrun.target#</a> -
+		<cfif isDate(request.ci.startedbuild) && request.ci.runningbuild>
+			<cfset dtDiff = (parseDateTime(now()) - parseDateTime(request.ci.startedbuild)) />
+			#dateDiff( "h",now(),server.ci.startedbuild)# Hour(s),
+			#TimeFormat( dtDiff, "m" )# Minute(s),
+			#TimeFormat( dtDiff, "s" )# Second(s)
+		</cfif>
+		<a href="?showoutput=true">output</a>
+		</cfoutput>
+	<cfelse>
 		<cfset targets = "mvn.deploy.libs,mvn.deploy.core,build.installer,build.cli.all,build.cli.mvn,build.cli,build.cli.exe,build.cli.bin,build.cli.rpm,build.cli.deb,build.cli.express,build.cli.jre">
 		<form action="ci.cfm" method="get">
 			Target: <select name="target">
+				<option value="build">build (<cfoutput>#buildVersion#</cfoutput>)</option>
+				<option value="project.update">manually update sources</option>
 			<cfloop list="#targets#" index="target">
 			<cfoutput><option value="#target#">#target#</option></cfoutput>
 			</cfloop>
 			</select>
 			<input type="submit" name="submit" value="run">
 		</form>
+	</cfif>
 	</h3>
-
 </cfif>
+
+<br /><a href="?erroremails">set build.error.emails</a><br />
+<cfif structKeyExists(url,"erroremails")>
+<cfoutput>
+	<cfset properties = loadProperties(ciPropsPath) />
+	<cfif structKeyExists(form,"fieldnames")>
+		<cfloop list="#form.emails#" index="addy">
+			<cfset m[addy] = addy />
+		</cfloop>
+		<cfset properties.setProperty("build.error.emails",structKeyList(m)) />
+		<cfset storeProperties(ciPropsPath,properties) />
+		<h4>build.error.emails = #structKeyList(m)#</h4>
+	<cfelse>
+	<form action="?erroremails=set" method="post">
+		<cfset emails = properties.getProperty('build.error.emails') />
+		<cfset defaultEmails = "denny@getrailo.com,michael@getrailo.com">
+			<cfloop list="#emails#" index="addy">
+				<input type="checkbox" name="emails" value="#addy#" checked="true">#addy#<br/>
+			</cfloop>
+			<cfloop list="#defaultEmails#" index="addy">
+				<cfif !listfindNoCase(emails,addy)>
+				<input type="checkbox" name="emails" value="#addy#">#addy#<br/>
+				</cfif>
+			</cfloop>
+			<input type="text" name="emails" style="width:333px" size="78" value="" /><br />
+<!---
+		<input name="propertyname" value="build.error.emails">
+		<input name="propertyvalue" value="#properties.getProperty('build.error.emails')#">
+ --->
+		<input type="submit" />
+	</form>
+	</cfif>
+</cfoutput>
+</cfif>
+
 <cfdirectory name="builds" action="list" directory="#expandPath('/../dist/rc')#" filter="*.rc" sort="name DESC">
 <cfif structKeyExists(url,"json")>
 	<cfset buildsarray = [] />
@@ -166,7 +231,7 @@
 	</cfloop>
 	</table>
 </cffunction>
-<cfparam name="url.type" default="rc" />
+<cfparam name="url.type" default="jar" />
 <cfset listdist(url.type) />
 
 <cfset runsDir = expandPath('/../dist/buildlog') />
@@ -180,12 +245,12 @@
 
 <cfdirectory name="runs" action="list" directory="#runsDir#" filter="*.json" sort="dateLastModified DESC">
 <cfoutput>
-	<h3><a href="?list">#runs.recordcount# Runs</a> | <a href="?runsclear=true">clear</a></h3>
+	<h3><a href="?list">Run Log: #runs.recordcount# available</a> | <a href="?runsclear=true">clear</a></h3>
 	<cfif structKeyExists(url,"list")>
 		<cfloop query="runs">
 			<cfset runinfo = deserializeJSON(fileRead(runsDir & "/" & name)) />
 			RUNHASH <a href="?info=#runinfo.id#">#runinfo.id#</a><br />
-			Target: #runinfo.target# Status: #runinfo.status# Started: #runinfo.started#  Ended: #runinfo.ended#
+			Target: <strong>#runinfo.target#</strong> Status: <em>#runinfo.status#</em> Started: #runinfo.started#  Ended: #runinfo.ended#
 			(#dateDiff("n",runinfo.started,runinfo.ended)# mins #dateDiff("s",runinfo.started,runinfo.ended)# secs)<br />
 			<cfif runinfo.errortext != "">
 				<pre style="color:red">#runinfo.errortext#</pre>
@@ -219,7 +284,8 @@
 	</cfloop>
 	<cfoutput><em>Server started #server.ci.started#
 				<cfset dtDiff = (parseDateTime(now()) - parseDateTime(server.ci.started)) />
-				#dateDiff( "h",server.ci.started,now())# Hour(s),
+				dateDiff( "h",#server.ci.started#,#now()#) ==
+				#dateDiff( "h",server.ci.started,now())# Hour(s) ?,
 				#TimeFormat( dtDiff, "m" )# Minute(s),
 				#TimeFormat( dtDiff, "s" )# Second(s)
 	</em></cfoutput>
@@ -258,4 +324,27 @@
 	<cfoutput>#js#</cfoutput>
 	</cfloop>
 </body>
-</html>
+</html><cfsilent>
+
+<cffunction name="loadProperties">
+	<cfargument name="propsfile" required="true" />
+	<cfscript>
+		var properties = createObject('java', 'java.util.Properties').init();
+		var fileStream = createObject('java', 'java.io.FileInputStream').init(propsfile);
+		properties.load(fileStream);
+		return properties;
+	</cfscript>
+</cffunction>
+
+<cffunction name="storeProperties">
+	<cfargument name="propsfile" required="true" />
+	<cfargument name="properties" required="true" />
+	<cfargument name="comment" default="modified #now()#" />
+	<cfscript>
+		var fileStream = createObject('java', 'java.io.FileOutputStream').init(propsfile);
+		properties.store(fileStream,comment);
+		return properties;
+	</cfscript>
+</cffunction>
+
+</cfsilent>

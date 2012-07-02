@@ -121,7 +121,6 @@
 
  	<target name="build.cli.express" depends="build.cli">
  		<delete dir="${temp.dir}/express" />
- 		<delete dir="${dist.dir}/express" />
  		<mkdir dir="${temp.dir}/express" />
  		<mkdir dir="${dist.dir}/express" />
  		<mkdir dir="${temp.dir}/express/webroot" />

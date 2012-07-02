@@ -53,9 +53,6 @@
           target: compile railo classes             
          ================================= -->
     <target name="RailoCore.compile" depends="RailoCore.init" description="Compiles the src classes.">
-    	<mkdir dir="${build-core.build.dir}/classes"/>
-    	<mkdir dir="${build-core.build.dir}/admin"/>
-    	<mkdir dir="${build-core.dist.dir}"/>
         <echo>Compile Railo src.</echo>
         <javac-ecj srcdir="${build-core.src.dir}" destdir="${build-core.build.dir}/classes" 
         	compliance="${railo.javac.compiler}" classpath="${toString:classpath}"

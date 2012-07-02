@@ -108,7 +108,6 @@
 				<else>
 					<echo message="Revisions differ, running tests" />
 					<sequential>
-						<antcontrib:runtarget target="build" />
 						<antcontrib:runtarget target="tests.build.start.run.stop" />
 					</sequential>
 				</else>

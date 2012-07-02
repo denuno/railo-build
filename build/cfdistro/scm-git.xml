@@ -279,8 +279,15 @@
 							<echo message="updating src: @{dest}" />
 							<!--
 							-->
-							<git command="fetch" dir="@{dest}"/>
-							<git-checkout repository="@{dest}" branch="@{branch}" force="${project.update.force}"/>
+							<git command="fetch" dir="@{dest}">
+								<args><arg>@{branch}</arg></args>
+							</git>
+							<git command="fetch" dir="@{dest}">
+								<args><arg>origin</arg></args>
+							</git>
+							<git command="merge" dir="@{dest}">
+								<args><arg>@{branch}</arg></args>
+							</git>
 						</else>
 					</antcontrib:if>
 				</actions>
