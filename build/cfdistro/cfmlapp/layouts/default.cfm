@@ -1,240 +1,125 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
-	<head>
-		<meta http-equiv="Content-Type" content="text/html;
-			charset=UTF-8">
-		<link rel="stylesheet" type="text/css"
-			href="<cfoutput>#resp.encodeURL('/assets/css/styles.css')#</cfoutput>"
-			media="screen">
-		<title>
-			cfdistro
-		</title>
-		<!--[if IE 6]>
-			<script type="text/javascript" src="js/ie6-transparency.js"></script>
-			<script>
-			    DD_belatedPNG.fix('#header h1, #header #header-img img, #header #header-img, #content .section .experience, #content .section .expertise, #content .section .education, #content .section .training, #content .section img');
-			</script>
-			<link rel="stylesheet" type="text/css" href="ie6.css" />
-			<![endif]-->
-		<!--[if IE 7]>
-			<link rel="stylesheet" type="text/css" href="ie7.css" />
-			<![endif]-->
-		<!--[if IE 8]>
-			<link rel="stylesheet" type="text/css" href="ie8.css" />
-			<![endif]-->
-	</head>
-	<body>
-		<div id="wrap">
-			<div id="header-top">
-			</div>
-			<div id="header">
-				<div id="header-content">
-					<div style="float:right">
-						<h4>
-							Recent Test Results
-						</h4>
-						<ul>
-							<li>
-								<a href="index.html">
-									consequat molestie
-								</a>
-							</li>
-						</ul>
-						<h4>
-							Recent Builds
-						</h4>
-						<ul>
-							<li>
-								<a href="index.html">
-									consequat molestie
-								</a>
-							</li>
-						</ul>
-					</div>
-					<h1>
-						cfdistro
-					</h1>
-					<!--end contact-details-->
-					<div id="about-me">
-						<h2>
-							cfdistro
-						</h2>
-						<p>
-							Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin a nibh mauris. Mauris interdum, dolor in vulputate tincidunt, mauris lorem feugiat augue, id tristique lacus est ac purus. Aenean nunc urna, vestibulum non viverra.
-						</p>
-					</div>
-					<!--end about-me-->
-				</div>
-				<!--end header-content-->
-				<div id="header-img" style="padding-left:20px">
-					<h4>Distros</h4>
-					<ul>
-						<cfoutput>
-							<li>
-								<a href="#resp.encodeURL('index.cfm?action=distro.list')#" title="View the list of distros">
-									List
-								</a>
-							</li>
-							<li>
-								<a href="#resp.encodeURL('index.cfm?action=distro.form')#" title="Fill out form to add new distro">
-									Add New
-								</a>
-							</li>
-						</cfoutput>
-					</ul>
-				<h3>cfdistro</h3>
-				<ul>
-					<cfoutput>
-						<li>
-							<a href="#resp.encodeURL("index.cfm?action=distro.loadpersisted")#" title="Loads any saved distros">
-								Load Persisted Distros
-							</a>
-						</li>
-						<li>
-							<a href="#resp.encodeURL('index.cfm?action=distro.persist')#" title="Saves distros to disk">
-								Persist All Distros
-							</a>
-						</li>
-						<li>
-							<a href="#resp.encodeURL('/index.cfm??action=distro.default&init=true')#" title="Resets framework cache">
-								Reload App
-							</a>
-						</li>
-					</cfoutput>
-				</ul>
-				</div>
-				<!--end header-img-->
-			</div>
-			<!--end header-->
-			<div class="line">
-			</div>
-			<div id="content">
-				<div class="section">
-				<cfoutput>
-					#body#
-				</cfoutput>
-				</div>
-			</div>
-			<!--end content-->
-			<div id="footer">
-			</div>
-		</div>
-		<!--end wrap-->
-	</body>
-</html>
-<cfabort />
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
-	"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
-<html>
-	<head>
-		<meta http-equiv="content-type" content="text/html; charset=iso-8859-1"/>
-		<meta name="description" content="description"/>
-		<meta name="keywords" content="keywords"/>
-		<meta name="author" content="author"/>
-		<cfoutput>
-			<link rel="stylesheet" type="text/css" href="#resp.encodeURL('/assets/css/styles.css')#" media="screen"/>
-		</cfoutput>
-		<title>
-			cfdistro
-		</title>
-	</head>
-	<body>
-		<div class="container">
-			<div class="main">
-				<cfoutput>
-					#body#
-				</cfoutput>
-			</div>
-			<div class="navigation">
-				<a href="index.cfm">
-					<cfoutput>
-						<img src="#resp.encodeURL('/assets/images/cfdistro.png')#" border="0">
-					</cfoutput>
-				</a>
-				<h1>
-					Distros
-				</h1>
-				<ul>
-					<cfoutput>
-						<li>
-							<a href="#resp.encodeURL('index.cfm?action=distro.list')#" title="View the list of distros">
-								List
-							</a>
-						</li>
-						<li>
-							<a href="#resp.encodeURL('index.cfm?action=distro.form')#" title="Fill out form to add new distro">
-								Add New
-							</a>
-						</li>
-					</cfoutput>
-				</ul>
-				<h1>
-					Recent Test Results
-				</h1>
-				<ul>
-					<li>
-						<a href="index.html">
-							consequat molestie
-						</a>
-					</li>
-				</ul>
-				<h1>
-					Recent Builds
-				</h1>
-				<ul>
-					<li>
-						<a href="index.html">
-							consequat molestie
-						</a>
-					</li>
-				</ul>
-				<h1>
-					cfdistro
-				</h1>
-				<ul>
-					<cfoutput>
-						<li>
-							<a href="#resp.encodeURL("index.cfm?action=distro.loadpersisted")#" title="Loads any saved distros">
-								Load Persisted Distros
-							</a>
-						</li>
-						<li>
-							<a href="#resp.encodeURL('index.cfm?action=distro.persist')#" title="Saves distros to disk">
-								Persist All Distros
-							</a>
-						</li>
-						<li>
-							<a href="#resp.encodeURL('/index.cfm??action=distro.default&init=true')#" title="Resets framework cache">
-								Reload App
-							</a>
-						</li>
-					</cfoutput>
-				</ul>
-			</div>
-			<div class="clearer">
-				<span>
-				</span>
-			</div>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Bootswatch: Spacelab</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le styles -->
+	<cfoutput>
+	    <link href="#resp.encodeURL('/assets/css/bootstrap.min.css')#" rel="stylesheet">
+	    <link href="#resp.encodeURL('/assets/css/bootstrap-responsive.css')#" rel="stylesheet">
+	</cfoutput>
+
+  </head>
+
+  <body class="preview" data-spy="scroll" data-target=".subnav" data-offset="50">
+
+<!-- Navbar
+================================================== -->
+<section id="navbar">
+  <div class="navbar">
+    <div class="navbar-inner">
+      <div class="container" style="width: auto;">
+        <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </a>
+        <a class="brand" href="#">Project name</a>
+        <div class="nav-collapse">
+          <ul class="nav">
 			<cfoutput>
-				<div class="footer">
-					&copy; 2006
-					<a href="#resp.encodeURL('/')#">
-						cfdistro
+            	<li class="active"><a href="#resp.encodeURL('index.cfm?action=distro.default')#">Home</a></li>
+				<li>
+					<a href="#resp.encodeURL('index.cfm?action=distro.list')#" title="View the list of distros">List</a>
+				</li>
+				<li>
+					<a href="#resp.encodeURL('index.cfm?action=distro.form')#" title="Fill out form to add new distro">Add New</a>
+				</li>
+				<li>
+					<a href="#resp.encodeURL("index.cfm?action=distro.loadpersisted")#" title="Loads any saved distros">
+						Load Persisted Distros
 					</a>
-					. Valid
-					<a href="http://jigsaw.w3.org/css-validator/check/referer">
-						CSS
+				</li>
+				<li>
+					<a href="#resp.encodeURL('index.cfm?action=distro.persist')#" title="Saves distros to disk">
+						Persist All Distros
 					</a>
-					&amp;
-					<a href="http://validator.w3.org/check?uri=referer">
-						XHTML
+				</li>
+				<li>
+					<a href="#resp.encodeURL('/index.cfm??action=distro.default&init=true')#" title="Resets framework cache">
+						Reload App
 					</a>
-					. Template design by
-					<a href="http://templates.arcsin.se">
-						Arcsin
-					</a>
+				</li>
 			</cfoutput>
-			</div>
-		</div>
-	</body>
+            <li><a href="#">Link</a></li>
+            <li class="dropdown">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown">Dropdown <b class="caret"></b></a>
+              <ul class="dropdown-menu">
+                <li><a href="#">Action</a></li>
+                <li><a href="#">Another action</a></li>
+                <li><a href="#">Something else here</a></li>
+                <li class="divider"></li>
+                <li><a href="#">Separated link</a></li>
+              </ul>
+            </li>
+          </ul>
+          <form class="navbar-search pull-left" action="">
+            <input type="text" class="search-query span2" placeholder="Search">
+          </form>
+          <ul class="nav pull-right">
+            <li><a href="#">Link</a></li>
+            <li class="divider-vertical"></li>
+            <li class="dropdown">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown">Dropdown <b class="caret"></b></a>
+              <ul class="dropdown-menu">
+                <li><a href="#">Action</a></li>
+                <li><a href="#">Another action</a></li>
+                <li><a href="#">Something else here</a></li>
+                <li class="divider"></li>
+                <li><a href="#">Separated link</a></li>
+              </ul>
+            </li>
+          </ul>
+        </div><!-- /.nav-collapse -->
+      </div>
+    </div><!-- /navbar-inner -->
+  </div><!-- /navbar -->
+
+</section>
+
+	<div class="container">
+		<cfoutput>
+			#body#
+		</cfoutput>
+	   <!-- Footer
+	     ================================================== -->
+	     <footer class="footer">
+	       <p class="pull-right"><a href="#">Back to top</a></p>
+	     </footer>
+	</div><!-- /container -->
+<!---
+
+
+    <!-- Le javascript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="../assets/js/jquery.js"></script>
+    <script src="../assets/js/bootstrap-dropdown.js"></script>
+    <script src="../assets/js/bootstrap-scrollspy.js"></script>
+    <script src="../assets/js/bootstrap-collapse.js"></script>
+		<script src="../assets/js/bootstrap-tooltip.js"></script>
+    <script src="../js/application.js"></script>
+    <script src="../js/bootswatch.js"></script>
+
+ --->
+ </body>
 </html>

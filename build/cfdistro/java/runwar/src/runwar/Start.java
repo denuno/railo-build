@@ -212,7 +212,7 @@ public class Start {
 		}
 		
 		File webinf = new File(warFile,"WEB-INF");
-		if(!webinf.exists()) {
+		if(warFile.isDirectory() && !webinf.exists()) {
 			context = new ExternalContext(contexts, warPath, contextPath, warFile,new File(libDir,"server/WEB-INF"));
 			Class cfmlServlet;
 			try{

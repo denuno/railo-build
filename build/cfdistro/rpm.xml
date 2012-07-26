@@ -1,8 +1,8 @@
 <project name="rpm" default="build.rpm" xmlns:antcontrib="antlib:net.sf.antcontrib" xmlns:redline="antlib:org.redline_rpm"  basedir=".">
 	
 
-    <property name="redline.ant.tasks.jar" value="${ant.home}/lib/redline-1.1.9.jar" />
-    <property name="redline.ant.tasks.bootstrap.location" value="https://cloud.github.com/downloads/craigwblake/redline/redline-1.1.9.jar" />
+    <property name="redline.ant.tasks.jar" value="${cfdistro.basedir}/lib/redline-1.1.9.jar" />
+    <property name="redline.ant.tasks.bootstrap.location" value="http://cloud.github.com/downloads/craigwblake/redline/redline-1.1.9.jar" />
     <available property="redline.ant.tasks.jar.exists" file="${redline.ant.tasks.jar}" />
 
     <!-- This will download the "latest version" of the maven-ant-tasks if needed -->

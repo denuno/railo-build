@@ -1,7 +1,7 @@
 <project name="tests" basedir="./" xmlns:antcontrib="antlib:net.sf.antcontrib">
 
 	<property name="tests.run.url" value="http://localhost:${server.port.http}/${war.name}/tests/run.cfm" />
-	<target name="tests.run">
+	<target name="tests.call">
 		<mkdir dir="${war.target.dir}" />
 		<property name="testresult.file" value="${war.target.dir}/test.results.html/" />
 		<sequential>
@@ -42,60 +42,49 @@
 	<target name="cfmail.test">
 		<property name="build.type" value="localdev" />
 		<cfmail to="valliantster@gmail.com" from="valliantster@gmail.com" subject="fart" message="it is good for the heart" />
-	</target>
+	</target> 
 
-	<target name="tests.start.run">
+	<target name="tests.run">
 		<mkdir dir="${war.target.dir}" />
 		<property name="testresult.file" value="${war.target.dir}/test.results.html" />
 		<sequential>
-			<antcontrib:runtarget target="server.start" />
-			<antcontrib:runtarget target="tests.run" />
+			<server-run>
+				<antcontrib:runtarget target="tests.call" />
+			</server-run>
 		</sequential>
 	</target>
 
-	<target name="tests.start.run.stop">
-		<mkdir dir="${war.target.dir}" />
-		<property name="testresult.file" value="${war.target.dir}/test.results.html" />
-		<sequential>
-			<antcontrib:runtarget target="tests.start.run" />
-			<antcontrib:runtarget target="server.stop" />
-		</sequential>
-	</target>
-
-
-	<target name="tests.build.start.run.stop">
+	<target name="tests.build.run">
 		<mkdir dir="${war.target.dir}" />
 		<property name="testresult.file" value="${war.target.dir}/test.results.html" />
 		<sequential>
 			<antcontrib:runtarget target="project.update" />
 			<antcontrib:runtarget target="build" />
-			<antcontrib:runtarget target="server.start" />
 			<antcontrib:runtarget target="tests.run" />
-			<antcontrib:runtarget target="server.stop" />
 		</sequential>
 	</target>
 
-	<target name="tests.build.start.run.stop.both">
+	<target name="tests.build.run.both">
 		<sequential>
 			<antcontrib:var name="default.cfengine" value="railo" />
-			<antcall target="tests.build.start.run.stop" />
+			<antcall target="tests.build.run" />
 			<antcontrib:var name="default.cfengine" value="acf" />
-			<antcall target="tests.build.start.run.stop" />
+			<antcall target="tests.build.run" />
 		</sequential>
 	</target>
 
-	<target name="tests.build.start.run.stop.all">
+	<target name="tests.build.run.all">
 		<sequential>
 			<antcontrib:var name="default.cfengine" value="railo" />
-			<antcall target="tests.build.start.run.stop" />
+			<antcall target="tests.build.run" />
 			<antcontrib:var name="default.cfengine" value="acf" />
-			<antcall target="tests.build.start.run.stop" />
+			<antcall target="tests.build.run" />
 			<antcontrib:var name="default.cfengine" value="obd" />
-			<antcall target="tests.build.start.run.stop" />
+			<antcall target="tests.build.run" />
 		</sequential>
 	</target>
 
-	<target name="tests.build.start.run.stop.ifnew">
+	<target name="tests.ifnew.build.run">
 		<mkdir dir="${war.target.dir}" />
 		<property name="testresult.file" value="${war.target.dir}/test.results.html/" />
 		<sequential>
@@ -108,7 +97,7 @@
 				<else>
 					<echo message="Revisions differ, running tests" />
 					<sequential>
-						<antcontrib:runtarget target="tests.build.start.run.stop" />
+						<antcontrib:runtarget target="tests.build.run" />
 					</sequential>
 				</else>
 			</antcontrib:if>

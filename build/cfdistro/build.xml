@@ -1,6 +1,7 @@
 <project name="cfdistro" default="help" basedir="./" xmlns:antcontrib="antlib:net.sf.antcontrib" xmlns:classloader="antlib:net.jtools.classloadertask">
 
 	<dirname property="cfdistro.basedir" file="${ant.file.cfdistro}" />
+	<property file="${user.home}/.cfdistrorc" />
 	<property name="dist.root.dir" location="../" />
 	<property file="${cfdistro.basedir}/i18n/en_us.properties" prefix="i18n" />
 	<property file="${basedir}/build.${build.type}.properties" />
@@ -197,6 +198,8 @@ a tiny 2m jar but getPageContext() throws errors!!
 	<antcontrib:var name="dist.dir" unset="true" />
 	<property name="dist.dir" location="${dist.dir.absolute}" />
 
+	<import file="testing/mxunit.xml" />
+	<import file="testing/jmeter.xml" />
 	<import file="startscripts.xml" />
 	<import file="${cfdistro.basedir}/build-railo.xml" />
 	<import file="build-acf.xml" />
@@ -215,8 +218,6 @@ a tiny 2m jar but getPageContext() throws errors!!
 	<import file="installer/build.xml" />
 	<import file="cache/infinispan.xml" />
 	<import file="cache/ehcache.xml" />
-	<import file="testing/mxunit.xml" />
-	<import file="testing/jmeter.xml" />
 	<import file="httpd/build.xml" />
 	<import file="httpd/nginx.xml" />
 	<import file="httpd/lighttpd.xml" />
@@ -226,9 +227,14 @@ a tiny 2m jar but getPageContext() throws errors!!
 	<import file="air/build.xml" />
 	<import file="maven.xml" />
 	<import file="rpm.xml" />
+	<import file="ci.xml" />
 	<delete dir="${temp.dir}" />
 	<mkdir dir="${temp.dir}" />
-	
+
+    <property name="cfdistro.repo.local.path" location="${cfdistro.basedir}/artifacts" />
+    <mvn-repo id="cfdistro.repo.remote" url="http://loganberry.viviotech.net/artifacts/" />
+	<mvn-repo id="cfdistro.repo.local" url="file://${cfdistro.repo.local.path}/" />
+
 	<!--
 	<import file="hibernate/hibernate.xml" />
 -->
@@ -285,7 +291,7 @@ a tiny 2m jar but getPageContext() throws errors!!
 	<target name="cfdistro.copy" description="copies cfdistro files to ${basedir}/cfdistro">
 		<delete dir="${basedir}/cfdistro/" excludes="ant/**"/>
 		<copy todir="${basedir}/cfdistro" verbose="false" overwrite="true">
-			<fileset dir="${cfdistro.basedir}/" excludes="ext/**" />
+			<fileset dir="${cfdistro.basedir}/" excludes="ext/** artifacts/** **/.svn/** .git/**" defaultexcludes="false" />
 		</copy>
 	</target>
 
@@ -351,7 +357,6 @@ a tiny 2m jar but getPageContext() throws errors!!
 		<load-buildtype-properties buildtype="${build.type}" />
 		-->
 		<mkdir dir="${temp.dir}" />
-		<relpath property="log.dir" to="${log.dir}" from="${war.target.dir}/WEB-INF"/>
 		
 		<sanitizeContextPath />
 		<antcontrib:runtarget target="${default.cfengine}.war.init" />
@@ -505,8 +510,6 @@ a tiny 2m jar but getPageContext() throws errors!!
 		<property name="copy.mappings.to.war" value="true" />
 		<antcontrib:runtarget target="build" />
 	</target>
-
-
 
 	<target name="start">
 		<antcontrib:runtarget target="${server.type}.start" />
@@ -913,7 +916,7 @@ a tiny 2m jar but getPageContext() throws errors!!
 </antcontrib:if>
 </target>
 
-<target name="exists.mappings.xml">
+<target name="exists.mappings.xml" depends="exists.src.xml">
 <sanitizeContextPath />
 <property name="src.dir.absolute" location="${src.dir}" />
 <antcontrib:var name="src.dir" unset="true" />
@@ -1016,12 +1019,52 @@ a tiny 2m jar but getPageContext() throws errors!!
 			<xmltask destbuffer="datasources.buff" outputter="simple">
 				<insert path="/" xml="${datasources.xml}" position="under" />
 			</xmltask>
+			<xmltask sourcebuffer="datasources.buff">
+			<call path="datasources/*">
+				<param name="name" path="@name" default="datasource" />
+				<param name="class" path="@class" default="org.gjt.mm.mysql.Driver" />
+				<param name="jdbcstring" path="@jdbcstring" default="jdbc:mysql://{host}:{port}/{database}" />
+				<param name="username" path="@username" default="sa" />
+				<param name="password" path="@password" default="" />
+				<actions>
+					<property name="dsn.@{name}.class" value="@{class}" /> 
+					<property name="dsn.@{name}.url" value="@{jdbcstring}" /> 
+					<property name="dsn.@{name}.username" value="@{username}" /> 
+					<property name="dsn.@{name}.password" value="@{password}" /> 
+				</actions>
+			</call>
+			</xmltask>
 		</then>
 		<else>
 			<echo message="No datasources settings file to import : ${datasources.file} does not exist." />
 		</else>
 	</antcontrib:if>
 </target>
+
+<macrodef name="dsn-sql">
+	<attribute name="dsn" />
+	<element name="sqlscript" optional="false"/>
+	<sequential>
+		<xmltask sourcebuffer="datasources.buff">
+		<call path="datasources/datasource[@name='@{name}']">
+			<param name="name" path="@name" default="datasource" />
+			<param name="class" path="@class" default="org.gjt.mm.mysql.Driver" />
+			<param name="jdbcstring" path="@jdbcstring" default="jdbc:mysql://{host}:{port}/{database}" />
+			<param name="username" path="@username" default="sa" />
+			<param name="password" path="@password" default="" />
+			<actions>
+				<sql
+				    driver="org.database.jdbcDriver"
+				    url="jdbc:database-url"
+				    userid="sa"
+				    password="pass">
+					<sqlscript/>
+				</sql>	
+			</actions>
+		</call>
+		</xmltask>
+	</sequential>
+</macrodef>
 
 <target name="exists.customtags.xml">
 <sanitizeContextPath />
@@ -1273,7 +1316,10 @@ a tiny 2m jar but getPageContext() throws errors!!
 	<case value="minimal">
 		<echo message="miminal dist, build and cfdistro only ${creds.token.file}" />
 		<antcontrib:if>
-			<available file="${basedir}/requires.txt"/>
+			<and>
+				<available file="${basedir}/requires.txt"/>
+				<equals arg1="add.requires" arg2="true" />
+			</and>
 			<then>
 				<loadfile property="ext.requires" srcFile="${basedir}/requires.txt" />
 				<copy todir="${dist.dir}/${distro.name}/build/cfdistro/ext/" verbose="true">
@@ -1328,14 +1374,22 @@ a tiny 2m jar but getPageContext() throws errors!!
 		<fail message="Um, the dist include type '${dist.type}' is unknown to me, esse!" />
 	</default>
 </antcontrib:switch>
-<loadfile property="project.build.file" srcFile="${dist.dir}/${distro.name}/build/build.properties" />
-<property name="dist.cfdistro.build.file" value="cfdistro/build.xml" />
-<antcontrib:propertyregex property="project.build.file" input="${project.build.file}" global="true" override="yes" regexp="(\s)cfdistro.build.file=.*" replace="\1cfdistro.build.file=${dist.cfdistro.build.file}" />
-<antcontrib:propertyregex property="project.build.file" input="${project.build.file}" global="true" override="yes" regexp="(\s)build.type=.*" replace="\1build.type=${build.type}" />
-<echo file="${dist.dir}/${distro.name}/build/build.properties" message="${project.build.file}" />
-<copy todir="${dist.dir}/${distro.name}/build/cfdistro" verbose="false">
-	<fileset dir="${cfdistro.basedir}/" excludes="ext/**,rpmbuild/SOURCES/**,rpmbuild/RPMS/**" />
-</copy>
+<antcontrib:switch value="${dist.type}">
+	<case value="minimal">
+	</case>
+	<default>
+		<copy todir="${dist.dir}/${distro.name}/build/cfdistro" verbose="false">
+			<fileset dir="${cfdistro.basedir}/" excludes="ext/**,rpmbuild/SOURCES/**,rpmbuild/RPMS/**" />
+		</copy>
+		<chmod file="${dist.dir}/${distro.name}/build/cfdistro/ant/bin/ant" perm="ugo+rx" />
+		<!-- set the cfdistro file path to included cfdistro -->
+		<loadfile property="project.build.file" srcFile="${dist.dir}/${distro.name}/build/build.properties" />
+		<property name="dist.cfdistro.build.file" value="cfdistro/build.xml" />
+		<antcontrib:propertyregex property="project.build.file" input="${project.build.file}" global="true" override="yes" regexp="(\s)cfdistro.build.file=.*" replace="\1cfdistro.build.file=${dist.cfdistro.build.file}" />
+		<antcontrib:propertyregex property="project.build.file" input="${project.build.file}" global="true" override="yes" regexp="(\s)build.type=.*" replace="\1build.type=${build.type}" />
+		<echo file="${dist.dir}/${distro.name}/build/build.properties" message="${project.build.file}" />
+	</default>
+</antcontrib:switch>
 <!--
 <antcontrib:var name="dist.script.sh" value="${dist.dir}/${distro.name}/${distro.name}.sh" />
 <antcontrib:var name="dist.script.bat" value="${dist.dir}/${distro.name}/${distro.name}.bat" />
@@ -1346,7 +1400,6 @@ a tiny 2m jar but getPageContext() throws errors!!
 <fixcrlf srcdir="${dist.dir}/${distro.name}/build" includes="**/*.xml" eol="crlf" />
 <chmod file="${dist.dir}/${distro.name}/${distro.name}" perm="ugo+rx" />
 <chmod file="${dist.dir}/${distro.name}/build/cfdistro.sh" perm="ugo+rx" />
-<chmod file="${dist.dir}/${distro.name}/build/cfdistro/ant/bin/ant" perm="ugo+rx" />
 <!-- use our macrodef that uses OS zip executable so we retain file permissions -->
 <zipdir destfile="${dist.dir}/${distro.name}.zip" sourcedir="${dist.dir}/" />
 <length file="${dist.dir}/${distro.name}.zip" property="distro.length" />

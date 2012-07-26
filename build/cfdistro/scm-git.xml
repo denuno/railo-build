@@ -126,7 +126,7 @@
 				<equals arg1="@{tag}" arg2="HEAD" />
 				<then/>
 				<else>
-					<git-checkout repository="@{dest}" branch="@{tag}" use-jgit="@{use-jgit}"><args><arg value="-r"/></args></git-checkout>
+					<git-checkout repository="@{dest}" branch="@{tag}" use-jgit="@{use-jgit}" />
 				</else>
 			</antcontrib:if>
 		</sequential>
@@ -280,9 +280,6 @@
 							<!--
 							-->
 							<git command="fetch" dir="@{dest}">
-								<args><arg>@{branch}</arg></args>
-							</git>
-							<git command="fetch" dir="@{dest}">
 								<args><arg>origin</arg></args>
 							</git>
 							<git command="merge" dir="@{dest}">
@@ -412,6 +409,7 @@
 				<param name="dest" path="@dest" default="NONE" />
 				<param name="type" path="@type" default="NONE" />
 				<param name="uri" path="@uri" default="NONE" />
+				<param name="branch" path="@branch" default="master" />
 				<actions>
 					<antcontrib:var name="revisions.are.same" value="true"/>
 					<antcontrib:var name="desthash" unset="true"/>
@@ -436,9 +434,11 @@
 							<antcontrib:var name="revisions.are.same" value="false"/>
 							<echo message="Local revision differs" />
 						</else>
-					</antcontrib:if>
+					</antcontrib:if> 
 					<!-- check for remote commits (defaults to origin) -->
-					<git command="fetch" dir="@{dest}"/>
+					<git command="fetch" dir="@{dest}">
+						<args><arg value="origin" /></args>
+					</git>
 					<git command="log" dir="@{dest}">
 						<args>
 							<arg value="-n" />
@@ -487,6 +487,38 @@
 		</sequential>
 	</macrodef>
 	
+    <macrodef name="git-fetch-from-remote">
+        <sequential>
+    		<xmltask sourcebuffer="src.buff">
+    			<call path="src/project/src[@type='git']">
+    				<param name="dest" path="@dest" default="NONE" />
+    				<param name="type" path="@type" default="NONE" />
+    				<param name="uri" path="@uri" default="NONE" />
+    				<param name="branch" path="@branch" default="master" />
+    				<actions>
+						<!--  get branches -->
+						<git command="fetch" dir="@{dest}">
+							<args>
+								<arg value="origin" />
+								<arg value="+refs/heads/*:refs/remotes/origin/*" />
+							</args>
+						</git>
+						<!--  get tags -->
+						<git command="fetch" dir="@{dest}">
+							<args>
+								<arg value="origin" />
+								<arg value="+refs/tags/*:refs/remotes/origin/*" />
+							</args>
+						</git>
+						<git command="fetch" dir="@{dest}">
+							<args><arg value="origin" /></args>
+						</git>
+					</actions>
+				</call>
+    		</xmltask>
+        </sequential>
+    </macrodef>
+    
 	<target name="exists.src.xml">
 		<antcall target="cfdistro.exists.src.xml" />
 	</target>

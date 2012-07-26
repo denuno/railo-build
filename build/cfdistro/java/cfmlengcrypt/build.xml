@@ -44,6 +44,13 @@
 		<antcontrib:var name="dsn.password.plaintext" unset="true" />		
 	</target>
 
+
+	<target name="sha.encrypt" depends="cfmlengcrypt.jar">
+		<antcontrib:var name="sha.result" unset="true" />		
+		<sha plaintext="admin123" property="sha.result" />
+		<echo message="${sha.result}"/>
+	</target>
+
 	<macrodef name="cfmlengcrypt">
 		<attribute name="engine" default="railo" />
 		<attribute name="plaintext" />
@@ -51,10 +58,23 @@
 		<sequential>
 			<antcontrib:var name="@{property}" unset="true" />
 			<java jar="${cfdistro.basedir}/lib/cfmlengcrypt.jar" fork="true" classpathref="cfmlengcrypt.lib.path" outputproperty="@{property}">
-				<arg value="railo" />
+				<arg value="@{engine}" />
 				<arg value="@{plaintext}" />
 			</java>
 			<echo message="@{engine} encrypted: @{plaintext} = ${@{property}} > $${@{property}}"/>
+		</sequential>
+	</macrodef>
+
+	<macrodef name="sha">
+		<attribute name="plaintext" />
+		<attribute name="property" />
+		<sequential>
+			<antcontrib:var name="@{property}" unset="true" />
+			<java jar="${cfdistro.basedir}/lib/cfmlengcrypt.jar" fork="true" classpathref="cfmlengcrypt.lib.path" outputproperty="@{property}">
+				<arg value="sha" />
+				<arg value="@{plaintext}" />
+			</java>
+			<echo message="encrypted: @{plaintext} = ${@{property}} > $${@{property}}"/>
 		</sequential>
 	</macrodef>
 

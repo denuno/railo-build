@@ -61,10 +61,9 @@
 		user="" password="" />
  -->
 <!--	ColdSpring 1.2
-		<src dest="./" type="cvs" 
-		uri=":pserver:anoncvs@cvs.coldspringframework.org:/coldspring" 
-		dirname="coldspring" module="coldspring"
-		user="anoncvs" password="anoncvs" />
+		<src dest="@src.dir@/coldspring" type="git"
+		uri="git://github.com/boomfish/coldspring1.git" tag="coldspring-1-2"
+		user="" password="" />
  -->
 <!--	ColdSpring 2.0
 		<src dest="@src.dir@/coldspring" type="git" 

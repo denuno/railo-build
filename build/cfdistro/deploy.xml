@@ -7,7 +7,6 @@
 	<propertyset id="remote-properties">
 	  <propertyref prefix="remote.${remote}."/>
 	</propertyset>
-	<echoproperties prefix="remote." />
 
 	<antcontrib:for list="${toString:remote-properties}" param="prop">
 		<sequential>
@@ -56,6 +55,7 @@
 						<exclude name="**/cache.properties"/>
 						<exclude name="**/temp/**"/>
 						<exclude name="**/cfdistro/ext/**"/>
+						<exclude name="**/cfdistro/artifacts/**"/>
 						<exclude name="**/.git/**"/>
 						<include name="${scp.include}"/>
 					</fileset>
@@ -97,7 +97,7 @@
 			<echo message="${remoteprops}" />
 			<echoproperties prefix="deploy"/>
 			<deploy-sshexec
-				command="${distro.name}/${distro.name}.sh ${server.type}.install ${remoteprops}" />
+				command="${distro.name}/${distro.name} ${server.type}.install ${remoteprops}" />
 		</sequential>
 	</target>
 
@@ -107,7 +107,7 @@
 			<antcontrib:runtarget target="check.creds" />
 			<property name="target" value="build" />
 			<deploy-sshexec
-				command="${distro.name}/${distro.name}.sh ${target} ${remoteprops}" />
+				command="${distro.name}/${distro.name} ${target} ${remoteprops}" />
 		</sequential>
 	</target>
 
@@ -142,7 +142,7 @@
 			<antcontrib:runtarget target="check.creds" />
 			<echoproperties prefix="deploy"/>
 			<deploy-sshexec
-				command="${distro.name}/${distro.name}.sh cfdistro.update" />
+				command="${distro.name}/${distro.name} cfdistro.update" />
 		</sequential>
 	</target>
 
@@ -151,7 +151,7 @@
 			<antcontrib:runtarget target="check.creds" />
 			<echoproperties prefix="deploy"/>
 			<deploy-sshexec
-				command="${distro.name}/${distro.name}.sh ${server.type}.start" />
+				command="${distro.name}/${distro.name} ${server.type}.start" />
 		</sequential>
 	</target>
 
@@ -160,7 +160,7 @@
 			<antcontrib:runtarget target="check.creds" />
 			<echoproperties prefix="deploy"/>
 			<deploy-sshexec
-				command="${distro.name}/${distro.name}.sh ${server.type}.stop" />
+				command="${distro.name}/${distro.name} ${server.type}.stop" />
 		</sequential>
 	</target>
 
@@ -178,7 +178,7 @@
 			<antcontrib:runtarget target="check.creds" />
 			<echoproperties prefix="deploy"/>
 			<deploy-sshexec
-				command="${distro.name}/${distro.name}.sh server.log.tail" />
+				command="${distro.name}/${distro.name} server.log.tail" />
 		</sequential>
 	</target>
 	
@@ -187,7 +187,7 @@
 		<sequential>
 			<antcontrib:runtarget target="check.creds" />
 			<echoproperties prefix="deploy" />
-			<deploy-sshexec command="${distro.name}/${distro.name}.sh server.start ${remoteprops}" />
+			<deploy-sshexec command="${distro.name}/${distro.name} server.start ${remoteprops}" />
 		</sequential>
 	</target>
 
@@ -195,7 +195,7 @@
 		<sequential>
 			<antcontrib:runtarget target="check.creds" />
 			<echoproperties prefix="deploy" />
-			<deploy-sshexec command="${distro.name}/${distro.name}.sh server.stop ${remoteprops}" />
+			<deploy-sshexec command="${distro.name}/${distro.name} server.stop ${remoteprops}" />
 		</sequential>
 	</target>
 
@@ -212,6 +212,7 @@
 				<fileset dir="${basedir}/../">
 					<modified />
 					<include name="${scp.dir}/**"/>
+					<exclude name="**/cfdistro/artifacts/**"/>
 					<exclude name="**/cache.properties"/>
 					<exclude name="**/temp/**"/>
 					<exclude name="**/.git/**"/>
@@ -229,6 +230,7 @@
 				<fileset dir="${basedir}">
 					<exclude name="**/creds.txt"/>
 					<exclude name="**/cfdistro/ext/**"/>
+					<exclude name="**/cfdistro/artifacts/**"/>
 					<exclude name="**/cache.properties"/>
 					<exclude name="**/temp/**"/>
 					<exclude name="**/.git/**"/>
@@ -246,6 +248,7 @@
 				<fileset dir="${dist.dir}/${distro.name}">
 					<exclude name="**/creds.txt"/>
 					<exclude name="**/cfdistro/ext/**"/>
+					<exclude name="**/cfdistro/artifacts/**"/>
 					<exclude name="**/cache.properties"/>
 					<exclude name="**/temp/**"/>
 					<exclude name="**/.git/**"/>

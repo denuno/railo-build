@@ -294,9 +294,7 @@
 	<target name="railo.mail.xml.build" depends="exists.mail.xml" if="exists.mail.xml">
 		<xmltask sourcebuffer="mail.buff" outputter="simple">
 			<call path="mail/settings">
-			<!-- 
 				<param name="log" path="@log" default="./temp/logs/mail.log" />
-			 -->
 				<param name="spool-enable" path="@spool-enable" default="yes" />
 				<param name="spool-interval" path="@spool-interval" default="5" />
 				<param name="timeout" path="@timeout" default="30" />
@@ -546,14 +544,22 @@
 
 	<target name="railo.set.log.dir">
 		<!-- <mkdir dir="${log.dir}" /> -->
+		<relpath property="log.dir" to="${log.dir}" from="${war.target.dir}/WEB-INF/railo/logs"/>
 		<echo message="setting logging dir to ${log.dir}"/>
 		<xmltask source="${railo.config.file}" dest="${railo.config.file}">
 			<attr path="/railo-configuration/remote-clients" attr="log" value="${log.dir}" />
 			<attr path="/railo-configuration/remote-clients" attr="log-level" value="info" />
-			<attr path="/railo-configuration/scope" attr="requesttimeout-log" value="${log.dir}/requesttimeout.log" />
-			<attr path="/railo-configuration/mail" attr="log" value="${log.dir}/mail.log" />
-			<attr path="/railo-configuration/debugging" attr="memory-log" value="${log.dir}/memory.log" />
+			<attr path="/railo-configuration/scope" attr="requesttimeout-log" value="${log.dir}requesttimeout.log" />
+			<attr path="/railo-configuration/scope" attr="requesttimeout" value="${cfml.request.timeout}" />
+			<attr path="/railo-configuration/scope" attr="applicationtimeout" value="${cfml.application.timeout}" />
+			<attr path="/railo-configuration/mail" attr="log" value="${log.dir}mail.log" />
+			<attr path="/railo-configuration/debugging" attr="memory-log" value="${log.dir}memory.log" />
 			<attr path="/railo-configuration/debugging" attr="debug" value="no" />
+			<attr path="/railo-configuration/application" attr="application-log" value="${log.dir}application.log" />
+			<attr path="/railo-configuration/application" attr="application-log-level" value="${log.level}" />
+			<attr path="/railo-configuration/application" attr="trace-log" value="${log.dir}trace.log" />
+			<attr path="/railo-configuration/application" attr="trace-log-level" value="${log.level}" />
+			<attr path="/railo-configuration/application" attr="exception-log" value="${log.dir}exception.log" />
 		</xmltask>
 	</target>
 
@@ -862,15 +868,18 @@
 	<target name="extension.build" description="builds the extension">
 		<echo message="Building Extension" />
 		<tstamp/>
-		<!-- this property file will override the defaults  -->
+		<!-- these property files will override the defaults  -->
 		<property file="${basedir}/build.properties" />
+		<property file="${basedir}/build.extension.properties" />
 		<filter filtersfile="${basedir}/build.properties" />		
 		<!-- defaults -->
 		<property name="extension.name" value="${distro.name}"/>
+		<property name="extension.basedir" location="${src.dir}/${distro.name}"/>
 		<property name="extension.dist" location="../dist"/>
 		<property name="extension.temp.dir" value="./temp" />
 		<property name="extension.lib" location="../lib"/>
 		<property name="extension.docs.dir" location="../docs"/>
+		<property name="extension.applications.dir" location="${extension.basedir}/applications"/>
 		<property name="extension.plugin.dir" location="${extension.basedir}/plugin"/>
 		<property name="extension.tag.dir" location="${extension.basedir}/tag"/>
 		<property name="extension.function.dir" location="${extension.basedir}/function"/>
@@ -904,10 +913,20 @@
 
 		<antcontrib:var name="extension.archive" value="${extension.name}-${extension.version}-extension.zip"/>
 		<delete file="${extension.dist}/${extension.archive}" />
-
-		<copy overwrite="yes" verbose="no" file="${extension.src}/config.xml" tofile="${extension.temp.dir}/config.xml" filtering="true">
-			<filterchain><expandproperties /></filterchain>
-		</copy>
+		<antcontrib:if>
+			<available file="${extension.src}/config.xml"/>
+			<then>
+				<copy overwrite="yes" verbose="no" file="${extension.src}/config.xml" tofile="${extension.temp.dir}/config.xml" filtering="true">
+					<filterchain><expandproperties /></filterchain>
+				</copy>
+			</then>
+			<else>
+				<copy overwrite="yes" verbose="no" file="${cfdistro.basedir}/extension/config.xml" tofile="${extension.temp.dir}/config.xml" filtering="true">
+					<filterchain><expandproperties /></filterchain>
+				</copy>
+			</else>
+		</antcontrib:if>
+		
 		<antcontrib:if>
 			<and><available file="${extension.java.src.dir}"/><not><equals arg1="${extension.java.compile}" arg2="false" /></not></and>
 		<then>
@@ -938,7 +957,7 @@
 		<zip destfile="${extension.dist}/${extension.archive}" basedir="${extension.temp.dir}">
 			<fileset file="${extension.temp.dir}/config.xml" />
 			<fileset file="${extension.docs.dir}/license.txt" erroronmissingdir="false" />
-			<zipfileset dir="${extension.src}" excludes="config.xml" />
+			<zipfileset dir="${extension.src}" excludes="config.xml" erroronmissingdir="false" />
 			<zipfileset dir="${extension.lib}" prefix="jars/" erroronmissingdir="false" />
 			<zipfileset dir="${extension.docs.dir}" prefix="docs/" erroronmissingdir="false" />
 			<zipfileset dir="${extension.plugin.dir}" prefix="plugins/" erroronmissingdir="false" />
@@ -958,6 +977,12 @@
 		<propertyfile file="${basedir}/build.extension.lastbuild" comment="Extension Build Information">
 			<entry key="extension.version" value="${extension.build.version.long}" />
 		</propertyfile>
+	</target>
+
+	<target name="extension.mvn.deploy" depends="extension.build">
+		<antcontrib:runtarget target="build.mxunit.tests.run" />
+		<cfd-put artifact="${extension.dist}/${extension.archive}" packaging="zip" repoId="cfdistro.repo.local"
+		 groupId="cfml.extension.${extension.name}" artifactId="${extension.name}" version="${extension.version}"/>
 	</target>
 
 	<target name="extensions.install">
@@ -1013,6 +1038,14 @@
 		  		<echo message="Installing extension plugin"/>
 				<copy todir="${war.target.dir}/WEB-INF/railo/context/admin/plugin">
 					<fileset dir="${extension.temp.dir}/plugins"/>
+				</copy>
+			</then>
+			</antcontrib:if>
+			<antcontrib:if><available file="${extension.temp.dir}/applications"/>
+			<then>
+		  		<echo message="Installing extension application"/>
+				<copy todir="${war.target.dir}/">
+					<fileset dir="${extension.temp.dir}/applications"/>
 				</copy>
 			</then>
 			</antcontrib:if>

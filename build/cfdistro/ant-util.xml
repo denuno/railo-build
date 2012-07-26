@@ -41,10 +41,11 @@
 				</else>
 			</antcontrib:if>
 			<replace-windows-slashes property="___extpath" input="@{extpath}"/>
-			<antcontrib:propertyregex override="yes" property="extpath" input="${___extpath}" regexp=".*/ext/(.*)" select="\1" />
+			<antcontrib:propertyregex override="yes" property="extpath" input="${___extpath}" regexp=".*?/ext/(.*)" select="\1" />
 			<antcontrib:var name="requires.content" unset="true" />
 			<antcontrib:var name="add-required-path.exists" unset="true" />
 			<loadfile property="requires.content" srcFile="${basedir}/requires.txt" />
+			<!-- <echo message="${___extpath}"/><echo message=".*${extpath}.*"/> -->
 			<antcontrib:propertyregex override="true" property="add-required-path.exists" input="${requires.content}"
 				regexp=".*${extpath}.*" select="\1" />
 			<antcontrib:if>

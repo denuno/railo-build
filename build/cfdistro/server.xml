@@ -10,7 +10,7 @@
 	<property name="server.port" value="8088"/>
 	<property name="server.port.http" value="8088"/>
 	<property name="server.port.ajp" value="8009"/>
-	<property name="server.dir" location="${temp.dir}/server/${server.type}" />
+	<property name="server.dir" location="${basedir}/../server/${server.type}" />
 	<property name="server.log.dir" value="${log.dir}"/>
 	<property name="server.type" value="runwar" />
 	<property name="server.charset" value="UTF-8" />
@@ -104,6 +104,22 @@
 				username="@{username}"
 				passphrase="@{passphrase}"
 				keyfile="@{keyfile}" trust="true" port="@{port}" />
+		</sequential>
+	</macrodef>
+
+	<macrodef name="server-run">
+		<element name="stuff" implicit="true"/>
+		<sequential>
+			<antcontrib:runtarget target="server.start" />
+			<antcontrib:trycatch property="_erredesse">
+				<try>
+					<stuff />
+				</try>
+				<catch>
+					<echo message="something erred esse! ${_erredesse}"/>
+				</catch>
+			</antcontrib:trycatch>
+			<antcontrib:runtarget target="server.stop" />
 		</sequential>
 	</macrodef>
 

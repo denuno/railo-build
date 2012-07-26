@@ -1,5 +1,7 @@
 <datasources>
-
+	<!-- 
+		default h2 datasource
+	 -->
 	<datasource 
 		name="@distro.name@" 
 		class="org.h2.Driver" 
@@ -24,5 +26,20 @@
 		jdbcstring="jdbc:h2:@user.home@/h2dbs/@distro.name@/@distro.name@"
 		jdbc="h2"
 		 />
+	<!-- 
+	MySQL example
+	
+	<datasource 
+		name="@distro.name@" 
+		host="127.0.0.1" 
+		port="3306" 
+		database="@distro.name@"
+		username="@dsn.username@" 
+		password="@dsn.password@" 
+		jdbc="mysql"
+		class="org.gjt.mm.mysql.Driver" 
+		jdbcstring="jdbc:mysql://127.0.0.1:3306/@distro.name@"
+		 />
+ 	-->
 
 </datasources>

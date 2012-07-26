@@ -5,6 +5,29 @@
 	<import file="scm-git.xml"/>
 	<import file="scm-svn.xml"/>
 	<import file="scm-cvs.xml"/>
+	
+	<antcontrib:if>
+		<equals arg1="${scm.branch}" arg2="$${scm.branch}" />
+		<then/>
+		<else>
+			<antcontrib:trycatch>
+				<try>
+					<property name="scm.dir" value="${src.dir}" />
+					<git-fetch-from-remote />
+					<!-- use the system git as jgit has trouble with conflicts --> 
+					<git command="checkout" dir="${scm.dir}" use-jgit="false">
+						<args>
+							<arg value="-f" />
+							<arg value="origin/${scm.branch}" />
+						</args>
+					</git>
+				</try>
+				<catch>
+					<echo message="could not check out origin/${scm.branch} for ${scm.dir}"/>
+				</catch>
+			</antcontrib:trycatch>
+		</else>
+	</antcontrib:if>
 
 	<macrodef name="apply-patch">
 		<attribute name="patchUrl"/>
@@ -132,6 +155,26 @@
 				<echo message="Not there: ${project.src.dest}/.${project.src.type}" />
 			</else>
 		</antcontrib:if>
+	</target>
+
+	<target name="project.build.ifnew">
+		<mkdir dir="${war.target.dir}" />
+		<property name="testresult.file" value="${war.target.dir}/test.results.html/" />
+		<sequential>
+			<antcontrib:runtarget target="project.update" />
+			<antcontrib:if>
+				<equals arg1="${revisions.are.same}" arg2="true" />
+				<then>
+					<echo message="Revisions are the same, not building" />
+				</then>
+				<else>
+					<echo message="Revisions differ, running build" />
+					<sequential>
+						<antcontrib:runtarget target="build" />
+					</sequential>
+				</else>
+			</antcontrib:if>
+		</sequential>
 	</target>
 
 	<target name="project.update" depends="check.project.for.newrevision" unless="revisions.are.same" if="exists.src.xml">

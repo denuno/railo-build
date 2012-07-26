@@ -2,6 +2,6 @@
 <mappings>
 <!-- 
   <mapping physical="@src.dir@/../tests" virtual="/tests"/>
- -->
   <mapping physical="@src.dir@/@distro.name@" virtual="/@distro.name@"/>
+ -->
 </mappings>
