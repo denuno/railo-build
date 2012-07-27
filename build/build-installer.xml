@@ -56,9 +56,9 @@
 		<pom-and-deploy pomid="railo.installer.pom" packaging="pom" buildtype="${mvn.type}"
 		 groupId="org.getrailo" artifactId="railo.installer" version="${railo.build.version.long}" name="railo.installer">
         	<attachments>
-        		<attach file="${railobuild.dist.dir}/installer/railo-${railo.build.version.long}-pl${installer.patchlevel}-linux-x64-installer.run" type="run"/>
-        		<attach file="${railobuild.dist.dir}/installer/railo-${railo.build.version.long}-pl${installer.patchlevel}-linux-installer.run" type="run"/>
-        		<attach file="${railobuild.dist.dir}/installer/railo-${railo.build.version.long}-pl${installer.patchlevel}-windows-installer.exe" type="exe"/>
+        		<attach file="${railobuild.dist.dir}/installer/railo-${railo.build.version.long}-pl${installer.patchlevel}-linux-x64-installer.run" type="run" classifier="linux64"/>
+        		<attach file="${railobuild.dist.dir}/installer/railo-${railo.build.version.long}-pl${installer.patchlevel}-linux-installer.run" type="run" classifier="linux32"/>
+        		<attach file="${railobuild.dist.dir}/installer/railo-${railo.build.version.long}-pl${installer.patchlevel}-windows-installer.exe" type="exe" classifier="windows32"/>
         	</attachments>
 		</pom-and-deploy>
 		
