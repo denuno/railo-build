@@ -1,0 +1,51 @@
+<project name="build-docs" default="build.javadoc" xmlns:antcontrib="antlib:net.sf.antcontrib" basedir=".">
+
+    <target name="build.docs" depends="set.build.info">
+    	<property name="javadoc.dir" value="${dist.dir}/docs/api" />
+    	<property name="javadoc.linksource" value="true" />
+    	<echo>*************************************</echo>
+        <echo>***** Generating Railo JavaDoc ********</echo>        
+    	<echo>*************************************</echo>
+    	<echo>JavaDoc dir: ${javadoc.dir}</echo>
+    	<delete dir="${javadoc.dir}" />
+		<javadoc packagenames="railo.*"
+				access="public"
+				destdir="${javadoc.dir}"
+				author="true"
+				version="true"
+				use="true"
+				maxmemory="512m" 
+				linksource="true"
+				classpath="${toString:classpath}"
+				windowtitle="Railo API">
+		    <doctitle><![CDATA[Railo High Performance CFML Engine API Reference (${railo.build.version.long})]]></doctitle>
+		    <bottom><![CDATA[<i>Copyright &#169; 2012 Railo</i>]]></bottom>
+    		<group title="railo.loader" packages="railo.loader*"/>
+			<group title="railo.commons" packages="railo.commons*"/>
+			<group title="railo.runtime" packages="railo.runtime*"/>
+    		<group title="railo.transformer" packages="railo.transformer*"/>
+    		<group title="railo.intergral" packages="railo.intergral*"/>
+		    <packageset dir="${src.dir}/railo-java/railo-loader/src/" defaultexcludes="yes" />
+		    <packageset dir="${src.dir}/railo-java/railo-core/src/" defaultexcludes="yes" />
+			<link href="http://docs.oracle.com/javase/6/docs/api/"/>
+		</javadoc>
+		<copy todir="${javadoc.dir}" overwrite="true" description="javadoc template">
+			<fileset dir="${basedir}/resource/javadoc/" />
+		</copy>
+
+    	<zip destfile="${railobuild.dist.dir}/docs/${railo.build.version.long}-doc.zip" update="false">
+			<zipfileset dir="${dist.dir}/docs/api" prefix="docs/api"/>
+		</zip>
+		<pom-and-deploy pomid="railo.core.pom" packaging="jar" artifact="${railobuild.dist.dir}/jar/railo-${railo.build.version.long}.jar" buildtype="${mvn.type}"
+		 groupId="org.getrailo" artifactId="railo.core" version="${railo.build.version.long}" name="railo.core">
+        	<dependencies>
+        		<dependency groupId="org.getrailo" artifactId="railo.libs" version="${railo.build.version.major}.0" type="zip"/>
+        	</dependencies>
+        	<attachments>
+        		<attach file="${railobuild.dist.dir}/rc/${railo.build.version.long}.rc" type="rc"/>
+        		<attach file="${railobuild.dist.dir}/docs/${railo.build.version.long}-doc.zip" type="zip" classifier="javadoc" />
+        	</attachments>
+		</pom-and-deploy>
+    </target>
+    
+</project>
