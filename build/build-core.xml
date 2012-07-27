@@ -68,7 +68,7 @@
 		<mkdir dir="${temp.dir}/railo.war/WEB-INF/lib"/>
     	<!-- copy the WAR template, css, etc. -->
 		<copy todir="${temp.dir}/railo.war">
-			<fileset dir="${basedir}/resource/railo-war-template" />
+			<fileset dir="${basedir}/resource/railo-war-template/${railo.build.version.major}" />
 		</copy>
 
 		<copy todir="${temp.dir}/railo.war/WEB-INF/lib">

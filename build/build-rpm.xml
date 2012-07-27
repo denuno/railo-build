@@ -58,7 +58,7 @@ fi
 			url="http://getrailo.org">
 			<tarfileset file="${temp.dir}/runwar.jar" prefix="${rpm.railo.dir}/runner"
 				 filemode="644" username="railo" group="railo" excludes=".classpath, .project" />
-			<tarfileset dir="${basedir}/resource/railo-war-template" prefix="${rpm.railo.dir}/webroot"
+			<tarfileset dir="${basedir}/resource/railo-war-template/${railo.build.version.major}/" prefix="${rpm.railo.dir}/webroot"
 				 filemode="644" username="railo" group="railo"/>
 			<depends name="railo" version=""/>
 		</redline:rpm>
