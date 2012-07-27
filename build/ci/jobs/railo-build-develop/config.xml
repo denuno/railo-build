@@ -1,0 +1,34 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>build develop branch</description>
+  <keepDependencies>false</keepDependencies>
+  <properties/>
+  <scm class="hudson.scm.NullSCM"/>
+  <canRoam>true</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <authToken>build</authToken>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <customWorkspace>/home/cfml/railo-build</customWorkspace>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>$WORKSPACE/railo-build build branch=develop</command>
+    </hudson.tasks.Shell>
+    <hudson.tasks.Shell>
+      <command>$WORKSPACE/railo-build mvn.deploy.all</command>
+    </hudson.tasks.Shell>
+    <hudson.tasks.Shell>
+      <command>$WORKSPACE/railo-build build.docs</command>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers>
+	<hudson.tasks.JavadocArchiver>
+      <javadocDir>dist/docs/api/</javadocDir>
+      <keepAll>false</keepAll>
+    </hudson.tasks.JavadocArchiver>
+  </publishers>
+  <buildWrappers/>
+</project>
