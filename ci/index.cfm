@@ -21,6 +21,9 @@
 		<cfset server.ci.runningbuild = false />
 		<cflocation url="index.cfm" addtoken="false"/>
 	</cfif>
+	<cfif structKeyExists(url,"deletedistfile") && structKeyExists(url,"type")>
+		<cfset fileDelete(expandPath('/../dist/') & replace(url.type & "/" & url.deletedistfile,"..","all")) />
+	</cfif>
 	<cfif structKeyExists(url,"psaux")>
 		<cfexecute name="#expandPath('.')#/../build/psaux.sh" timeout="10"  variable="ps"/>
 		<cfdump var="#arrayLen(ps.split("cfml\s+\d+"))-1#" label="running java processes">
@@ -47,7 +50,7 @@
               </li>
 			<li> <span style="color:gray">|</span> </li>
 			  <li><a href="?psaux=true">ps</a></li>
-			  <li><a href="">Docs</a></li>
+			  <li><a href="./dist/docs/">Docs</a></li>
 			  <li><a href="?type=rc">rc</a></li>
 			  <li><a href="?type=war">WAR</a></li>
 			  <li><a href="?type=cli">CLI</a></li>
@@ -154,11 +157,11 @@
 		<a href="?showoutput=true">output</a>
 		</cfoutput>
 	<cfelse>
-		<cfset targets = "mvn.deploy.libs,mvn.deploy.core,build.installer,build.cli.all,build.cli.mvn,build.cli,build.cli.exe,build.cli.bin,build.cli.rpm,build.cli.deb,build.cli.express,build.cli.jre">
+		<cfset targets = "project.update,project.build.ifnew,mvn.deploy.libs,mvn.deploy.core,build.installer,build.cli.all,build.cli.mvn,build.cli,build.cli.exe,build.cli.bin,build.cli.rpm,build.cli.deb,build.cli.express,build.cli.jre">
 		<form action="ci.cfm" method="get">
 			Target: <select name="target">
 				<option value="build">build (<cfoutput>#buildVersion#</cfoutput>)</option>
-				<option value="project.update">manually update sources</option>
+				<option value="tests.build.start.run.stop.ifnew">if new, build and run tests</option>
 			<cfloop list="#targets#" index="target">
 			<cfoutput><option value="#target#">#target#</option></cfoutput>
 			</cfloop>
@@ -220,7 +223,8 @@
 	<cfloop query="dists">
 		<tr>
 		<cfoutput>
-			<td><a href="./#name#">#name#</a></td>
+			<td><a href="?type=#type#&deletedistfile=#name#" style="color:red" onclick="confirm('Sure you want to delete #name#?')">X</a></td>
+			<td><a href="./dist/#type#/#name#">#name#</a></td>
 			<td>#numberFormat(size/(1024*1000),"_.__")#M &nbsp;&nbsp;</td>
 			<td>#dateFormat(dateLastModified,"mm/dd/yyyy")# #timeFormat(dateLastModified,"HH:mm tt")# &nbsp;&nbsp;</td>
 			<cfif type == "rc">

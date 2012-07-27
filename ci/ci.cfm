@@ -38,8 +38,9 @@
 					<cfset target = "help" />
 					<cfset target = "set.mappings">
 					<cfset var target = "build" />
-	 --->
 					<cfset var target = "tests.build.start.run.stop.ifnew" />
+	 --->
+					<cfset var target = "project.build.ifnew" />
 				</cfif>
 				<cfset var run = {"id"=createUUID(),"started"=now(), "target"=target,"status"="starting"}  />
 				<cfset thread.run = run  />
@@ -99,7 +100,7 @@
 			<cftry>
 				<cfdirectory action="delete" directory="#properties["temp.dir"]#" recurse="true" /><cfcatch></cfcatch>
 			</cftry>
-			<cfif !find("Revisions are the same, not running tests",run.outtext)>
+			<cfif !find("Revisions are the same, not ",run.outtext)>
 				<cfset emailRun(buildErrorEmails,run) />
 				<cfset runsdir = expandPath('/../dist/buildlog/') />
 				<cftry><cfdirectory action="create" directory="#runsdir#"><cfcatch></cfcatch></cftry>
@@ -134,7 +135,7 @@
 	<cfargument name="emails" required="true">
 	<cfargument name="run" required="true">
 	<cftry>
-		<cfmail server="127.0.0.1" to="#emails#" from="cfml@loganberry.viviotech.net" subject="[railo-build] build #run.target# : #run.status#">#run.errortext#
+		<cfmail server="127.0.0.1" to="#emails#" from="cfml@loganberry.viviotech.net" subject="[railo-build] target: #run.target# : #run.status#">#run.errortext#
 #run.outtext#
 #run.commithash#
 		</cfmail>
