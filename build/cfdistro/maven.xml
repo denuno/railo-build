@@ -242,13 +242,14 @@
 				<equals arg1="${mapping}" arg2="" />
 				<then/>
 				<else>
+					<antcontrib:var name="ext.mapping.dir" value="${ext.dir}/mappings/@{groupId}/@{artifactId}/@{version}" />
 					<antcontrib:if>
-						<available file="${_dep.loc}/mapping"/><then/>
+						<available file="${ext.mapping.dir}"/><then/>
 						<else>
-							<unzip src="${_dep.file}" dest="${_dep.loc}/mapping"/>
+							<unzip src="${_dep.file}" dest="${ext.mapping.dir}"/>
 						</else>
 					</antcontrib:if>
-					<mapping physical="${_dep.loc}/mapping/@{mapping}" virtual="@{mapping}"/>
+					<mapping physical="${ext.mapping.dir}/@{mapping}" virtual="@{mapping}"/>
 				</else>
 			</antcontrib:if>
 			<antcontrib:if>

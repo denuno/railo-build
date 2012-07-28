@@ -979,9 +979,9 @@
 		</propertyfile>
 	</target>
 
-	<target name="extension.mvn.deploy" depends="extension.build">
+	<target name="extension.mvn.release" depends="extension.build">
 		<antcontrib:runtarget target="build.mxunit.tests.run" />
-		<cfd-put artifact="${extension.dist}/${extension.archive}" packaging="zip" repoId="cfdistro.repo.local"
+		<mvn-put artifact="${extension.dist}/${extension.archive}" packaging="zip" repoId="cfdistro.repo.local"
 		 groupId="cfml.extension.${extension.name}" artifactId="${extension.name}" version="${extension.version}"/>
 	</target>
 

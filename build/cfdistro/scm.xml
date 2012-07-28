@@ -44,6 +44,7 @@
 	<macrodef name="load-src-xml">
 		<sequential>
 			<antcontrib:runtarget target="check.creds" />
+			<echoproperties destfile="${temp.dir}/all.props" />
 			<loadfile property="src.xml" srcFile="${src.xml.file}">
 				<filterchain>
 					<filterreader classname="org.apache.tools.ant.filters.ReplaceTokens">
@@ -54,9 +55,11 @@
 						<param type="token" name="war.name" value="${war.name}"/>
 						<param type="token" name="war.target.dir" value="${war.target.dir}"/>
 						<param type="propertiesfile" value="${creds.token.file}" />
+						<param type="propertiesfile" value="${temp.dir}/all.props" />
 					</filterreader>
 				</filterchain>
 			</loadfile>
+			<delete file="${temp.dir}/all.props"/>
 			<xmltask destbuffer="src.buff" outputter="simple">
 				<insert path="/" xml="${src.xml}" position="under" />
 			</xmltask>

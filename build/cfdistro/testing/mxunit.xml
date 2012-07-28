@@ -61,9 +61,9 @@
 		</junitreport>
 		<delete dir="${output.dir}" />
 		<antcontrib:if>
-			<equals arg1="mxunit.failonerror" arg2="true" />
+			<equals arg1="${mxunit.failonerror}" arg2="true" />
 			<then>
-				<fail if="tests.fail" message="mxunit tests failed!"/>
+				<fail if="tests.fail" message="mxunit.failonerror is true and mxunit tests failed!"/>
 			</then>
 		</antcontrib:if>
 

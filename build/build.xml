@@ -79,7 +79,17 @@
 				<antcontrib:if>
 					<equals arg1="${branch}" arg2="$${branch}" />
 					<then>
-						<antcontrib:runtarget target="build.main"/>
+						<antcontrib:if>
+							<equals arg1="${ENV.branch}" arg2="$${ENV.branch}" />
+							<then>
+								<!-- default if no spec -->
+								<antcontrib:runtarget target="build.main"/>
+							</then>
+							<else>
+								<property name="branch" value="${ENV.branch}" />
+								<build-branch />
+							</else>
+						</antcontrib:if>
 					</then>
 					<else>
 						<build-branch />

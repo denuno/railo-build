@@ -9,6 +9,10 @@
         <src dest="@src.dir@/" type="git"
         uri="http://github.com/getrailo/railo.git"
         user="" password="" branch="origin/3.3" />
+
+        <src dest="@wiki.dir@/" type="git"
+        uri="https://github.com/denuno/railo-build.wiki.git"
+        user="" password="" />
 	</project>
 	<sources>
 	<!-- 
