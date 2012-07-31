@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <project>
   <actions/>
-  <description>build develop branch</description>
+  <description>Builds 3, 3's installer, then 4, 4's installer and then CLI.  Results in artifact repository.</description>
   <keepDependencies>false</keepDependencies>
   <properties/>
   <scm class="hudson.scm.NullSCM"/>
@@ -47,6 +47,11 @@
       <javadocDir>dist/docs/api/</javadocDir>
       <keepAll>false</keepAll>
     </hudson.tasks.JavadocArchiver>
+    <hudson.tasks.Mailer>
+      <recipients>${build.error.emails}</recipients>
+      <dontNotifyEveryUnstableBuild>false</dontNotifyEveryUnstableBuild>
+      <sendToIndividuals>true</sendToIndividuals>
+    </hudson.tasks.Mailer>
   </publishers>
   <buildWrappers/>
 </project>

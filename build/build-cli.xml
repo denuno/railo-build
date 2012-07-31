@@ -72,7 +72,6 @@
 			<fileset file="${temp.dir}/cli/libs.zip" />
 			<fileset dir="${temp.dir}/cli/bin" />
 		</jar>
-		<!-- wrap the executable jar in native wrapers -->
  	</target>
 
 	<target name="build.cli.bin" description="creates an jar with the libs cli" depends="build.cli">
@@ -81,6 +80,10 @@
           <fileset file="${dist.dir}/cli/railo-cli.jar" />
         </concat>
         <chmod file="${dist.dir}/cli/railo" perm="a+x"/>
+		<zip destfile="${dist.dir}/cli/railo.bin.zip">
+	        <zipfileset file="${dist.dir}/cli/railo" filemode="711" prefix="" />
+			<zipfileset file="${basedir}/resource/cli/shell.cfm" prefix="" />
+		</zip>
  	</target>
 
 	<target name="build.cli.exe" description="creates an jar with the libs cli" depends="build.cli">
@@ -88,25 +91,33 @@
         	jar="${dist.dir}/cli/railo-cli.jar" exe="${dist.dir}/cli/railo.exe"  
         	icon="${basedir}/resource/railo.ico" mutexName="railo.cli.Console" 
         	headerType="console" customProcName="false" stayAlive="true"/>
- 	</target>
+		<zip destfile="${dist.dir}/cli/railo.win32.zip">
+	        <zipfileset file="${dist.dir}/cli/railo.exe" prefix="" />
+			<zipfileset file="${basedir}/resource/cli/shell.cfm" prefix="" />
+		</zip>
+	</target>
 
  	<target name="build.cli.jre" depends="build.cli">
  		<echo message="bundling ${mvn.jre.version} jre" />
 		<zip destfile="${dist.dir}/cli/cli-jre-win32.zip">
 			<zipgroupfileset file="${maven.repo.local}/oracle/jre/${mvn.jre.version}/jre-${mvn.jre.version}-win32.zip"/>
 	        <fileset file="${dist.dir}/cli/railo.exe" />
+			<zipfileset file="${basedir}/resource/cli/shell.cfm" prefix="" />
 		</zip>
 		<zip destfile="${dist.dir}/cli/cli-jre-win64.zip">
 			<zipgroupfileset file="${maven.repo.local}/oracle/jre/${mvn.jre.version}/jre-${mvn.jre.version}-win64.zip"/>
 	        <fileset file="${dist.dir}/cli/railo.exe" />
+			<zipfileset file="${basedir}/resource/cli/shell.cfm" prefix="" />
 		</zip>
 		<zip destfile="${dist.dir}/cli/cli-jre-linux32.zip">
 			<zipgroupfileset file="${maven.repo.local}/oracle/jre/${mvn.jre.version}/jre-${mvn.jre.version}-linux32.zip"/>
 	        <fileset file="${dist.dir}/cli/railo" />
+			<zipfileset file="${basedir}/resource/cli/shell.cfm" prefix="" />
 		</zip>
 		<zip destfile="${dist.dir}/cli/cli-jre-linux64.zip">
 			<zipgroupfileset file="${maven.repo.local}/oracle/jre/${mvn.jre.version}/jre-${mvn.jre.version}-linux64.zip"/>
 	        <fileset file="${dist.dir}/cli/railo" />
+			<zipfileset file="${basedir}/resource/cli/shell.cfm" prefix="" />
 		</zip>
 		<pom-and-deploy pomid="cli-jre.pom" packaging="pom"
 		 groupId="org.getrailo" artifactId="railo.cli.jre" version="${cli.version}" name="railo.cli.jre">
@@ -171,8 +182,8 @@ cd $reldir/build
 			name="railo.cli">
 			<attachments>
 				<attach file="${dist.dir}/cli/railo-cli.jar" type="jar" />
-				<attach file="${dist.dir}/cli/railo" type="bin" />
-				<attach file="${dist.dir}/cli/railo.exe" type="exe" />
+				<attach file="${dist.dir}/cli/railo.bin.zip" type="zip" classifier="bin" />
+				<attach file="${dist.dir}/cli/railo.win32.zip" type="zip" classifier="win32" />
 				<attach file="${dist.dir}/railo-cli_${cli.version}-1_all.deb" type="deb" />
 				<attach file="${dist.dir}/rpm/railo-cli-${cli.version}-1.noarch.rpm" type="rpm" />
 			</attachments>

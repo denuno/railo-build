@@ -35,37 +35,6 @@
   	<property name="mvn.remote.repo" 
    		value="http://127.0.0.1:8081/nexus/content/repositories/railo-${mvn.type}s/" />
 
-    <target name="mvn.deploy.jre" depends="set.build.info" xmlns:artifact="antlib:org.apache.maven.artifact.ant">
-		<!-- only used to fill repo initially - put exploded JREs in arch subdirs -->
-		<property name="mvn.jre.tmp" location="${temp.dir}/jre" />
-		<property name="mvn.jre.version" value="1.7.0_04" />
-		<property name="mvn.jre.version" value="1.6.0_32" />
-		<property name="mvn.jre.dir" value="${basedir}/../jre" />
-		
-		<zip destfile="${mvn.jre.tmp}/jre-linux32.zip" update="false">
-			<zipfileset dir="${mvn.jre.dir}/linux32/jre${mvn.jre.version}" prefix="jre/"/>
-		</zip>
-		<zip destfile="${mvn.jre.tmp}/jre-linux64.zip" update="false">
-			<zipfileset dir="${mvn.jre.dir}/linux64/jre${mvn.jre.version}" prefix="jre/"/>
-		</zip>
-		<zip destfile="${mvn.jre.tmp}/jre-win32.zip" update="false">
-			<zipfileset dir="${mvn.jre.dir}/win32/jre${mvn.jre.version}" prefix="jre/"/>
-		</zip>
-		<zip destfile="${mvn.jre.tmp}/jre-win64.zip" update="false">
-			<zipfileset dir="${mvn.jre.dir}/win64/jre${mvn.jre.version}" prefix="jre/"/>
-		</zip>
-		<pom-and-deploy pomid="jre.pom" packaging="pom" buildtype="${mvn.type}"
-		 groupId="oracle" artifactId="jre" version="${mvn.jre.version}" name="oracle.jre">
-			<attachments>
-        		<attach file="${mvn.jre.tmp}/jre-win32.zip" type="zip" classifier="win32"/>
-        		<attach file="${mvn.jre.tmp}/jre-win64.zip" type="zip" classifier="win64"/>
-        		<attach file="${mvn.jre.tmp}/jre-linux32.zip" type="zip" classifier="linux32"/>
-        		<attach file="${mvn.jre.tmp}/jre-linux64.zip" type="zip" classifier="linux64"/>
-			</attachments>
-		</pom-and-deploy>
-		<delete dir="${mvn.jre.tmp}" />
-	</target>
-
     <target name="mvn.deploy.libs" depends="set.build.info" xmlns:artifact="antlib:org.apache.maven.artifact.ant">
 		<!-- wrap all the libs up into one dependency -->
 		<zip destfile="${temp.dir}/railo-libs.zip" update="true">

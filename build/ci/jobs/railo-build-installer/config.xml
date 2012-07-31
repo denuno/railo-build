@@ -1,7 +1,8 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <project>
   <actions/>
-  <description>build the installer</description>
+  <description>build the installer
+  &lt;br/&gt;&lt;a href=&quot;http://loganberry.viviotech.net/artifacts/org/getrailo/railo.installer/&quot; target=&quot;_blank&quot;&gt;view build aritfacts&lt;/a&gt;</description>
   <keepDependencies>false</keepDependencies>
   <properties/>
   <scm class="hudson.scm.NullSCM"/>
@@ -18,6 +19,12 @@
       <command>$WORKSPACE/railo-build build.installer</command>
     </hudson.tasks.Shell>
   </builders>
-  <publishers/>
+  <publishers>
+    <hudson.tasks.Mailer>
+      <recipients>${build.error.emails}</recipients>
+      <dontNotifyEveryUnstableBuild>false</dontNotifyEveryUnstableBuild>
+      <sendToIndividuals>true</sendToIndividuals>
+    </hudson.tasks.Mailer>
+  </publishers>
   <buildWrappers/>
 </project>

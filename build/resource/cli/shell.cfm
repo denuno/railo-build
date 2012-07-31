@@ -6,6 +6,7 @@
 	keepRunning = true;
 	script = "";
 	while (keepRunning) {
+		systemOutput("cfml: ");
 		while(isNull(inLine)) {
 			inLine = br.readLine();
 		}
@@ -18,30 +19,30 @@
 			case "dir": case "ls":
 				dir = isNull(args[2]) ? "." : args[2];
 				for(dir in directoryList(dir)) {
-					System.out.println(dir);
+					systemOutput(dir);
 				}
 				break;
 
 			case "exit": case "quit": case "q":
-				System.out.println("Peace out!");
+				systemOutput("Peace out!");
 				keepRunning = false;
 				break;
 
 			case "":
 				try{
-					System.out.println(script);
-					System.out.println(evaluate(script));
+					systemOutput(script);
+					systemOutput(evaluate(script));
 				} catch (any e) {
-					System.out.println("error: " & e.message);
+					systemOutput("error: " & e.message);
 				}
 				break;
 
 			default:
 				try{
-					System.out.println(inLine & " = " & evaluate(inLine));
+					systemOutput(inLine & " = " & evaluate(inLine));
 					script &= inLine;
 				} catch (any e) {
-					System.out.println("error: " & e.message);
+					systemOutput("error: " & e.message);
 				}
 				break;
 
