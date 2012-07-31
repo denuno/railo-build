@@ -246,7 +246,7 @@
 		<echo file="${git.repo.dir}/hooks/post-receive" message="#!/bin/sh/git checkout -f"/>
 	</target>
 	
-	<target name="project.update.git">
+	<target name="project.update.git" depends="exists.src.xml">
 		<property name="temp.dir.absolute" location="${temp.dir}" />
 		<antcontrib:var name="temp.dir" unset="true" />
 		<property name="temp.dir" location="${temp.dir.absolute}" />				
@@ -280,7 +280,7 @@
 							<!--
 							-->
 							<git command="fetch" dir="@{dest}">
-								<args><arg>origin</arg></args>
+								<args><arg value="origin" /></args>
 							</git>
 							<git command="merge" dir="@{dest}">
 								<args><arg>@{branch}</arg></args>

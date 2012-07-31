@@ -149,6 +149,28 @@ reldir=`dirname $0`
 cd $reldir/build
 ANTCMD="/bin/sh $HOME/cfdistro/ant/bin/ant -nouserlib -f build.xml"
 export ANT_HOME=$HOME/cfdistro/ant
+CFDISTRO_ZIP=$HOME/cfdistro/cfdistro.zip
+if [ -r "$ANT_HOME" ]; then
+    if [ -r "$CFDISTRO_ZIP" ]; then
+      echo "The zip was already saved to $CFDISTRO_ZIP."
+      echo "If you wish to re-download, delete it."
+      exit 1
+    fi
+    echo "Downloading cfdistro now..."
+    CFDISTRO_DIR=`dirname "$CFDISTRO_ZIP"`
+    mkdir -p "$CFDISTRO_DIR"
+    CFDISTRO_URL="https://github.com/denuno/cfdistro/zipball/master"
+    $HTTP_CLIENT "$CFDISTRO_ZIP" "$CFDISTRO_URL"
+    if [ $? != 0 ]; then
+        echo "Failed to download $CFDISTRO_URL"
+        echo "If you have an old version of libssl you may not have the correct"
+        echo "certificate authority. Either upgrade or set HTTP_CLIENT to insecure:"
+        echo "  export HTTP_CLIENT=\"wget --no-check-certificate -O\" # or"
+        echo "  export HTTP_CLIENT=\"curl --insecure -f -L -o"
+        rm $CFDISTRO_ZIP 2> /dev/null
+        exit 1
+    fi
+fi
 if [ -z "$1" ]; then
 echo "${distro.name} control script"
 OPTIONS="start stop help list-targets update exit"

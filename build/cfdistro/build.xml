@@ -164,6 +164,7 @@
 
 	<property name="railo.archive.dir" location="${dist.dir}/ra" />
 	<property name="ext.dir" location="${cfdistro.basedir}/ext" />
+	<property name="ext.mappings.dir" location="${ext.dir}/mappings" />
 	<property name="ext.acf.dir" location="${ext.dir}/acf" />
 	<property name="ext.acf.war" location="${ext.acf.dir}/9/cfusion.war" />
 	<property name="temp.dir" location="./temp" />
@@ -492,6 +493,7 @@ a tiny 2m jar but getPageContext() throws errors!!
 			<then>
 				<requires-ext resource="${ext.railo.dir}/error.cfm" />
 				<requires-ext resource="${ext.dir}/cfeclipse" />
+				<error-template path="${ext.railo.dir}/error.cfm" />
 				<addlibs from="${ext.dir}/cfeclipse" />
 				<property name="cfmlengine.inspect.templates" value="always" />
 			</then>
@@ -633,6 +635,7 @@ a tiny 2m jar but getPageContext() throws errors!!
 
 	<macrodef name="mapping">
 		<attribute name="physical" default="" />
+		<attribute name="physicalxml" default="@{physical}" />
 		<attribute name="virtual" />
 		<element name="args" optional="true" />
 		<sequential>
@@ -644,28 +647,28 @@ a tiny 2m jar but getPageContext() throws errors!!
 				<!-- if no mappings at all, just insert -->
 				<insert path="/mappings" position="under" unless="some.mapping.exists">
 					<![CDATA[
-  						<mapping physical="@{physical}" virtual="@{virtual}"/>
+  						<mapping physical="@{physicalxml}" virtual="@{virtual}"/>
   					]]>
 				</insert>
 				<!-- if some mappings exist we can update and add -->
 				<copy path="/mappings/mapping[@virtual='@{virtual}']/@virtual" attrValue="true" property="mapping.exists" />
 				<replace path="/mappings/mapping[@virtual=@{virtual}]/text()" if="mapping.exists">
 					<![CDATA[
-  						<mapping physical="@{physical}" virtual="@{virtual}"/>
+  						<mapping physical="@{physicalxml}" virtual="@{virtual}"/>
   					]]>
   					</replace>
 				<insert path="/mappings" position="under" unless="mapping.exists">
 					<![CDATA[
-  						<mapping physical="@{physical}" virtual="@{virtual}"/>
+  						<mapping physical="@{physicalxml}" virtual="@{virtual}"/>
   					]]>
 				</insert>
 			</xmltask>
 			<antcontrib:switch value="${mapping.exists}">
 				<case value="@{virtual}">
-					<echo message="mappings.xml [updated] - @{virtual}	[@{physical}] (@{physical})" />
+					<echo message="mappings.xml [updated] - @{virtual}	[@{physicalxml}] (@{physical})" />
 				</case>
 				<default>
-					<echo message="mappings.xml [added] - @{virtual} 	[@{physical}] (@{physical})" />
+					<echo message="mappings.xml [added] - @{virtual} 	[@{physicalxml}] (@{physical})" />
 				</default>
 			</antcontrib:switch>
 			<antcontrib:if>

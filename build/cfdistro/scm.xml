@@ -49,6 +49,7 @@
 				<filterchain>
 					<filterreader classname="org.apache.tools.ant.filters.ReplaceTokens">
 						<param type="token" name="src.dir" value="${src.dir}"/>
+						<param type="token" name="ext.mappings.dir" value="${ext.mappings.dir}"/>
 						<param type="token" name="pub.dir" value="${pub.dir}"/>
 						<param type="token" name="lib.dir" value="${lib.dir}"/>
 						<param type="token" name="distro.name" value="${distro.name}"/>
