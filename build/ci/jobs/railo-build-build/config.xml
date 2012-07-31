@@ -62,11 +62,6 @@
     </hudson.tasks.Shell>
   </builders>
   <publishers>
-    <hudson.tasks.junit.JUnitResultArchiver>
-      <testResults>dist/localdev/testresults/*.xml</testResults>
-      <keepLongStdio>false</keepLongStdio>
-      <testDataPublishers/>
-    </hudson.tasks.junit.JUnitResultArchiver>
     <hudson.tasks.JavadocArchiver>
       <javadocDir></javadocDir>
       <keepAll>false</keepAll>
