@@ -339,7 +339,7 @@ ${git.results}</echo>
 		<antcontrib:if>
 			<equals arg1="${__major}" arg2="4" />
 			<then>
-				<antcontrib:var name="railo.javac.compiler" value="1.7" />
+				<property name="railo.javac.compiler" value="1.7" />
 			</then>
 			<else>
 				<antcontrib:if>
@@ -351,7 +351,7 @@ ${git.results}</echo>
 						</or>
 					</and>
 					<then>
-						<antcontrib:var name="railo.javac.compiler" value="1.5" />
+						<property name="railo.javac.compiler" value="1.5" />
 						<!-- 
 						<antcontrib:runtarget target="get.jre5.location" />
 						<antcontrib:var name="ecj.javacmd" value='${jre5.home}bin/java' />
