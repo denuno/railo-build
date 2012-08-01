@@ -332,34 +332,36 @@ ${git.results}</echo>
     
     <macrodef name="checkJavaVersion">
     	<sequential>
-		<property name="railo.javac.compiler" value="1.6" />
 		<antcontrib:propertyregex override="yes" property="__major" input="${railo.build.version.long}" 
-			regexp="(\d).*" select="\1" 
-		/>
+			regexp="(\d).*" select="\1" />
 		<antcontrib:propertyregex override="yes" property="__minor" input="${railo.build.version.long}" 
-			regexp="\d\.(\d).*" select="\1" 
-		/>
+			regexp="\d\.(\d).*" select="\1" />
 		<antcontrib:if>
-				<equals arg1="__major" arg2="4" />
+			<equals arg1="${__major}" arg2="4" />
 			<then>
-				<antcontrib:var name="railo.javac.compiler" value="1.6" />
+				<antcontrib:var name="railo.javac.compiler" value="1.7" />
 			</then>
-		</antcontrib:if>
-		<antcontrib:if>
-			<and>
-				<equals arg1="${__major}" arg2="3" />
-				<or>
-				<equals arg1="${__minor}" arg2="1" />
-				<equals arg1="${__minor}" arg2="2" />
-				</or>
-			</and>
-			<then>
-				<antcontrib:var name="railo.javac.compiler" value="1.5" />
-				<!-- 
-				<antcontrib:runtarget target="get.jre5.location" />
-				<antcontrib:var name="ecj.javacmd" value='${jre5.home}bin/java' />
-				 -->
-			</then>
+			<else>
+				<antcontrib:if>
+					<and>
+						<equals arg1="${__major}" arg2="3" />
+						<or>
+						<equals arg1="${__minor}" arg2="1" />
+						<equals arg1="${__minor}" arg2="2" />
+						</or>
+					</and>
+					<then>
+						<antcontrib:var name="railo.javac.compiler" value="1.5" />
+						<!-- 
+						<antcontrib:runtarget target="get.jre5.location" />
+						<antcontrib:var name="ecj.javacmd" value='${jre5.home}bin/java' />
+						 -->
+					</then>
+					<else>
+						<property name="railo.javac.compiler" value="1.6" />
+					</else>
+				</antcontrib:if>
+			</else>
 		</antcontrib:if>
 	    <!-- check for java version and fail build if not the correct version --> 
 	    <echo message="Java Version: ${java.version}"/> 
