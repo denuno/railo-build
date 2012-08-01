@@ -208,7 +208,6 @@
 					<delete file="ecj-classpath.txt" />
 				</try>
 				<catch>
- 					<record name="${temp.dir}/ecjresult.txt" action="start"/>
 					<loadfile srcFile="${temp.dir}/ecjresult.txt" property="ecj.result" />
 					<echo message="Something bad happened while trying to Compile.  Gonna abort now, yo. Sorries."/>
 					<property name="baz" refid="bar" />
