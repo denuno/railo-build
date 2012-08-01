@@ -1,0 +1,1 @@
+<cfapplication name="defaultMxUnitRunner" sessionmanagement="true"/>

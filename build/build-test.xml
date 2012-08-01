@@ -11,7 +11,7 @@
 	<target name="test">
 		<property file="${src.dir}/railo-java/railo-core/src/railo/runtime/Info.ini" prefix="railoini"/>
 		<version-splitter property="railo.build.version" version="${railoini.number}" bump=""/>
-		<copy file="${railobuild.dist.dir}/${railo.build.version.long}.rc" todir="${war.target.dir}/WEB-INF/lib/railo-server/patches/" />
+		<copy file="${railobuild.dist.dir}/rc/${railo.build.version.long}.rc" todir="${war.target.dir}/WEB-INF/lib/railo-server/patches/" />
 		<!-- 
 		<copy todir="${war.target.dir}/WEB-INF/railo/context/admin/plugin/">
 			<fileset dir="${basedir}/../ci/extension/src/plugin/" />
@@ -20,21 +20,44 @@
 		<mapping physical="${src.dir}/../tests" virtual="/tests"/>
 		<customtag physical="${src.dir}/../tests/jira" virtual="/tests/jira"/>
 		<railo-datasource name="railo_mirror" jdbcstring="jdbc:h2:${temp.dir}/h2dbs/railo-db/railo-db"/>
-		<antcontrib:runtarget target="server.start"/>
-<!-- 
- 		<antcontrib:runtarget target="server.openUrl"/>
- -->
-		<antcontrib:trycatch reference="bar">
-		<try>
+		<server-run>
+			<!-- <antcontrib:runtarget target="server.openUrl"/> -->
 			<get src="${server.url}" dest="${tests.dir}/results/jira.html" verbose="true" ignoreerrors="false" retries="0" maxtime="777" />
-		</try>
-		<catch>
-			<antcontrib:runtarget target="server.stop"/>
-			<property name="baz" refid="bar" />
-			<fail message="Something failed: ${baz}"/>
-		</catch>
-		</antcontrib:trycatch>
-		<antcontrib:runtarget target="server.stop"/>
+		</server-run>
+	</target>
+	
+	<target name="tests.mxunit.run">
+		<property file="${src.dir}/railo-java/railo-core/src/railo/runtime/Info.ini" prefix="railoini"/>
+		<version-splitter property="railo.build.version" version="${railoini.number}" bump=""/>
+		<copy file="${railobuild.dist.dir}/rc/${railo.build.version.long}.rc" todir="${war.target.dir}/WEB-INF/lib/railo-server/patches/" />
+		<!-- 
+		<copy todir="${war.target.dir}/WEB-INF/railo/context/admin/plugin/">
+			<fileset dir="${basedir}/../ci/extension/src/plugin/" />
+		</copy>
+		 -->
+		<dependency groupId="org.mxunit" artifactId="core" version="2.1.1" mapping="/mxunit" />
+		<mapping physical="${src.dir}/../tests" virtual="/tests"/>
+		<customtag physical="${src.dir}/../tests/jira" virtual="/tests/jira"/>
+		<railo-datasource name="railo_mirror" jdbcstring="jdbc:h2:${temp.dir}/h2dbs/railo-db/railo-db"/>
+		<server-run>
+			<antcontrib:var name="mxunit.tests.results.dir" value="${dist.dir}/testresults" />
+			<antcontrib:var name="mxunit.failonerror" value="false" />
+			<antcontrib:var name="mxunit.tests.dir" value="${tests.dir}/mxunit/base" />
+			<antcontrib:var name="mxunit.runner" value="/tests/mxunit/base/HttpAntRunner.cfc" />
+			<antcontrib:var name="mxunit.componentpath" value="tests.mxunit.base" />
+			<antcontrib:var name="mxunit.packageName" value="tests.mxunit.base" />
+			<antcontrib:var name="mxunit.recurse" value="true" />
+			<antcontrib:runtarget target="mxunit.tests" />
+
+			<antcontrib:var name="mxunit.tests.results.dir" value="${dist.dir}/testresults" />
+			<antcontrib:var name="mxunit.failonerror" value="false" />
+			<antcontrib:var name="mxunit.tests.dir" value="${tests.dir}/mxunit/ORMEventHandler" />
+			<antcontrib:var name="mxunit.runner" value="/tests/mxunit/ORMEventHandler/HttpAntRunner.cfc" />
+			<antcontrib:var name="mxunit.componentpath" value="tests.mxunit.base" />
+			<antcontrib:var name="mxunit.packageName" value="tests.mxunit.base" />
+			<antcontrib:var name="mxunit.recurse" value="true" />
+			<antcontrib:runtarget target="mxunit.tests" />
+		</server-run>
 	</target>
 	
 	<target name="build.and.loadtest" depends="build,loadtest">

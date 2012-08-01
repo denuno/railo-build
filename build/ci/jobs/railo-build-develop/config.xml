@@ -9,7 +9,7 @@
   <disabled>false</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
-  <authToken>build</authToken>
+  <authToken>${ci.jobs.railo.token}</authToken>
   <triggers/>
   <concurrentBuild>false</concurrentBuild>
   <customWorkspace>/home/cfml/railo-build</customWorkspace>
