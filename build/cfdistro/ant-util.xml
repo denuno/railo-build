@@ -208,7 +208,7 @@
 					<delete file="ecj-classpath.txt" />
 				</try>
 				<catch>
-					<loadfile srcFile="${temp.dir}/ecjresult.txt" property="ecj.result" />
+					<loadfile srcFile="${temp.dir}/ecjresult.txt" property="ecj.result" failonerror="false" />
 					<echo message="Something bad happened while trying to Compile.  Gonna abort now, yo. Sorries."/>
 					<property name="baz" refid="bar" />
 					<echo>From reference: ${baz}</echo>
