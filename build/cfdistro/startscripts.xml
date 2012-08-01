@@ -150,7 +150,17 @@ cd $reldir/build
 ANTCMD="/bin/sh $HOME/cfdistro/ant/bin/ant -nouserlib -f build.xml"
 export ANT_HOME=$HOME/cfdistro/ant
 CFDISTRO_ZIP=$HOME/cfdistro/cfdistro.zip
-if [ -r "$ANT_HOME" ]; then
+if [ "$HTTP_CLIENT" = "" ]; then
+    if type -p curl >/dev/null 2>&1; then
+        if [ "$https_proxy" != "" ]; then
+            CURL_PROXY="-x $https_proxy"
+        fi
+        HTTP_CLIENT="curl $CURL_PROXY -f -L -o"
+    else
+        HTTP_CLIENT="wget -O"
+    fi
+fi
+if [ -z "$ANT_HOME" ]; then
     if [ -r "$CFDISTRO_ZIP" ]; then
       echo "The zip was already saved to $CFDISTRO_ZIP."
       echo "If you wish to re-download, delete it."
@@ -170,6 +180,7 @@ if [ -r "$ANT_HOME" ]; then
         rm $CFDISTRO_ZIP 2> /dev/null
         exit 1
     fi
+	unzip "$CFDISTRO_ZIP" -d "$CFDISTRO_DIR"
 fi
 if [ -z "$1" ]; then
 echo "${distro.name} control script"

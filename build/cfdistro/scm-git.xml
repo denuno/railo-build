@@ -283,7 +283,7 @@
 								<args><arg value="origin" /></args>
 							</git>
 							<git command="merge" dir="@{dest}">
-								<args><arg>@{branch}</arg></args>
+								<args><arg value="@{branch}" /></args>
 							</git>
 						</else>
 					</antcontrib:if>

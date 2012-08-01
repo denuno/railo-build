@@ -229,8 +229,11 @@ a tiny 2m jar but getPageContext() throws errors!!
 	<import file="maven.xml" />
 	<import file="rpm.xml" />
 	<import file="ci.xml" />
-	<delete dir="${temp.dir}" />
-	<mkdir dir="${temp.dir}" />
+
+<!--
+ 	<delete dir="${temp.dir}" />
+ -->
+ 	<mkdir dir="${temp.dir}" />
 
     <property name="cfdistro.repo.local.path" location="${cfdistro.basedir}/artifacts" />
     <mvn-repo id="cfdistro.repo.remote" url="http://loganberry.viviotech.net/artifacts/" />
@@ -494,8 +497,10 @@ a tiny 2m jar but getPageContext() throws errors!!
 				<requires-ext resource="${ext.railo.dir}/error.cfm" />
 				<requires-ext resource="${ext.dir}/cfeclipse" />
 				<error-template path="${ext.railo.dir}/error.cfm" />
-				<addlibs from="${ext.dir}/cfeclipse" />
 				<property name="cfmlengine.inspect.templates" value="always" />
+				<addlibs from="${ext.dir}/cfeclipse" />
+				<copy file="${ext.dir}/cfeclipse/cfeclipsecall.cfm" todir="${war.target.dir}" />
+				<copy file="${ext.dir}/cfeclipse/Dump.cfc" todir="${war.target.dir}/WEB-INF/lib/railo-server/context/library/tag/railo" />
 			</then>
 		</antcontrib:if>
 	</target>
