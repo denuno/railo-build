@@ -339,7 +339,8 @@ ${git.results}</echo>
 		<antcontrib:if>
 			<equals arg1="${__major}" arg2="4" />
 			<then>
-				<property name="railo.javac.compiler" value="1.7" />
+				<property name="railo.javac.compiler" value="1.6" />
+				<!-- <property name="railo.javac.compiler" value="1.7" />  -->
 			</then>
 			<else>
 				<antcontrib:if>
