@@ -391,7 +391,6 @@
 				<then>
 					<artifact:deploy>
 					  <remoteRepository refid="@{repoId}" />
-					  <localRepository path="${cfdistro.repo.local.path}" />
 			          <attachments />
 					  <pom refid="@{pomid}"/>
 					</artifact:deploy>
@@ -409,7 +408,6 @@
 				 -->
 					<artifact:deploy file="@{artifact}">
 					  <remoteRepository refid="@{repoId}" />
-					  <localRepository path="${cfdistro.repo.local.path}" />
 			          <attachments />
 					  <pom refid="@{pomid}"/>
 					</artifact:deploy>
