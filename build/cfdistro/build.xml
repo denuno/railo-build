@@ -236,7 +236,7 @@ a tiny 2m jar but getPageContext() throws errors!!
  	<mkdir dir="${temp.dir}" />
 
     <property name="cfdistro.repo.local.path" location="${cfdistro.basedir}/artifacts" />
-    <mvn-repo id="cfdistro.repo.remote" url="http://loganberry.viviotech.net/artifacts/" />
+    <mvn-repo id="cfdistro.repo.remote" url="http://cfmlprojects.viviotech.net/artifacts/" />
 	<mvn-repo id="cfdistro.repo.local" url="file://${cfdistro.repo.local.path}/" />
 
 	<!--

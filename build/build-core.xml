@@ -63,15 +63,15 @@
           target: build temp war for compiling admin             
          ================================= -->
     <target name="RailoCore.tempwar" description="Creates a temp war for building admin.">
-		<delete dir="${temp.dir}/railo.war"/>
+		<delete dir="${war.target.dir}"/>
 		<delete dir="${temp.dir}/temprc"/>
-		<mkdir dir="${temp.dir}/railo.war/WEB-INF/lib"/>
+		<mkdir dir="${war.target.dir}/WEB-INF/lib"/>
     	<!-- copy the WAR template, css, etc. -->
-		<copy todir="${temp.dir}/railo.war">
+		<copy todir="${war.target.dir}">
 			<fileset dir="${basedir}/resource/railo-war-template/${railo.build.version.major}" />
 		</copy>
 
-		<copy todir="${temp.dir}/railo.war/WEB-INF/lib">
+		<copy todir="${war.target.dir}/WEB-INF/lib">
 			<fileset dir="${src.dir}/railo-java/libs" excludes="railo-loader.jar" />
 		</copy>
     	<copy todir="${temp.dir}/temprc/resource">
@@ -101,15 +101,15 @@
 		<zip destfile="${temp.dir}/temprc/railo.jar" update="true">
 			<fileset dir="${temp.dir}/temprc/" includes="railo/**,core/**"/>
 		</zip>
-		<copy tofile="${temp.dir}/railo.war/WEB-INF/lib/railo.jar" file="${temp.dir}/temprc/railo.jar" />
+		<copy tofile="${war.target.dir}/WEB-INF/lib/railo.jar" file="${temp.dir}/temprc/railo.jar" />
 
 		<copy file="${src.dir}/railo-java/railo-core/src/resource/config/web.xml" 
-			tofile="${temp.dir}/railo.war/WEB-INF/railo/railo-web.xml.cfm" />
-			<echo message="${temp.dir}/railo.war/WEB-INF/railo/railo-web.xml.cfm"/>
+			tofile="${war.target.dir}/WEB-INF/railo/railo-web.xml.cfm" />
+			<echo message="${war.target.dir}/WEB-INF/railo/railo-web.xml.cfm"/>
 		<mapping physical="${src.dir}/railo-cfml" virtual="/railo-cfml"/>
 		<!-- 
 		<copy file="${basedir}/resource/railo-${railo.build.version.major}.jar" 
-			tofile="${temp.dir}/railo.war/WEB-INF/lib/railo.jar" />
+			tofile="${war.target.dir}/WEB-INF/lib/railo.jar" />
 		 -->
 		<cfmlengcrypt engine="railo" plaintext="${cfadmin.password}" property="railo.password.encrypted" />
 <!-- 

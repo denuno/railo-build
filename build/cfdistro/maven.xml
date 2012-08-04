@@ -250,6 +250,41 @@
 		</sequential>
 	</macrodef>
 	
+	<macrodef name="mvn-get-deps" xmlns:artifact="antlib:org.apache.maven.artifact.ant">
+		<attribute name="todir" />
+		<attribute name="scope" default="runtime" />
+		<attribute name="pomfile" default="" />
+		<element name="deps" implicit="true" optional="true"/>
+		<sequential>
+	        <path id="maven.ant.tasks.classpath" path="${maven.ant.tasks.jar}" />
+	        <typedef resource="org/apache/maven/artifact/ant/antlib.xml" uri="urn:maven-artifact-ant" classpathref="maven.ant.tasks.classpath" />
+	        <antcontrib:var unset="true" name="_dependency.fileset" />
+			<antcontrib:if>
+				<equals arg1="@{pomfile}" arg2="" />
+				<then>
+					<artifact:dependencies filesetId="_dependency.fileset" useScope="@{scope}">
+			            <deps />
+			            <localRepository path="${cfdistro.repo.local.path}" />
+			            <remoteRepository refid="cfdistro.repo.local" />
+			            <remoteRepository refid="cfdistro.repo.remote" />
+			        </artifact:dependencies>
+				</then>
+				<else>
+					<artifact:dependencies filesetId="_dependency.fileset" useScope="@{scope}">
+						<pom file="@{pomfile}"/>
+			            <localRepository path="${cfdistro.repo.local.path}" />
+			            <remoteRepository refid="cfdistro.repo.local" />
+			            <remoteRepository refid="cfdistro.repo.remote" />
+			        </artifact:dependencies>
+				</else>
+			</antcontrib:if>
+			<copy todir="@{todir}">
+			  <fileset refid="_dependency.fileset" />
+			  <mapper type="flatten" />
+			</copy>
+		</sequential>
+	</macrodef>
+	
 	<macrodef name="dependency">
 		<attribute name="groupId" />
 		<attribute name="artifactId"/>
@@ -356,6 +391,7 @@
 				<then>
 					<artifact:deploy>
 					  <remoteRepository refid="@{repoId}" />
+					  <localRepository path="${cfdistro.repo.local.path}" />
 			          <attachments />
 					  <pom refid="@{pomid}"/>
 					</artifact:deploy>
@@ -373,6 +409,7 @@
 				 -->
 					<artifact:deploy file="@{artifact}">
 					  <remoteRepository refid="@{repoId}" />
+					  <localRepository path="${cfdistro.repo.local.path}" />
 			          <attachments />
 					  <pom refid="@{pomid}"/>
 					</artifact:deploy>
@@ -390,11 +427,11 @@
 		</sequential>
 	</macrodef>
 
-	<property name="loganberry.repo.user" value="admin" />
-   	<property name="loganberry.repo.password" value="admin123" />
-    <mvn-repo id="loganberry.repo" url="http://loganberry.viviotech.net/nexus/content/repositories/releases">
+	<property name="cfmlprojects.repo.user" value="admin" />
+   	<property name="cfmlprojects.repo.password" value="admin123" />
+    <mvn-repo id="cfmlprojects.repo" url="http://cfmlprojects.viviotech.net/nexus/content/repositories/releases">
     	<authentication>
-    		<authentication username="${loganberry.repo.user}" password="${loganberry.repo.password}"/>
+    		<authentication username="${cfmlprojects.repo.user}" password="${cfmlprojects.repo.password}"/>
 		</authentication>
     </mvn-repo>
 	

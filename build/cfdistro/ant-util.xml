@@ -179,7 +179,8 @@
 		<attribute name="maxmemory" default="128" />
 		<attribute name="fork" default="true" />
 		<sequential>
-
+			<mkdir dir="${temp.dir}" />
+			<delete file="${temp.dir}/ecjresult.txt" />
 			<antcontrib:trycatch property="foo" reference="bar">
 				<try>
 					<!-- http://help.eclipse.org/galileo/index.jsp?topic=/org.eclipse.jdt.doc.isv/guide/jdt_api_compile.htm -->
@@ -188,8 +189,10 @@
 					<!-- we use the temp file because the cp gets too long for windows sometimes -->
 					<echo file="ecj-classpath.txt">-classpath
 						"${toString:javac-ecj.compile.classpath}"</echo>
- 					<record name="${temp.dir}/ecjresult.txt" action="start"/>
-					<java jar="${cfdistro.basedir}/lib/ecj-3.6.jar" fork="true"
+					<antcontrib:trycatch>
+					<try><record name="${temp.dir}/ecjresult.txt" action="start"/></try><catch></catch>
+					</antcontrib:trycatch>
+					<java jar="${cfdistro.basedir}/lib/ecj-3.8.jar" fork="true"
 						classpathref="build.lib.path" maxmemory="@{maxmemory}" failonerror="true">
 						<arg value="-@{compliance}" />
 						<arg value="-warn:none" />
@@ -204,7 +207,9 @@
 						<arg line="@ecj-classpath.txt" />
 						<arg value="@{srcdir}" />
 					</java>
- 					<record name="${temp.dir}/ecjresult.txt" action="stop"/>
+					<antcontrib:trycatch>
+					<try><record name="${temp.dir}/ecjresult.txt" action="stop"/></try><catch></catch>
+					</antcontrib:trycatch>
 					<delete file="ecj-classpath.txt" />
 				</try>
 				<catch>

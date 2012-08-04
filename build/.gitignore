@@ -4,6 +4,7 @@ cache.properties
 /scm.cache
 /jmeter-*
 /creds.txt
+/rc-gen
 /buildinfo.properties
 /customtags.xml
 /ci-server

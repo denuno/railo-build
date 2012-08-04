@@ -13,20 +13,14 @@
 
 	<mvn-repo id="mvn.repo.local" url="file://${maven.repo.local}/" />
 
-<!-- 
-	if we decide we want to do snapshots and whatnot.
+	<!-- if we decide we want to do snapshots and whatnot.
 	<mvn-repo id="mvn.repo.local" url="file://${maven.repo.local}/${mvn.type}/">
 		<enablement>
 			<releases enabled="false" updatePolicy="always" />
 			<snapshots enabled="true" updatePolicy="never" checksumPolicy="fail" />
 		</enablement>
 	</mvn-repo>
- -->
-    <property name="repository.username" value="cfml" />
-    <property name="repository.privatekey" value="${basedir}/mvnkey.key" />
-    <mvn-repo id="mvn.repo.remote" url="scp://loganberry.viviotech.net:10022/home/cfml/railo-build/pub/maven2">
-      	<authentication username="${repository.username}" privateKey="${repository.privatekey}"/>
-    </mvn-repo>
+ 	-->
 
 	<!-- default jre to use for building jre bundles -->
 	<property name="mvn.jre.version" value="1.7.0_04" />

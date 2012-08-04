@@ -2,7 +2,7 @@
 <project>
   <actions/>
   <description>build the installer
-  &lt;br/&gt;&lt;a href=&quot;http://loganberry.viviotech.net/artifacts/org/getrailo/railo.installer/&quot; target=&quot;_blank&quot;&gt;view build aritfacts&lt;/a&gt;</description>
+  &lt;br/&gt;&lt;a href=&quot;http://cfmlprojects.org/artifacts/org/getrailo/railo.installer/&quot; target=&quot;_blank&quot;&gt;view build aritfacts&lt;/a&gt;</description>
   <keepDependencies>false</keepDependencies>
   <properties/>
   <scm class="hudson.scm.NullSCM"/>
