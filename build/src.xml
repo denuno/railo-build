@@ -5,16 +5,20 @@
 		<src dest="@src.dir@/" type="git"
         uri="https://denuno@github.com/denuno/railo.git"
         user="" password="" branch="origin/3.3" />
-	-->
+
         <src dest="@src.dir@/" type="git"
         uri="http://github.com/getrailo/railo.git"
         user="" password="" branch="origin/develop" />
+	-->
+        <src dest="@src.dir@/" type="git"
+        uri="http://github.com/getrailo/railo.git"
+        user="" password="" branch="origin/4.0" />
 
+	</project>
+	<sources>
         <src dest="@wiki.dir@/" type="git"
         uri="https://github.com/denuno/railo-build.wiki.git"
         user="" password="" />
-	</project>
-	<sources>
 	<!-- 
 		<src dest="@src.dir@/../build/CFML-Installers" type="git" 
 		uri="git://github.com/utdream/CFML-Installers.git"
