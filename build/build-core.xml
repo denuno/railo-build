@@ -72,7 +72,7 @@
 		</copy>
 
 		<copy todir="${war.target.dir}/WEB-INF/lib">
-			<fileset dir="${src.dir}/railo-java/libs" excludes="railo-loader.jar" />
+			<fileset dir="${src.dir}/railo-java/libs" excludes="${railo.libs.zip.excludes}" />
 		</copy>
     	<copy todir="${temp.dir}/temprc/resource">
     		<fileset dir="${build-core.src.dir}/resource"/>

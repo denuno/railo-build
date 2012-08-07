@@ -3,6 +3,7 @@
 	<property name="cli.version" value="0.1.1" />
 	<property name="cli.packager.name" value="Railo Technologies" />
 	<property name="cli.packager.email" value="railo@getrailo.com" />
+	<property name="cli.use.pack200" value="true" />
 
 	<target name="build.cli" description="creates an jar with the libs cli" depends="set.build.info">
 		<property name="runcli.jar.file" value="${dist.dir}/cli/railo-cli.jar"/>
@@ -17,7 +18,7 @@
 			<fileset dir="${cfdistro.basedir}/lib/" includes="${jetty-runner.jar}" /> 
 	    </unzip>
 	    <delete dir="${temp.dir}/cli/jetty/org/objectweb/" />
-		<zip destfile="${temp.dir}/cli/${jetty-runner.jar}">
+		<zip destfile="${temp.dir}/cli/${jetty-runner.jar}" level="9">
 			<fileset dir="${temp.dir}/cli/jetty" /> 
 		</zip>
    		<delete dir="${temp.dir}/cli/jetty" />
@@ -29,7 +30,7 @@
 		<!-- icon for cli -->
         <copy file="${basedir}/resource/railo.png" todir="${temp.dir}/cli/bin/railocli" />
 		<!-- use same icon for runwar -->
-        <zip destfile="${temp.dir}/cli/runwar.jar" update="true">
+        <zip destfile="${temp.dir}/cli/runwar.jar" update="true" level="9">
         	<zipfileset file="${temp.dir}/cli/bin/railocli/railo.png" fullpath="runwar/icon.png" />
         </zip>
         <!-- 
@@ -37,7 +38,7 @@
 		<antcontrib:runtarget target="runwar.jetty.jar"/>
          -->
        	<!-- we put the loader into a jar and then into libs.zip for classloading reasons -->
-		<jar destfile="${temp.dir}/cli/railocli.jar" filesetmanifest="mergewithoutmain">
+		<jar destfile="${temp.dir}/cli/railocli.jar" filesetmanifest="mergewithoutmain" level="9">
 			<manifest>
 				<attribute name="Main-Class" value="railocli.CLIMain" />
 			</manifest>
@@ -48,23 +49,47 @@
 		</jar>
 		<delete dir="${temp.dir}/cli/bin/railocli" />
 
-		<!--  create the libs zip including cli loader -->	    
-		<zip destfile="${temp.dir}/cli/libs.zip">
-          	<fileset file="${railobuild.dist.dir}/jar/railo-${railo.build.version.long}.jar" />
-	        <fileset dir="${railo.lib.dir}">
-	            <exclude name="**/railo-loader.jar"/>
-	            <exclude name="**/javax.servlet.jar"/>
-
-	            <include name="**/*.jar"/>
-	        </fileset>
-	        <fileset file="${temp.dir}/cli/railocli.jar" />
-	        <fileset file="${temp.dir}/cli/runwar.jar" />
-			<fileset file="${temp.dir}/cli/${jetty-runner.jar}" />
-		</zip>
+		<!--  create the libs zip including cli loader, optionally use pack200 -->
+		<antcontrib:if>
+			<equals arg1="${cli.use.pack200}" arg2="true" />
+			<then>
+				<delete dir="${temp.dir}/packlibs" />
+				<mkdir dir="${temp.dir}/packlibs"/>
+				<copy todir="${temp.dir}/packlibs">
+		          	<fileset file="${railobuild.dist.dir}/jar/railo-${railo.build.version.long}.jar" />
+			        <fileset dir="${railo.lib.dir}">
+			            <include name="**/*.jar"/>
+			            <exclude name="**/railo-loader.jar"/>
+			            <exclude name="**/javax.servlet.jar"/>
+			        </fileset>
+			        <fileset file="${temp.dir}/cli/railocli.jar" />
+			        <fileset file="${temp.dir}/cli/runwar.jar" />
+					<fileset file="${temp.dir}/cli/${jetty-runner.jar}" />
+				</copy>
+				<packjars dir="${temp.dir}/packlibs" />
+				<zip destfile="${temp.dir}/cli/libs.zip">
+			        <fileset dir="${temp.dir}/packlibs"/>
+				</zip>
+				<delete dir="${temp.dir}/packlibs" />
+			</then>
+			<else>
+				<zip destfile="${temp.dir}/cli/libs.zip">
+		          	<fileset file="${railobuild.dist.dir}/jar/railo-${railo.build.version.long}.jar" />
+			        <fileset dir="${railo.lib.dir}">
+			            <include name="**/*.jar"/>
+			            <exclude name="**/railo-loader.jar"/>
+			            <exclude name="**/javax.servlet.jar"/>
+			        </fileset>
+			        <fileset file="${temp.dir}/cli/railocli.jar" />
+			        <fileset file="${temp.dir}/cli/runwar.jar" />
+					<fileset file="${temp.dir}/cli/${jetty-runner.jar}" />
+				</zip>
+			</else>
+		</antcontrib:if>
 		<delete file="${temp.dir}/cli/railocli.jar" />
 		<delete file="${temp.dir}/runwar.jar" />
 
-		<jar destfile="${runcli.jar.file}" filesetmanifest="mergewithoutmain">
+		<jar destfile="${runcli.jar.file}" filesetmanifest="mergewithoutmain" level="9">
 			<manifest>
 				<attribute name="Main-Class" value="cliloader.LoaderCLIMain" />
 			</manifest>
@@ -339,6 +364,48 @@ ONE JAR version.  Eats a *lot* of memory but doesn't write anything to disk
          -->
 	</target>	
 
-
+	<macrodef name="packjars">
+	    <attribute name="dir"/>
+	    <sequential>
+	    	<antcontrib:for param="file">
+	    	  <path>
+	    	    <fileset dir="@{rootdir}" includes="*.jar"/>
+	    	  </path>
+	    	  <sequential>
+	    	  	<echo message="packing @{file}"/>
+		        <exec executable="pack200" resultproperty="pack.resultcode">
+		            <arg value="@{file}.pack.gz"/>
+		            <arg value="@{file}"/>
+		        </exec>
+	    	  	<antcontrib:if>
+	    	  		<equals arg1="${pack.resultcode}" arg2="0" />
+	    	  		<then>
+	    	  			<delete file="@{file}" quiet="true" verbose="false"/>
+	    	  		</then>
+	    	  		<else>
+	    	  			<delete file="@{file}.pack.gz" quiet="true" verbose="false"/>
+	    	  		</else>
+	    	  	</antcontrib:if>
+	    	  	<antcontrib:var unset="true" name="pack.resultcode" />
+	    	  </sequential>
+	    	</antcontrib:for>
+	    	
+<!--
+	        <apply executable="pack200" parallel="false" outputproperty="packoutput">
+	            <arg value=" - - repack"/>
+	            <fileset dir="@{rootdir}" includes="**/*.jar" />
+	        </apply>
+	    	<echo message="${packoutput}" />
+	        <echo message="Signing libs in @{rootdir}"/>
+	        <signjar 
+	            alias="${keystore.alias}" keystore="${keystore.file}" storepass="${keystore.password}"
+	            lazy="true">
+	            <path>
+	                <fileset dir="@{rootdir}" includes="**/*.jar" />
+	            </path>
+	        </signjar>
+-->	        
+	     </sequential>
+	</macrodef>
 		
 </project>

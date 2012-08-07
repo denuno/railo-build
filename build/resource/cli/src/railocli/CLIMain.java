@@ -59,7 +59,8 @@ public class CLIMain {
 		String strRoot=config.get("webroot");
 		File root;
 		if(Util.isEmpty(strRoot,true)) {
-			root=new File("./").getCanonicalFile();
+			//root=new File("./").getCanonicalFile();
+			root=new File("/").getCanonicalFile();
 			config.put("webroot",root.getPath());
 		} else {
 			root=new File(strRoot);
@@ -69,7 +70,7 @@ public class CLIMain {
 		String strServerroot=config.get("server-config");
 		File serverRoot;
 		if(Util.isEmpty(strServerroot,true)) {
-			serverRoot=new File(libDir,"server");
+			serverRoot=new File(libDir.getParentFile(),"server");
 			config.put("webroot",root.getPath());
 			//serverRoot=libDir;
 		} else {
@@ -80,7 +81,7 @@ public class CLIMain {
 		String strWebroot=config.get("web-config");
 		File webRoot;
 		if(Util.isEmpty(strWebroot,true)) {
-			webRoot=new File(libDir,"server/railo-web");
+			webRoot=new File(libDir.getParentFile(),"server/railo-web");
 		} else {
 			webRoot=new File(strWebroot);
 		}
@@ -94,6 +95,7 @@ public class CLIMain {
 				raw=args[i].trim();
 				if(raw.length() == 0) continue;
 				if(!raw.startsWith("-")) {
+					raw = new File(raw).getCanonicalFile().getPath();
 					config.put("uri",raw);
 					break;
 				}
@@ -118,7 +120,6 @@ public class CLIMain {
             }
             catch(Exception e) { /* e.printStackTrace(); */ }
         }
-
 		
 		// servletNane
 		String servletName=config.get("servlet-name");

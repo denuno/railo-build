@@ -24,6 +24,8 @@ then
 	cp="$cp:$RAILO_CLASSPATH"
 fi
 
+java_args='-client'
+
 # Cleanup paths for Cygwin.
 #
 case "`uname`" in
@@ -34,6 +36,7 @@ Darwin)
 	if [ -e /System/Library/Frameworks/JavaVM.framework ]
 	then
 		java_args='
+			-client
 			-Dcom.apple.mrj.application.apple.menu.about.name=Railo
 			-Dcom.apple.mrj.application.growbox.intrudes=false
 			-Dapple.laf.useScreenMenuBar=true

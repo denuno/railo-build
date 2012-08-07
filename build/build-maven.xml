@@ -32,7 +32,7 @@
     <target name="mvn.deploy.libs" depends="set.build.info" xmlns:artifact="antlib:org.apache.maven.artifact.ant">
 		<!-- wrap all the libs up into one dependency -->
 		<zip destfile="${temp.dir}/railo-libs.zip" update="true">
-			<fileset dir="${src.dir}/railo-java/libs" excludes="railo-loader.jar" />
+			<fileset dir="${src.dir}/railo-java/libs" excludes="${railo.libs.zip.excludes}" />
 		</zip>
 		<pom-and-deploy pomid="railolibs.pom" artifact="${temp.dir}/railo-libs.zip" packaging="zip" buildtype="${mvn.type}"
 		 groupId="org.getrailo" artifactId="railo.libs" version="${railo.build.version.major}.0" name="railo.libs" />
@@ -42,7 +42,7 @@
 		<property name="depsxml" value="" />
 		<antcontrib:for param="file">
 			<path>
-				<fileset dir="${src.dir}/railo-java/libs" excludes="railo-loader.jar" includes="*.jar" />
+				<fileset dir="${src.dir}/railo-java/libs" excludes="${railo.libs.zip.excludes}" includes="*.jar" />
 			</path>
 			<sequential>
 				<antcontrib:var name="basename" unset="true" />

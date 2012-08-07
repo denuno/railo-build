@@ -48,6 +48,7 @@ public class LoaderCLIMain {
 		}
 		// update/overwrite libs
 		if(config.get("update") != null) {
+			System.out.println("updating libs");
 			updateLibs = true;
 			args = removeElementThenAdd(args,"-update","");
 		}
@@ -91,7 +92,8 @@ public class LoaderCLIMain {
 				System.exit(1);
 			}
 			if(debug) System.out.println("Extracting " + ZIP_PATH);
-
+			System.out.println("Library path: " + libDir);
+			System.out.println("Initializing libraries -- this will only happen once, and takes a few seconds...");
 			try {
 
 				BufferedInputStream bis = new BufferedInputStream(resource.openStream());
@@ -109,11 +111,21 @@ public class LoaderCLIMain {
 						parentDir.mkdir();
 					}
 					writeStreamTo(jis, new FileOutputStream(f), 8 * KB);
+					if(f.getPath().endsWith("pack.gz")) {
+						Util.unpack(f);
+						f.delete();
+					}
+					System.out.print(".");
 				}
 				bis.close();
+				System.out.println("Libraries initialized");
 
 			} catch (Exception exc) {
 				exc.printStackTrace();
+			}
+			if(updateLibs && args.length == 1) {
+				System.out.println("updated! ctrl-c now or wait a few seconds for exit..");
+				System.exit(0);
 			}
 		}
 

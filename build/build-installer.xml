@@ -25,11 +25,11 @@
 
 		<delete dir="${bitrock.installers}/railo_installer_files/railo-all/lib" />
 		<copy todir="${bitrock.installers}/railo_installer_files/railo-all/lib">
-			<fileset dir="${src.dir}/railo-java/libs" excludes="railo-loader.jar" />
+			<fileset dir="${src.dir}/railo-java/libs" excludes="${railo.libs.zip.excludes}" />
 		</copy>
 		<delete dir="${bitrock.installers}/railo/railo/lib" />
 		<copy todir="${bitrock.installers}/railo/railo/lib">
-			<fileset dir="${src.dir}/railo-java/libs" excludes="railo-loader.jar" />
+			<fileset dir="${src.dir}/railo-java/libs" excludes="${railo.libs.zip.excludes}" />
 		</copy>
 		<xmltask source="${bitrock.installers}/railo_installer_files/railo.xml" dest="${bitrock.installers}/railo_installer_files/railo.xml">
 			<replace path="/project/version/text()" withText="${railo.build.version.long}-pl${installer.patchlevel}"/>

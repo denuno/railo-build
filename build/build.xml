@@ -193,7 +193,7 @@
 				   		<delete dir="${temp.dir}/jetty" />
 
 						<copy todir="${railobuild.dist.dir}/railo-express/webroot/WEB-INF/lib">
-							<fileset dir="${src.dir}/railo-java/libs" excludes="railo-loader.jar" />
+							<fileset dir="${src.dir}/railo-java/libs" excludes="${railo.libs.zip.excludes}" />
 						</copy>
 						<copy file="${railobuild.dist.dir}/jar/railo-${railo.build.version.long}.jar" tofile="${railobuild.dist.dir}/railo-express/webroot/WEB-INF/lib/railo.jar" />
 						<echo file="${railobuild.dist.dir}/railo-express/start"><![CDATA[#!/bin/sh
@@ -225,7 +225,7 @@ exec $JAVA_EXE -jar webroot/WEB-INF/lib/runwar.jar --war webroot --port 8888 --o
 							<fileset dir="${basedir}/resource/railo-war-template/${railo.build.version.major}/" />
 						</copy>
 						<copy todir="${railobuild.dist.dir}/railo.war/WEB-INF/lib">
-							<fileset dir="${src.dir}/railo-java/libs" excludes="railo-loader.jar" />
+							<fileset dir="${src.dir}/railo-java/libs" excludes="${railo.libs.zip.excludes}" />
 						</copy>
 						<copy file="${railobuild.dist.dir}/jar/railo-${railo.build.version.long}.jar" tofile="${railobuild.dist.dir}/railo.war/WEB-INF/lib/railo.jar" />
 						<!-- compress war -->
