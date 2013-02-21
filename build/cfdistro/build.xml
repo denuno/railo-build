@@ -4,8 +4,8 @@
 	<property file="${user.home}/.cfdistrorc" />
 	<property name="dist.root.dir" location="../" />
 	<property file="${cfdistro.basedir}/i18n/en_us.properties" prefix="i18n" />
+	<property file="${cfdistro.basedir}/cfdistro.properties" />
 	<property file="${basedir}/build.${build.type}.properties" />
-
 	<property name="build.type" value="localdev" />
 <!-- 
  	<record name="/tmp/log.txt" action="start"/>
@@ -163,7 +163,7 @@
 	<property name="cfadmin.password" value="testtest" />
 
 	<property name="railo.archive.dir" location="${dist.dir}/ra" />
-	<property name="ext.dir" location="${cfdistro.basedir}/ext" />
+	<property name="ext.dir" location="${user.home}/cfdistro/ext" />
 	<property name="ext.mappings.dir" location="${ext.dir}/mappings" />
 	<property name="ext.acf.dir" location="${ext.dir}/acf" />
 	<property name="ext.acf.war" location="${ext.acf.dir}/9/cfusion.war" />
@@ -178,7 +178,8 @@
 a tiny 2m jar but getPageContext() throws errors!!
 	<property name="jetty-runner.jar" value="jetty-runner-8.0.4.v20111024.jar" />
 -->
-	<property name="jetty-runner.jar" value="jetty-runner-8.1.3.v20120416.jar" />
+	<property name="jetty-runner.version" value="8.1.8.v20121106" />
+	<property name="jetty-runner.jar" value="jetty-runner-${jetty-runner.version}.jar" />
 
 	<property name="ext.uri" value="http://subversion.assembla.com/svn/cfdistro/trunk/cfdistro/ext" />
 	<property name="creds.token.file" value="${basedir}/creds.txt" />
@@ -235,8 +236,8 @@ a tiny 2m jar but getPageContext() throws errors!!
  -->
  	<mkdir dir="${temp.dir}" />
 
-    <property name="cfdistro.repo.local.path" location="${cfdistro.basedir}/artifacts" />
-    <mvn-repo id="cfdistro.repo.remote" url="http://cfmlprojects.viviotech.net/artifacts/" />
+    <property name="cfdistro.repo.local.path" location="${user.home}/cfdistro/artifacts" />
+    <mvn-repo id="cfdistro.repo.remote" url="http://cfmlprojects.org/artifacts/" />
 	<mvn-repo id="cfdistro.repo.local" url="file://${cfdistro.repo.local.path}/" />
 
 	<!--
@@ -496,11 +497,12 @@ a tiny 2m jar but getPageContext() throws errors!!
 			<then>
 				<requires-ext resource="${ext.railo.dir}/error.cfm" />
 				<requires-ext resource="${ext.dir}/cfeclipse" />
-				<error-template path="${ext.railo.dir}/error.cfm" />
 				<property name="cfmlengine.inspect.templates" value="always" />
 				<addlibs from="${ext.dir}/cfeclipse" />
 				<copy file="${ext.dir}/cfeclipse/cfeclipsecall.cfm" todir="${war.target.dir}" />
 				<copy file="${ext.dir}/cfeclipse/Dump.cfc" todir="${war.target.dir}/WEB-INF/lib/railo-server/context/library/tag/railo" />
+				<copy file="${ext.railo.dir}/error.cfm" todir="${war.target.dir}/WEB-INF/lib/railo-server/context/library/tag/" />
+				<error-template path="/WEB-INF/lib/railo-server/context/library/tag/error.cfm" />
 			</then>
 		</antcontrib:if>
 	</target>
@@ -963,6 +965,7 @@ a tiny 2m jar but getPageContext() throws errors!!
 				<relpath property="src.dir.rel" to="${src.dir}" from="${war.target.dir}"/>
 			</else>
 		</antcontrib:if>
+		<mkdir dir="${temp.dir}" />
 		<echoproperties destfile="${temp.file}"/>
 		<loadfile property="mappings.xml" srcFile="${mappings.file}">
 			<filterchain>
@@ -981,7 +984,7 @@ a tiny 2m jar but getPageContext() throws errors!!
 </antcontrib:if>
 </target>
 
-<target name="exists.datasources.xml" depends="check.creds">
+<target name="exists.datasources.xml">
 	<antcontrib:var name="exists.datasources.xml" unset="true" />
 	<property name="datasources.file" location="datasources.xml" />
 	<!-- we get the absolute path cuz some FS DBs work better that way, plus dllutil stuff -->
@@ -1123,6 +1126,8 @@ a tiny 2m jar but getPageContext() throws errors!!
 </antcontrib:if>
 </target>
 
+<!--
+THIS WAS MOSTLY REPLACED WITH THE LOAD OF ~/.cfdistrorc 
 <target name="check.creds">
 <antcontrib:if>
 	<available file="${creds.token.file}" />
@@ -1135,8 +1140,9 @@ a tiny 2m jar but getPageContext() throws errors!!
 </antcontrib:if>
 </target>
 
+ -->
 
-<target name="exists.mail.xml" depends="check.creds">
+<target name="exists.mail.xml">
 <available file="${basedir}/mail.${build.type}.xml" type="file" property="exists.mail.xml" />
 <antcontrib:if>
 	<equals arg1="${exists.mail.xml}" arg2="true" />
@@ -1292,27 +1298,15 @@ a tiny 2m jar but getPageContext() throws errors!!
 </target>
 
 <target name="cfdistro.update">
-<property name="source-root" value="${cfdistro.basedir}" />
-<property name="repository.URL" value="http://subversion.assembla.com/svn/cfdistro" />
-
-<mkdir dir="${cfdistro.basedir}/temp-cfd-update" />
-<java classname="org.tmatesoft.svn.cli.SVN" dir="${cfdistro.basedir}/temp-cfd-update" fork="true">
-	<arg value="export" />
-	<arg value="--force" />
-	<arg value="${repository.URL}/trunk/cfdistro/src/cfdistro" />
-	<classpath>
-		<pathelement location="${cfdistro.basedir}/lib/ganymed.jar" />
-		<pathelement location="${cfdistro.basedir}/lib/svnkit.jar" />
-		<pathelement location="${cfdistro.basedir}/lib/svnkit-cli.jar" />
-	</classpath>
-</java>
-<copy todir="${source-root}/../" failonerror="false">
-	<fileset dir="${cfdistro.basedir}/temp-cfd-update">
-		<include name="**" />
-	</fileset>
-</copy>
-<delete dir="${cfdistro.basedir}/temp-cfd-update" />
+	<property name="cfdistro.update.basedir" value="${cfdistro.basedir}" />
+	<property name="cfdistro.update.url" value="http://cfmlprojects.org/artifacts/cfdistro/latest/cfdistro.zip" />
+	<property name="cfdistro.update.tempdir" value="${cfdistro.basedir}/temp-cfd-update" />
+	<mkdir dir="${cfdistro.update.tempdir}" />
+	<get src="${cfdistro.update.url}" dest="${cfdistro.update.tempdir}" />
+	<unzip dest="${cfdistro.update.basedir}" src="${cfdistro.update.tempdir}/cfdistro.zip" />
+	<delete dir="${cfdistro.update.tempdir}" />
 </target>
+
 <target name="echoproperties" description="lists set properties">
 	<echoproperties />
 </target>
@@ -1340,11 +1334,15 @@ a tiny 2m jar but getPageContext() throws errors!!
 		<copy todir="${dist.dir}/${distro.name}/build" verbose="false">
 			<fileset dir="${basedir}/">
 				<exclude name="**/.git/**" />
+				<exclude name="cfdistro/**" />
 				<exclude name="cfdistro/ext/**" />
 				<exclude name="${temp.dir}" />
 				<exclude name="${creds.token.filename}" />
 				<exclude name="*.key" />
 			</fileset>
+		</copy>
+		<copy todir="${dist.dir}/${distro.name}/build/cfdistro" verbose="false">
+			<fileset dir="${cfdistro.basedir}/" excludes="ext/**,artifacts/**,**/.git/**,**/temp/**,rpmbuild/SOURCES/**,rpmbuild/RPMS/**" />
 		</copy>
 	</case>
 	<case value="src">
@@ -1362,10 +1360,13 @@ a tiny 2m jar but getPageContext() throws errors!!
 			<fileset dir="${basedir}/../">
 				<exclude name="${temp.dir}" />
 				<exclude name="**/.git/**" />
-				<exclude name="build/cfdistro/ext/**" />
+				<exclude name="build/cfdistro/**" />
 				<exclude name="build/${creds.token.filename}" />
 				<exclude name="build/*.key" />
 			</fileset>
+		</copy>
+		<copy todir="${dist.dir}/${distro.name}/build/cfdistro" verbose="false">
+			<fileset dir="${cfdistro.basedir}/" excludes="ext/**,artifacts/**,**/.git/**,**/temp/**,rpmbuild/SOURCES/**,rpmbuild/RPMS/**" />
 		</copy>
 	</case>
 	<case value="all">
@@ -1377,6 +1378,9 @@ a tiny 2m jar but getPageContext() throws errors!!
 				<exclude name="build/*.key" />
 			</fileset>
 		</copy>
+		<copy todir="${dist.dir}/${distro.name}/build/cfdistro" verbose="false">
+			<fileset dir="${cfdistro.basedir}/" excludes="ext/**,artifacts/**,**/.git/**,**/temp/**,rpmbuild/SOURCES/**,rpmbuild/RPMS/**" />
+		</copy>
 	</case>
 	<default>
 		<fail message="Um, the dist include type '${dist.type}' is unknown to me, esse!" />
@@ -1387,7 +1391,7 @@ a tiny 2m jar but getPageContext() throws errors!!
 	</case>
 	<default>
 		<copy todir="${dist.dir}/${distro.name}/build/cfdistro" verbose="false">
-			<fileset dir="${cfdistro.basedir}/" excludes="ext/**,rpmbuild/SOURCES/**,rpmbuild/RPMS/**" />
+			<fileset dir="${cfdistro.basedir}/" excludes="ext/**,artifacts/**,**/.git/**,**/temp/**,rpmbuild/SOURCES/**,rpmbuild/RPMS/**" />
 		</copy>
 		<chmod file="${dist.dir}/${distro.name}/build/cfdistro/ant/bin/ant" perm="ugo+rx" />
 		<!-- set the cfdistro file path to included cfdistro -->
@@ -1454,9 +1458,7 @@ a tiny 2m jar but getPageContext() throws errors!!
 		<copy todir="${rpm.repo.dir}" overwrite="true">
 			<fileset dir="${temp.dir}/rpmbuild/RPMS/noarch" />
 		</copy>
-		<exec executable="createrepo">
-			<arg value="${rpm.repo.dir}"/>
-		</exec>
+		<rpm-repo dir="${rpm.repo.dir}" />
 	</target>
 	
 	
@@ -1489,6 +1491,21 @@ cfdistro is freaking insane
    	</deb>
     </target>
 	
+	<target name="cfdistro.mvn.release" description="builds and adds to mvn repo">
+		<delete file="${dist.dir}/cfdistro.zip" />
+		<delete dir="${dist.dir}/cfdistro" />
+		<mkdir dir="${dist.dir}/cfdistro" />
+		<copy todir="${dist.dir}/cfdistro" verbose="false">
+			<fileset dir="${cfdistro.basedir}/" excludes="ext/**,artifacts/**,**/.git/**,**/temp/**,rpmbuild/SOURCES/**,rpmbuild/RPMS/**" />
+		</copy>
+		<zipdir destfile="${dist.dir}/cfdistro.zip" sourcedir="${dist.dir}/cfdistro" />
+		<mkdir dir="${cfdistro.repo.local.path}/cfdistro/latest" />
+		<copy file="${dist.dir}/cfdistro.zip" todir="${cfdistro.repo.local.path}/cfdistro/latest" overwrite="true" />
+		<mvn-put artifact="${dist.dir}/cfdistro.zip" packaging="zip" repoId="cfdistro.repo.local"
+		 groupId="cfdistro" artifactId="core" version="${cfdistro.version}"/>
+		
+	</target>
+
 <target name="cfdistro.install" description="installs cfdistro into user home and sets build.property cfdistro path">
 	<copy todir="${user.home}/cfdistro" verbose="false" overwrite="true">
 		<fileset dir="${cfdistro.basedir}/" excludes="ext/**" />

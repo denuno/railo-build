@@ -5,6 +5,7 @@
 		<attribute name="command" />
 		<attribute name="dir" default="${basedir}" />
 		<attribute name="use-jgit" default="${use.jgit}" />
+		<attribute name="verbose" default="true" />
 		<element name="args" optional="true" />
 		<sequential>
 			<antcontrib:var name="git.results" unset="true" />
@@ -42,7 +43,12 @@
 					</antcontrib:if>
 				</else>
 			</antcontrib:if>
-			<echo message="${git.results}" />
+			<antcontrib:if>
+				<equals arg1="@{verbose}" arg2="true" />
+				<then>
+					<echo message="${git.results}" />
+				</then>
+			</antcontrib:if>
 		</sequential>
 	</macrodef>
 	
@@ -145,9 +151,21 @@
 	<macrodef name="git-checkout">
 		<attribute name="repository" />
 		<attribute name="branch" />
+		<attribute name="uri" default="" />
 		<attribute name="force" default="false"/>
 		<attribute name="use-jgit" default="${use.jgit}" />
 		<sequential>
+			<antcontrib:if>
+				<not><available file="@{repository}"/></not>
+				<then>
+					<git command="clone" use-jgit="@{use-jgit}">
+						<args>
+							<arg value="@{uri}" />
+							<arg value="@{repository}" />
+						</args>
+					</git>
+				</then>
+			</antcontrib:if>
 			<antcontrib:if>
 				<equals arg1="@{force}" arg2="true"/>
 				<then>
@@ -187,8 +205,10 @@
 	<macrodef name="git-commit-hash">
 		<attribute name="repository" />
 		<attribute name="property" />
+		<attribute name="remote" default="origin" />
+		<attribute name="branch" default="master" />
 		<sequential>
-			<git command="log" dir="${src.dir}"><args><arg value="-n"/><arg value="1"/></args></git>
+			<git command="log" dir="@{repository}"><args><arg value="-n"/><arg value="1"/><arg value="@{remote}/@{branch}"/></args></git>
 			<antcontrib:propertyregex override="yes" property="@{property}" input="${git.results}" regexp=".*commit\s(.\w+).*" select="\1" />
 		</sequential>
 	</macrodef>
@@ -257,11 +277,15 @@
 				<param name="type" path="@type" default="NONE" />
 				<param name="uri" path="@uri" default="NONE" />
 				<param name="branch" path="@branch" default="master" />
+				<param name="remote" path="@remote" default="origin" />
 				<param name="sshkey" path="@sshkey" default="NONE" />
 				<actions>
 					<antcontrib:if>
 						<or>
-							<not><available file="@{dest}.git" type="dir"/></not>
+							<and>
+								<not><available file="@{dest}.git" type="dir"/></not>
+								<not><available file="@{dest}/.git" type="dir"/></not>
+							</and>
 							<equals arg1="${project.overwrite}" arg2="true" />
 						</or>
 						<then>
@@ -277,14 +301,27 @@
 						</then>
 						<else>
 							<echo message="updating src: @{dest}" />
-							<!--
-							-->
-							<git command="fetch" dir="@{dest}">
-								<args><arg value="origin" /></args>
+							<git command="fetch" dir="@{dest}"/>
+							<!-- do funky stuff to get around jgit conflict error stuff -->
+							<antcontrib:var name="tmpgitdir" unset="true" />
+							<property name="tmpgitdir" location="${temp.dir}/tmpgit"/>
+							<delete dir="${tmpgitdir}"/>
+							<mkdir dir="${tmpgitdir}"/>
+							<echo message="${tmpgitdir}"/>
+							<replace file="@{dest}/.git/config" token="[core]" value='[core]${line.separator}	worktree = ${tmpgitdir}'/>
+							<echo message='"origin/@{branch}"'/>
+							<git-checkout repository="@{dest}" branch="@{remote}/@{branch}"/>
+							<move todir="@{dest}">
+							    <fileset dir="${tmpgitdir}"/>
+							</move>
+							<delete dir="${tmpgitdir}"/>
+							<replace file="@{dest}/.git/config" token="worktree = ${tmpgitdir}${line.separator}" value=""/>
+<!--
+							<git-checkout repository="@{dest}" branch="@{remote}/@{branch}"/>
+							<git command="checkout" dir="@{dest}">
+								<args><arg value="-b localchanges" /></args>
 							</git>
-							<git command="merge" dir="@{dest}">
-								<args><arg value="@{branch}" /></args>
-							</git>
+-->
 						</else>
 					</antcontrib:if>
 				</actions>
@@ -413,6 +450,7 @@
 				<actions>
 					<antcontrib:var name="revisions.are.same" value="true"/>
 					<antcontrib:var name="desthash" unset="true"/>
+					<antcontrib:var name="pre.fetch.commit.hash" unset="true"/>
 					<safestring value="@{dest}" property="desthash"/>
 					<echo message="DestHash: ${desthash}"/>
 					<git-commit-hash repository="@{dest}" property="pre.fetch.commit.hash" />
@@ -439,16 +477,9 @@
 					<git command="fetch" dir="@{dest}">
 						<args><arg value="origin" /></args>
 					</git>
-					<git command="log" dir="@{dest}">
-						<args>
-							<arg value="-n" />
-							<arg value="1" />
-							<arg value="--" />
-							<arg value="HEAD..origin/master" />
-						</args>
-					</git>
+					<git-commit-hash repository="@{dest}" property="post.fetch.commit.hash" />
 					<antcontrib:if>
-						<equals arg1="${git.results}" arg2="" />
+						<equals arg1="${pre.fetch.commit.hash}" arg2="${post.fetch.commit.hash}" />
 						<then>
 							<echo message="Remote revision is the same" />
 						</then>
@@ -489,6 +520,7 @@
 	
     <macrodef name="git-fetch-from-remote">
         <sequential>
+        	<load-src-xml />
     		<xmltask sourcebuffer="src.buff">
     			<call path="src/project/src[@type='git']">
     				<param name="dest" path="@dest" default="NONE" />

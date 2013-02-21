@@ -1,0 +1,204 @@
+<project name="RailoExpress" default="Railo.express" basedir="." xmlns:antcontrib="antlib:net.sf.antcontrib">
+    
+	<description>Ant build file to build express version</description>
+
+	<!-- Load properties -->
+	<property file="build.properties"/>
+	
+    <target name="Railo.express" description="builds express.">
+		<set-build-info />
+    	<property name="railo.express.zip.file" value="${railobuild.dist.dir}/express/railo-express-${railo.build.version.long}.zip" />
+		<delete dir="${railobuild.dist.dir}/railo-express"/>
+		<copy todir="${railobuild.dist.dir}/railo-express/webroot/">
+			<fileset dir="${basedir}/resource/railo-war-template/${railo.build.version.major}/" />
+		</copy>
+		<mkdir dir="${railobuild.dist.dir}/railo-express/webroot/WEB-INF/lib"/>
+		
+		<!-- custom icon for runwar -->
+		<copy file="${cfdistro.basedir}/lib/runwar.jar" todir="${railobuild.dist.dir}/railo-express/webroot/WEB-INF/lib" />
+        <copy file="${basedir}/resource/railo.png" todir="${temp.dir}" />
+        <zip destfile="${railobuild.dist.dir}/railo-express/webroot/WEB-INF/lib/runwar.jar" update="true">
+        	<zipfileset file="${temp.dir}/railo.png" fullpath="runwar/icon.png" />
+        </zip>
+        <!--  create no asm jetty runner -->
+    	<jar jarfile="${railobuild.dist.dir}/railo-express/webroot/WEB-INF/lib/${jetty-runner.jar}">
+	        <zipfileset src="${cfdistro.basedir}/lib/${jetty-runner.jar}" excludes="org/objectweb/**" />
+	    </jar>
+
+		<copy todir="${railobuild.dist.dir}/railo-express/webroot/WEB-INF/lib">
+			<fileset dir="${src.dir}/railo-java/libs" excludes="${railo.libs.zip.excludes}" />
+		</copy>
+		<copy file="${railobuild.dist.dir}/jar/railo-${railo.build.version.long}.jar" tofile="${railobuild.dist.dir}/railo-express/webroot/WEB-INF/lib/railo.jar" />
+		<echo file="${railobuild.dist.dir}/railo-express/start"><![CDATA[#!/bin/sh
+if test -n "${JAVA_HOME}"; then
+if test -z "${JAVA_EXE}"; then
+JAVA_EXE=$JAVA_HOME/bin/java
+fi
+fi
+
+if test -z "${JAVA_EXE}"; then
+JAVA_EXE=java
+fi
+cd $(dirname $0)
+exec $JAVA_EXE -jar webroot/WEB-INF/lib/runwar.jar --war webroot --port 8888 --osxprocessname Railo --logdir . --background true --open-browser true --open-url /]]>
+</echo>
+		<echo file="${railobuild.dist.dir}/railo-express/start.bat"><![CDATA[
+java -jar webroot/WEB-INF/lib/runwar.jar --war webroot --port 8888 --osxprocessname Railo --logdir . --background true --open-browser true --open-url /]]>
+</echo>
+		<chmod file="${railobuild.dist.dir}/railo-express/start" perm="ugo+rx"/>
+		<echo file="${railobuild.dist.dir}/railo-express/start.bat"><![CDATA[java -jar %CD%\webroot\WEB-INF\lib\runwar.jar --war webroot --port 8888 --osxprocessname Railo --logdir . --background true --open-browser true --open-url /]]></echo>
+		<zip destfile="${railo.express.zip.file}" update="false">
+			<zipfileset dir="${railobuild.dist.dir}/railo-express/" includes="start,stop" filemode="755" />
+			<zipfileset dir="${railobuild.dist.dir}/railo-express/" excludes="start,stop"/>
+		</zip>
+    </target>
+
+    <target name="Railo.express.winstone" description="builds express.">
+		<set-build-info />
+    	<property name="railo.express.winstone.zip.file" value="${railobuild.dist.dir}/express/railo-express-winstone-${railo.build.version.long}.zip" />
+    	<property name="winstone.version" value="0.9.10" />
+    	<property name="winstone.jar" value="winstone-lite-${winstone.version}.jar" />
+    	<property name="winstone.jar.path" value="${ext.dir}/winstone/${winstone.jar}" />
+    	<property name="winstone.ext.dir" value="${ext.dir}/winstone/"/>
+    	<mkdir dir="${winstone.ext.dir}"/>
+        <dependency groupId="net.sourceforge.winstone"
+          artifactId="winstone-lite" type="jar" unzip="false"
+          version="${winstone.version}" dest="${winstone.ext.dir}"/>
+		<delete dir="${railobuild.dist.dir}/railo-express"/>
+		<copy todir="${railobuild.dist.dir}/railo-express/webroot/">
+			<fileset dir="${basedir}/resource/railo-war-template/${railo.build.version.major}/" />
+		</copy>
+		<mkdir dir="${railobuild.dist.dir}/railo-express/webroot/WEB-INF/lib"/>
+		<copy file="${winstone.jar.path}" todir="${railobuild.dist.dir}/railo-express/webroot/WEB-INF/lib" />
+		<copy todir="${railobuild.dist.dir}/railo-express/webroot/WEB-INF/lib">
+			<fileset dir="${src.dir}/railo-java/libs" excludes="${railo.libs.zip.excludes}" />
+		</copy>
+		<copy file="${src.dir}/railo-java/libs/javax.servlet.jar" todir="${railobuild.dist.dir}/railo-express/webroot/WEB-INF/lib" />
+    	<copy file="${railobuild.dist.dir}/jar/railo-${railo.build.version.long}.jar" tofile="${railobuild.dist.dir}/railo-express/webroot/WEB-INF/lib/railo.jar" />
+		<echo file="${railobuild.dist.dir}/railo-express/start"><![CDATA[#!/bin/sh
+if test -n "${JAVA_HOME}"; then
+if test -z "${JAVA_EXE}"; then
+JAVA_EXE=$JAVA_HOME/bin/java
+fi
+fi
+
+if test -z "${JAVA_EXE}"; then
+JAVA_EXE=java
+fi
+cd $(dirname $0)
+exec $JAVA_EXE -jar webroot/WEB-INF/lib/${winstone.jar} --webroot=./webroot --httpPort=8888]]>
+</echo>
+    	
+		<chmod file="${railobuild.dist.dir}/railo-express/start" perm="ugo+rx"/>
+		<echo file="${railobuild.dist.dir}/railo-express/start.bat"><![CDATA[java -jar %CD%\webroot\WEB-INF\lib\${winstone.jar} --webroot=./webroot --httpPort=8888]]></echo>
+    	<!-- add dtd and xsd so no network connections are used -->
+    	<zip destfile="${railobuild.dist.dir}/railo-express/webroot/WEB-INF/lib/${winstone.jar}" update="true">
+			<zipfileset dir="${cfdistro.basedir}/dtd/" prefix="javax/servlet/resources/"/>
+		</zip>
+    	<zip destfile="${railo.express.winstone.zip.file}" update="false">
+			<zipfileset dir="${railobuild.dist.dir}/railo-express/" includes="start,stop" filemode="755" />
+			<zipfileset dir="${railobuild.dist.dir}/railo-express/" excludes="start,stop"/>
+		</zip>
+    </target>	
+	
+    <target name="Railo.winstone" description="builds express.">
+		<set-build-info />
+    	<property name="railo.winstone.zip.file" value="${railobuild.dist.dir}/express/railo-winstone-${railo.build.version.long}.zip" />
+    	<property name="winstone.version" value="0.9.10" />
+    	<property name="winstone.jar" value="winstone-lite-${winstone.version}.jar" />
+    	<property name="winstone.jar.path" value="${ext.dir}/winstone/${winstone.jar}" />
+    	<property name="winstone.ext.dir" value="${ext.dir}/winstone/"/>
+    	<mkdir dir="${winstone.ext.dir}"/>
+        <dependency groupId="net.sourceforge.winstone"
+          artifactId="winstone-lite" type="jar" unzip="false"
+          version="${winstone.version}" dest="${winstone.ext.dir}"/>
+		<delete dir="${railobuild.dist.dir}/railo-express"/>
+		<copy todir="${railobuild.dist.dir}/railo-express/webroot/">
+			<fileset dir="${basedir}/resource/railo-war-template/${railo.build.version.major}/" />
+		</copy>
+		<mkdir dir="${railobuild.dist.dir}/railo-express/webroot/WEB-INF/lib"/>
+		<copy todir="${railobuild.dist.dir}/railo-express/webroot/WEB-INF/lib">
+			<fileset dir="${src.dir}/railo-java/libs" excludes="${railo.libs.zip.excludes}" />
+		</copy>
+		<copy file="${src.dir}/railo-java/libs/javax.servlet.jar" todir="${railobuild.dist.dir}/railo-express/webroot/WEB-INF/lib" />
+    	<copy file="${railobuild.dist.dir}/jar/railo-${railo.build.version.long}.jar" tofile="${railobuild.dist.dir}/railo-express/webroot/WEB-INF/lib/railo.jar" />
+		<zip destfile="${temp.dir}/embedded.war" update="false">
+			<fileset dir="${railobuild.dist.dir}/railo-express/webroot/"/>
+		</zip>
+		<copy file="${winstone.jar.path}" tofile="${railobuild.dist.dir}/railo-express/railo-winstone.jar" />
+		<zip destfile="${railobuild.dist.dir}/railo-express/railo-winstone.jar" update="true">
+			<fileset file="${temp.dir}/embedded.war"/>
+		</zip>
+    	<echo file="${railobuild.dist.dir}/railo-express/start"><![CDATA[#!/bin/sh
+if test -n "${JAVA_HOME}"; then
+if test -z "${JAVA_EXE}"; then
+JAVA_EXE=$JAVA_HOME/bin/java
+fi
+fi
+
+if test -z "${JAVA_EXE}"; then
+JAVA_EXE=java
+fi
+cd $(dirname $0)
+exec $JAVA_EXE -jar railo-winstone.jar --httpPort=8888]]>
+</echo>
+		<chmod file="${railobuild.dist.dir}/railo-express/start" perm="ugo+rx"/>
+		<echo file="${railobuild.dist.dir}/railo-express/start.bat"><![CDATA[java -jar %CD%\railo-winstone.jar --httpPort=8888]]></echo>
+		<delete dir="${railobuild.dist.dir}/railo-express/webroot/"/>
+		<zip destfile="${railo.winstone.zip.file}" update="false">
+			<zipfileset dir="${railobuild.dist.dir}/railo-express/" includes="start,stop" filemode="755" />
+			<zipfileset dir="${railobuild.dist.dir}/railo-express/" excludes="start,stop"/>
+		</zip>
+    </target>	
+	
+    <target name="Railo.express.jetty" description="Builds express jetty.">
+		<set-build-info />
+    	<property name="railo.express.jetty.zip.file" value="${railobuild.dist.dir}/express/railo-express-jetty-${railo.build.version.long}.zip" />
+		<delete dir="${railobuild.dist.dir}/railo-express"/>
+    	<antcontrib:var name="jetty.dir" value="${railobuild.dist.dir}/railo-express/" />
+    	<antcontrib:var name="server.sharedlibs" value="true" />
+    	<antcontrib:var name="war.target.dir" value="${railobuild.dist.dir}/railo-express/webapps/ROOT.war" />
+    	<antcontrib:var name="server.install.force" value="true" />
+		<copy todir="${war.target.dir}/">
+			<fileset dir="${basedir}/resource/railo-war-template/${railo.build.version.major}/" />
+		</copy>
+		<copy todir="${war.target.dir}/WEB-INF/lib">
+			<fileset dir="${src.dir}/railo-java/libs" excludes="${railo.libs.zip.excludes}" />
+		</copy>
+		<copy file="${railobuild.dist.dir}/jar/railo-${railo.build.version.long}.jar" tofile="${war.target.dir}/WEB-INF/lib/railo.jar" />
+
+    	<!-- jump through hoops for asm4... we could just delete jetty-annotations and lib/annotations/org.objectweb too -->
+    	<taskdef name="jarjar" classname="com.tonicsystems.jarjar.JarJarTask" classpath="${cfdistro.basedir}/lib/jarjar-1.4.jar"/>
+    	<antcontrib:runtarget target="jetty.install" />
+        <jarjar jarfile="${jetty.dir}/lib/jetty-annotationsasm1.jar">
+            <zipgroupfileset dir="${jetty.dir}/lib/" includes="jetty-annotations-*.jar,annotations/org.objectweb*.jar" />
+            <rule pattern="org.objectweb.**" result="org.objectwebasm.@1"/>
+        </jarjar>
+    	<jar jarfile="${jetty.dir}/lib/jetty-annotationsasm.jar">
+	        <zipfileset src="${jetty.dir}/lib/jetty-annotationsasm1.jar" excludes="META-INF/*.SF" />
+	    </jar>
+    	<delete>
+    		<fileset dir="${jetty.dir}/lib/" includes="jetty-annotations-*.jar,jetty-annotationsasm1.jar,annotations/org.objectweb*.jar"/>
+		</delete>
+    	<rename src="${jetty.dir}/lib/jetty-annotationsasm.jar" dest="${jetty.dir}/lib/jetty-annotations-${jetty.version.long}.jar" />
+
+    	<move todir="${jetty.dir}/webroot">
+    		<fileset dir="${war.target.dir}" excludes="WEB-INF/**" />
+    	</move>
+    	<echo file="${jetty.dir}/start" message="#!/bin/bash${line.separator}${line.separator}cd $(dirname $0)${line.separator}java -DSTOP.PORT=8887 -DSTOP.KEY=railo -jar -Xms256M  -Xmx512M start.jar"/>
+    	<echo file="${jetty.dir}/stop" message="#!/bin/bash${line.separator}${line.separator}cd $(dirname $0)${line.separator}java -DSTOP.PORT=8887 -DSTOP.KEY=railo -jar start.jar --stop"/>
+    	<echo file="${jetty.dir}/start.bat" message="java -DSTOP.PORT=8887 -DSTOP.KEY=railo -jar -Xms256M  -Xmx512M start.jar"/>
+    	<echo file="${jetty.dir}/stop.bat" message="java -DSTOP.PORT=8887 -DSTOP.KEY=railo -jar start.jar --stop"/>
+    	<delete dir="${jetty.dir}/javadoc"/>
+    	<delete dir="${jetty.dir}/webapps"/>
+    	<delete dir="${jetty.dir}/contexts"/>
+		<copy file="${basedir}/resource/jetty/webdefault.xml" tofile="${jetty.dir}/etc/webdefault.xml" />
+		<copy file="${basedir}/resource/jetty/railo.xml" tofile="${jetty.dir}/contexts/railo.xml" />
+		<zip destfile="${railo.express.jetty.zip.file}" update="false">
+			<zipfileset dir="${railobuild.dist.dir}/railo-express/" includes="start,stop" filemode="755" />
+			<zipfileset dir="${railobuild.dist.dir}/railo-express/" excludes="start,stop"/>
+		</zip>
+    </target>
+
+	
+</project>

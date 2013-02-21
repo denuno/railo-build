@@ -227,10 +227,12 @@
 	<macrodef name="zipdir">
 		<attribute name="destfile" />
 		<attribute name="sourcedir" />
+		<attribute name="compresslevel" default="9" />
 		<sequential>
+			<property name="zip.cmd" value="zip" />
 			<echo>Building zip: @{destfile}</echo>
-			<exec executable="zip" dir="@{sourcedir}">
-				<arg value="-qR" />
+			<exec executable="${zip.cmd}" dir="@{sourcedir}">
+				<arg value="-qR@{compresslevel}" />
 				<arg value="@{destfile}" />
 				<arg value="*" />
 				<arg value="-x *.svn* *.git*" />
@@ -303,6 +305,19 @@
 						</try>
 						<catch>
 							<echo message="no built-in custom properties: ${cfdistro.basedir}/buildtypes/build.@{buildtype}.properties" />
+							<echo message="storing cmdline props for @{buildtype} : ${basedir}/buildtypes/build.@{buildtype}.properties" />
+							<storeUserProperties silent="false"/>
+							<antcontrib:var name="usersuppliedprops.___echoprefix" unset="true" />
+							<antcontrib:var name="usersuppliedprops.list" unset="true" />
+							<antcontrib:var name="usersuppliedprops.basedir" unset="true" />
+							<antcontrib:var name="usersuppliedprops.dist.root.dir" unset="true" />
+							<propertyset id="cmdlineprops">
+							    <propertyref prefix="usersuppliedprops."/>
+							    <mapper type="glob" from="usersuppliedprops.*" to="*"/>
+							</propertyset>
+							<echoproperties destfile="${basedir}/build.${build.type}.properties" >
+								 <propertyset refid="cmdlineprops" />
+							</echoproperties>
 						</catch>
 					</antcontrib:trycatch>
 				</catch>

@@ -1,6 +1,7 @@
-<project name="build-docs" default="build.javadoc" xmlns:antcontrib="antlib:net.sf.antcontrib" basedir=".">
+<project name="build-docs" default="build.docs" xmlns:antcontrib="antlib:net.sf.antcontrib" basedir=".">
 
-    <target name="build.docs" depends="set.build.info">
+    <target name="build.docs">
+		<set-build-info />
     	<property name="javadoc.dir" value="${dist.dir}/docs/api" />
     	<property name="javadoc.linksource" value="true" />
     	<echo>*************************************</echo>

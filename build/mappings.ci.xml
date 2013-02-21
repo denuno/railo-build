@@ -2,4 +2,5 @@
 <mappings>
 <mapping physical="../ci/" virtual="/"/>
 <mapping physical="../ci/extension/src/provider" virtual="/extensions"/>
+<mapping physical="../tests" virtual="/tests"/>
 </mappings>

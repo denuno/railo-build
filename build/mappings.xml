@@ -2,4 +2,5 @@
 <mappings>
 <mapping physical="@src.dir@/railo-cfml" virtual="/railo-cfml"/>
 <mapping physical="@src.dir@/../tests" virtual="/tests"/>
+<mapping physical="@ext.mappings.dir@/mxunit" virtual="/mxunit"/>
 </mappings>

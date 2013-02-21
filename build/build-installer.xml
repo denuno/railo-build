@@ -1,6 +1,7 @@
 <project name="build-installer" default="build.installer" xmlns:antcontrib="antlib:net.sf.antcontrib" xmlns:redline="antlib:org.redline_rpm"  xmlns:artifact="antlib:org.apache.maven.artifact.ant" basedir=".">
 	
-	<target name="build.installer" depends="set.build.info">
+	<target name="build.installer">
+		<set-build-info />
 		<property name="installer.patchlevel" value="0"/>
 		<mkdir dir="${dist.dir}/installer/" />
 		<antcontrib:osfamily property="os.family" />
@@ -23,33 +24,33 @@
 			</else>
 		</antcontrib:if>
 
-		<delete dir="${bitrock.installers}/railo_installer_files/railo-all/lib" />
-		<copy todir="${bitrock.installers}/railo_installer_files/railo-all/lib">
+		<delete dir="${bitrock.installers}/railo/railo/lib" />
+		<copy todir="${bitrock.installers}/railo/railo/lib">
 			<fileset dir="${src.dir}/railo-java/libs" excludes="${railo.libs.zip.excludes}" />
 		</copy>
 		<delete dir="${bitrock.installers}/railo/railo/lib" />
 		<copy todir="${bitrock.installers}/railo/railo/lib">
 			<fileset dir="${src.dir}/railo-java/libs" excludes="${railo.libs.zip.excludes}" />
 		</copy>
-		<xmltask source="${bitrock.installers}/railo_installer_files/railo.xml" dest="${bitrock.installers}/railo_installer_files/railo.xml">
+		<xmltask source="${bitrock.installers}/railo/railo.xml" dest="${bitrock.installers}/railo/railo.xml">
 			<replace path="/project/version/text()" withText="${railo.build.version.long}-pl${installer.patchlevel}"/>
 		</xmltask>
 		<copy file="${railobuild.dist.dir}/jar/railo-${railo.build.version.long}.jar" 
-			tofile="${bitrock.installers}/railo_installer_files/railo-all/lib/railo.jar" />
+			tofile="${bitrock.installers}/railo/railo/lib/railo.jar" />
 		<!-- 
 		linux linux-x64 linux-ia64 windows osx solaris-sparc solaris-intel linux-ppc linux-s390 freebsd freebsd4 freebsd6 freebsd6-x64 freebsd7 freebsd7-x64 openbsd3 hpux aix irix-n32 rpm deb cdrom 
-	        <arg line="build railo_installer_files/railo.xml ${bitrock.platform}"></arg>
+	        <arg line="build railo/railo.xml ${bitrock.platform}"></arg>
 		-->
 		<exec executable="${bitrock.cmd}" dir="${bitrock.installers}">
-	        <arg line="build railo_installer_files/railo.xml linux-x64 --setvars project.outputDirectory=${dist.dir}/installer/"></arg>
+	        <arg line="build railo/railo.xml linux-x64 --setvars project.outputDirectory=${dist.dir}/installer/"></arg>
 	        <arg line="--license ${bitrock.license}"></arg>
 	        </exec>
 		<exec executable="${bitrock.cmd}" dir="${bitrock.installers}">
-	        <arg line="build railo_installer_files/railo.xml linux --setvars project.outputDirectory=${dist.dir}/installer/"></arg>
+	        <arg line="build railo/railo.xml linux --setvars project.outputDirectory=${dist.dir}/installer/"></arg>
 	        <arg line="--license ${bitrock.license}"></arg>
 	        </exec>
 		<exec executable="${bitrock.cmd}" dir="${bitrock.installers}">
-                <arg line="build railo_installer_files/railo.xml windows --setvars project.outputDirectory=${dist.dir}/installer/"></arg>
+                <arg line="build railo/railo.xml windows --setvars project.outputDirectory=${dist.dir}/installer/"></arg>
 	        <arg line="--license ${bitrock.license}"></arg>
         </exec>
 

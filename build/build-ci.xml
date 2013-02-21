@@ -1,14 +1,15 @@
 <project name="RailoCI" default="ci.build" basedir="." xmlns:antcontrib="antlib:net.sf.antcontrib">
 
 	<target name="ci.build">
-		<antcontrib:propertyselector property="z1.list"
+<!-- 
+ 		<antcontrib:propertyselector property="z1.list"
 			delimiter="," match="(.*)" select="\1" override="true"
 			distinct="true" casesensitive="false" />
 		<removePropsByRegex regex="[^z]+.*"/>
+ -->
 		<property name="build.type" value="ci"/>
 		<property name="basedir" location="."/>
 		<load-buildtype-properties buildtype="ci" />
-		<antcontrib:antfetch target="check.creds" inheritall="true" return="${z1.list}" />
 		<antcontrib:runtarget target="cfdistro.build"/>
 		<antcontrib:runtarget target="server.install"/>
 	</target>
@@ -21,7 +22,6 @@
 		<property name="build.type" value="ci"/>
 		<property name="basedir" location="."/>
 		<load-buildtype-properties buildtype="ci" />
-		<antcontrib:antfetch target="check.creds" inheritall="true" return="${z1.list}" />
 		<antcontrib:if>
 			<not><available file="${war.target.dir}" /></not>
 			<then>

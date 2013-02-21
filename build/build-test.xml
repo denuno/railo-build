@@ -84,4 +84,8 @@
 		<antcontrib:runtarget target="jmeter.runtests"/>
 	</target>
 
+	<target name="build">
+		<antcontrib:runtarget target="railobuild.build"/>
+	</target>
+
 </project>

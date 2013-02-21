@@ -1,4 +1,4 @@
-<project name="build-rpm" default="build.rpm" xmlns:antcontrib="antlib:net.sf.antcontrib" xmlns:redline="antlib:org.redline_rpm"  basedir=".">
+<project name="build-rpm" default="rpm" xmlns:antcontrib="antlib:net.sf.antcontrib" xmlns:redline="antlib:org.redline_rpm"  basedir=".">
 	
 
     <property name="redline.ant.tasks.jar" value="${ant.home}/lib/redline-1.1.9.jar" />
@@ -10,7 +10,8 @@
         <get src="${redline.ant.tasks.bootstrap.location}" dest="${redline.ant.tasks.jar}" />
     </target>
     
-	<target name="rpm" depends="bootstrap_redline, set.build.info">
+	<target name="rpm">
+		<set-build-info />
 		<mkdir dir="rpms" />
 		<!--  make RC rpm -->
 		<property name="rpm.user" value="railo" />
