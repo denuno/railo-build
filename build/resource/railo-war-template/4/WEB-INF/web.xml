@@ -1,116 +1,117 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<!DOCTYPE web-app PUBLIC "-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN" "http://java.sun.com/dtd/web-app_2_3.dtd">
-<web-app>
-	<display-name>Railo</display-name>
-	<servlet>
-		<servlet-name>CFMLServlet</servlet-name>
-		<description>CFML runtime Engine</description>
-		<servlet-class>railo.loader.servlet.CFMLServlet</servlet-class>
-		<init-param>
-	      <param-name>configuration</param-name>
-	      <param-value>./WEB-INF/railo/</param-value>
-	      <description>Configuraton directory</description>
-	    </init-param>	
-		<!-- init-param>
-	      <param-name>railo-server-root</param-name>
-	      <param-value>.</param-value>
-	      <description>directory where railo root directory is stored</description>
-	    </init-param -->
-		<load-on-startup>1</load-on-startup>
-	</servlet>
-
-	<servlet>
-		<servlet-name>AMFServlet</servlet-name>
-		<description>AMF Servlet for flash remoting</description>
-		<servlet-class>railo.loader.servlet.AMFServlet</servlet-class>
-		<load-on-startup>1</load-on-startup>
-	</servlet>	
-
-	<servlet id="RestServlet">
-		<servlet-name>RestServlet</servlet-name>
-		<description>Servlet to access REST service</description>
-		<servlet-class>railo.loader.servlet.RestServlet</servlet-class>
-		<init-param>
-			<param-name>railo-web-directory</param-name>
-			<param-value>{web-root-directory}/WEB-INF/railo/</param-value>
-			<description>Railo Web Directory directory</description>
-		</init-param>
-		<!-- init-param> <param-name>railo-server-directory</param-name> <param-value>./</param-value> 
-			<description>directory where railo root directory is stored</description> 
-			</init-param -->
-		<load-on-startup>1</load-on-startup>
+<web-app xmlns="http://java.sun.com/xml/ns/javaee"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
+	metadata-complete="true"
+	version="2.5">
+	
+	<!-- ===================================================================== -->
+	<!-- Railo CFML Servlet - this is the main Railo servlet                   -->
+	<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+	<servlet id="Railo">
+	  <servlet-name>CFMLServlet</servlet-name>
+	  <description>Railo CFML Engine</description>
+	  <servlet-class>railo.loader.servlet.CFMLServlet</servlet-class>
+	  <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+	  <!-- to specify the location of the Railo Server config and libraries,   -->
+	  <!-- uncomment the init-param below.  make sure that the param-value     -->
+	  <!-- points to a valid folder, and that the process that runs Railo has  -->
+	  <!-- write permissions to that folder.  leave commented for defaults.    -->
+	  <!--
+	  <init-param>
+	    <param-name>railo-server-root</param-name>
+	    <param-value>/var/Railo/config/server/</param-value>
+	    <description>Railo Server configuration directory (for Server-wide configurations, settings, and libraries)</description>
+	  </init-param>
+	  !-->
+	  <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+	  <!-- to specify the location of the Web Contexts' config and libraries,  -->
+	  <!-- uncomment the init-param below.  make sure that the param-value     -->
+	  <!-- points to a valid folder, and that the process that runs Railo has  -->
+	  <!-- write permissions to that folder.  the {web-context-label} can be   -->
+	  <!-- set in Railo Server Admin homepage.  leave commented for defaults.  -->
+	  <!--
+	  <init-param>
+	    <param-name>railo-web-directory</param-name>
+	    <param-value>/var/Railo/config/web/{web-context-label}/</param-value> 
+	    <description>Railo Web Directory (for Website-specific configurations, settings, and libraries)</description>
+	  </init-param>
+	  !-->
+	  <load-on-startup>1</load-on-startup>
 	</servlet>
 	
-    <!-- MessageBroker Servlet
-		messageBrokerId: this id must be unique for every defintion of the MessageBrokerServlet
-    <servlet>
-        <servlet-name>MessageBrokerServlet</servlet-name>
-        <servlet-class>flex.messaging.MessageBrokerServlet</servlet-class>
-        <init-param>
-            <param-name>services.configuration.file</param-name>
-            <param-value>/WEB-INF/flex/services-config.xml</param-value>
-       </init-param>
-	   <init-param> 
-			<param-name>messageBrokerId</param-name> 
-			<param-value>_default_</param-value>
-	 	</init-param> 
-    </servlet>
-	 -->
-	<!--
-	<servlet>
-		<servlet-name>FileServlet</servlet-name>
-		<description>File Servlet for simple files</description>
-		<servlet-class>railo.loader.servlet.FileServlet</servlet-class>
-		<load-on-startup>2</load-on-startup>
-	</servlet>	 
-	<servlet-mapping> 
-		<servlet-name>FileServlet</servlet-name> 
-		<url-pattern>/</url-pattern> 
-	</servlet-mapping> 
-	-->
-	<!--
+	<servlet-mapping>
+	  <servlet-name>CFMLServlet</servlet-name>
+	  <url-pattern>*.cfc</url-pattern>
+	  <url-pattern>*.cfm</url-pattern>
+	  <url-pattern>*.cfml</url-pattern>   
+	  <url-pattern>/index.cfc/*</url-pattern>
+	  <url-pattern>/index.cfm/*</url-pattern>
+	  <url-pattern>/index.cfml/*</url-pattern>
+	  
+	  <!-- url-pattern>*.cfm/*</url-pattern !-->
+	  <!-- url-pattern>*.cfml/*</url-pattern !-->
+	  <!-- url-pattern>*.cfc/*</url-pattern !-->
+	  <!-- url-pattern>*.htm</url-pattern !-->
+	  <!-- url-pattern>*.jsp</url-pattern !-->
+	</servlet-mapping>
+	
+	
+	<!-- ===================================================================== -->
+	<!-- Railo REST Servlet - handles Railo's RESTful web services             -->
+	<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+	<servlet id="RESTServlet">
+	  <servlet-name>RESTServlet</servlet-name>
+	  <description>Servlet to access RESTful services</description>
+	  <servlet-class>railo.loader.servlet.RestServlet</servlet-class>
+	  <load-on-startup>2</load-on-startup>
+	</servlet>  
+	
+	<servlet-mapping>
+	  <servlet-name>RESTServlet</servlet-name>
+	  <url-pattern>/rest/*</url-pattern>
+	</servlet-mapping>
+	
+	
+	<!-- ===================================================================== -->
+	<!-- Railo MessageBroker Servlet - Flex Gateway                            -->
+	<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+	<!-- * ATTENTION - ATENCION - ACHTUNG  -  ATTENTION - ATENCION - ACHTUNG * -->
+	<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+	<!-- messageBrokerId must be unique for each defintion of the MessageBroker-->
+	<!-- Servlet.  if you use the MessageBroker Servlet and define it in more  -->
+	<!-- than one xml file, you must uncomment the messageBrokerId init-param  -->
+	<!-- and set a different value in each definition.                         -->
+	<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+	<servlet id="MessageBrokerServlet">
+	  <servlet-name>MessageBrokerServlet</servlet-name>
+	  <display-name>MessageBrokerServlet</display-name>
+	  <servlet-class>flex.messaging.MessageBrokerServlet</servlet-class>
+	  <!-- init-param>
+	    <param-name>services.configuration.file</param-name>
+	    <param-value>/WEB-INF/flex/services-config.xml</param-value>
+	  </init-param !-->
+	  <!-- init-param>
+	    <param-name>messageBrokerId</param-name>
+	    <param-value>_default_</param-value>
+	  </init-param !-->
+	  <!-- load-on-startup>2</load-on-startup !-->
+	</servlet>
+	
 	<servlet-mapping>
 	  <servlet-name>MessageBrokerServlet</servlet-name>
 	  <url-pattern>/flex2gateway/*</url-pattern>
-	</servlet-mapping>
-	<servlet-mapping>
-	  <servlet-name>MessageBrokerServlet</servlet-name>
 	  <url-pattern>/flashservices/gateway/*</url-pattern>
-	</servlet-mapping>
-	<servlet-mapping>
-	  <servlet-name>MessageBrokerServlet</servlet-name>
 	  <url-pattern>/messagebroker/*</url-pattern>
 	</servlet-mapping>
-	-->
-	<servlet-mapping>
-		<servlet-name>AMFServlet</servlet-name>
-		<url-pattern>/openamf/gateway/*</url-pattern>
-	</servlet-mapping>
 
-	<servlet-mapping>
-		<servlet-name>RestServlet</servlet-name>
-		<url-pattern>/rest/*</url-pattern>
-	</servlet-mapping>
-
-	<servlet-mapping>
-		<servlet-name>CFMLServlet</servlet-name>
-		<url-pattern>*.cfm</url-pattern>
-	</servlet-mapping>
-	<servlet-mapping>
-		<servlet-name>CFMLServlet</servlet-name>
-		<url-pattern>*.cfml</url-pattern>
-	</servlet-mapping>
-	<servlet-mapping>
-		<servlet-name>CFMLServlet</servlet-name>
-		<url-pattern>*.cfc</url-pattern>
-	</servlet-mapping> 
-	
+	<!-- default file to execute if directory is called with no file name, e.g. http://mysite.com/ !-->
 	<welcome-file-list>
 		<welcome-file>index.cfm</welcome-file>
 		<welcome-file>index.cfml</welcome-file>
-	    <welcome-file>index.html</welcome-file>
-	    <welcome-file>index.htm</welcome-file>
-	    <welcome-file>index.jsp</welcome-file>
+		<welcome-file>index.html</welcome-file>
+		<welcome-file>index.htm</welcome-file>
+		<welcome-file>index.jsp</welcome-file>
 	</welcome-file-list>
 
 </web-app>
