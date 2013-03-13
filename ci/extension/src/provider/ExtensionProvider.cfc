@@ -2,6 +2,7 @@
 
 
 	<cfset this.downloadDir = getDirectoryFromPath(getBaseTemplatePath()) />
+	<cfset this.downloadDir = getDirectoryFromPath("artifacts/") />
 	<cfset this.reloadseconds = 10 />
 
    <cffunction name="getInfo" access="remote" returntype="struct" output="false">
@@ -16,7 +17,9 @@
 
 	<cffunction name="loadExtensionsMetadata" access="public" output="false">
 		<cfargument name="extensionsDir" required="true" />
+			<cfset var hasinfo = structNew() />
 			<cfset var info = structNew() />
+			<cfset var infoItem = structNew() />
 			<cfset var extensions = arrayNew(1) />
 			<cfset var objXml = createObject("component","xml2Struct")>
 
@@ -25,51 +28,73 @@
 			<cfloop query="zipsQry">
 				<cfif lcase(listLast(name,".")) eq "zip" >
 					<cftry>
-<!---
 					<cfzip
-					action="read"
-					file="#expandPath( directory & "/" & name )#"
-					variable="infoFile"
-					entrypath="info.xml"
+					action="list"
+					file="#directory#/#name#"
+					filter="config.xml"
+					name="hasinfo"
 					recurse="false"
 					storepath="false"
 					/>
- --->
-					<cfset infoFile = jfu.readBinaryFromZip(directory & "/" & name,"info.xml")>
-					<cfset arrayAppend(extensions,objXml.ConvertXmlToStruct(xmlParse(toString(infoFile)),structNew())) />
+					<cfif hasinfo.recordcount>
+						<cfzip
+						action="read"
+						file="#directory#/#name#"
+						variable="infoFile"
+						entrypath="config.xml"
+						recurse="false"
+						storepath="false"
+						/>
+	<!---
+						<cfset infoFile = jfu.readBinaryFromZip(directory & "/" & name,"info.xml")>
+	 --->
+	 					<cfset infoItem = objXml.ConvertXmlToStruct(xmlParse(toString(infoFile)).config.info,structNew()) />
+	 					<cfset infoItem.path = "#directory#/#name#">
+						<cfset arrayAppend(extensions,infoItem) />
+					</cfif>
+
 					<cfcatch>
-						<!--- comment to ignore unloadable (corrupt zip? etc.) extensions --->
+						<!--- comment to ignore unloadable (corrupt zip? etc.) extensions
 						<cfrethrow />
+						--->
 					</cfcatch>
 					</cftry>
+				<cfelseif type eq "dir">
+					<cfset extensions = arrayMerge(extensions,loadExtensionsMetadata(directory & "/" & name))>
 				</cfif>
 			</cfloop>
+<!---
+			<cfcontent type="text/html" reset=true>
+			<cfdump var="#zipsQry#">
+			<cfdump var="#extensions#"><cfabort>
+ --->
+
 			<cfreturn extensions/>
 	</cffunction>
 
 	<cffunction name="extensionsArrayToQuery" output="false">
 		<cfargument name="extensionsArray" required="true" />
-       <cfset var apps = queryNew('type,id,name,label,description,version,category,image,download,paypal,author,codename,video,support,documentation,forum,mailinglist,network,created')>
+       <cfset var apps = queryNew('type,id,name,label,description,version,category,image,download,paypal,author,codename,video,support,documentation,forum,mailinglist,network,created,path')>
        <cfset var rootURL = getInfo().url />
 			<cfset var exAry = "" />
 			<cfloop array="#extensionsArray#" index="exAry">
-       <cfset QueryAddRow(apps)>
-       <cfset QuerySetCell(apps,'id',exAry.extension.extensionId)>
-       <cfset QuerySetCell(apps,'name',exAry.extension.extensionName)>
-       <cfset QuerySetCell(apps,'type',exAry.extension.extensionType)>
-       <cfset QuerySetCell(apps,'label',exAry.extension.extensionLabel)>
-       <cfset QuerySetCell(apps,'description',exAry.extension.extensionDescription)>
-       <cfset QuerySetCell(apps,'author',exAry.extension.extensionAuthor)>
-       <cfset QuerySetCell(apps,'codename',exAry.extension.extensionCodename)>
-       <cfset QuerySetCell(apps,'image',exAry.extension.extensionImage)>
-       <cfset QuerySetCell(apps,'support',exAry.extension.extensionSupport)>
-       <cfset QuerySetCell(apps,'documentation',exAry.extension.extensionDocumentation)>
-       <cfset QuerySetCell(apps,'forum',exAry.extension.extensionForum)>
-       <cfset QuerySetCell(apps,'created',exAry.extension.extensionCreated) />
-       <cfset QuerySetCell(apps,'version',exAry.extension.extensionVersion) />
-       <cfset QuerySetCell(apps,'category',exAry.extension.extensionCategory) />
-       <!--- <cfset QuerySetCell(apps,'download',"http://" & cgi.HTTP_HOST & exAry.extension.extensionDownload) /> --->
-       <cfset QuerySetCell(apps,'download',"http://" & cgi.HTTP_HOST & cgi.SCRIPT_NAME & "?metnod=download&id=" & exAry.extension.extensionName) />
+		       <cfset QueryAddRow(apps)>
+		       <cfset QuerySetCell(apps,'id',exAry.Id)>
+		       <cfset QuerySetCell(apps,'name',exAry.Name)>
+		       <cfset QuerySetCell(apps,'type',exAry.Type)>
+		       <cfset QuerySetCell(apps,'label',exAry.Label)>
+		       <cfset QuerySetCell(apps,'description',exAry.Description)>
+		       <cfset QuerySetCell(apps,'author',exAry.Author)>
+		       <cfset QuerySetCell(apps,'codename',exAry.Codename)>
+		       <cfset QuerySetCell(apps,'image',exAry.Image)>
+		       <cfset QuerySetCell(apps,'support',exAry.Support)>
+		       <cfset QuerySetCell(apps,'documentation',exAry.Documentation)>
+		       <cfset QuerySetCell(apps,'created',exAry.Created) />
+		       <cfset QuerySetCell(apps,'version',exAry.Version) />
+		       <cfset QuerySetCell(apps,'category',exAry.Category) />
+		       <cfset QuerySetCell(apps,'path',exAry.path) />
+		       <!--- <cfset QuerySetCell(apps,'download',"http://" & cgi.HTTP_HOST & exAry.Download) /> --->
+		       <cfset QuerySetCell(apps,'download',"http://" & cgi.HTTP_HOST & cgi.SCRIPT_NAME & "?method=download&id=" & exAry.Name) />
 			</cfloop>
 		<cfreturn apps />
 	</cffunction>
@@ -125,7 +150,10 @@
 		<cfreturn application.extensions.extensionsQuery />
 	</cffunction>
 
-	<cffunction name="extensionlist" access="remote" returntype="query" output="false">
+	<cffunction name="ui" access="remote" returntype="query" output="false">
+		<a href="ant.cfm">Run Ant Builds</a>
+		<br>
+		<a href="<cfoutput>#getContextRoot()#</cfoutput>/extensions/ExtensionProvider.cfc?method=listapplications&reloadextensions=1">Reload and List Extensions</a>
 		<cfdump var="#this.downloaddir#">
 		<cfdump var="#listApplications()#" /><cfabort />
 	</cffunction>

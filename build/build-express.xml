@@ -40,13 +40,13 @@ if test -z "${JAVA_EXE}"; then
 JAVA_EXE=java
 fi
 cd $(dirname $0)
-exec $JAVA_EXE -jar webroot/WEB-INF/lib/runwar.jar --war webroot --port 8888 --osxprocessname Railo --logdir . --background true --open-browser true --open-url /]]>
+exec $JAVA_EXE -jar webroot/WEB-INF/lib/runwar.jar --war webroot --port 8888 --processname Railo --logdir . --background true --open-browser true --open-url /]]>
 </echo>
 		<echo file="${railobuild.dist.dir}/railo-express/start.bat"><![CDATA[
-java -jar webroot/WEB-INF/lib/runwar.jar --war webroot --port 8888 --osxprocessname Railo --logdir . --background true --open-browser true --open-url /]]>
+java -jar webroot/WEB-INF/lib/runwar.jar --war webroot --port 8888 --processname Railo --logdir . --background true --open-browser true --open-url /]]>
 </echo>
 		<chmod file="${railobuild.dist.dir}/railo-express/start" perm="ugo+rx"/>
-		<echo file="${railobuild.dist.dir}/railo-express/start.bat"><![CDATA[java -jar %CD%\webroot\WEB-INF\lib\runwar.jar --war webroot --port 8888 --osxprocessname Railo --logdir . --background true --open-browser true --open-url /]]></echo>
+		<echo file="${railobuild.dist.dir}/railo-express/start.bat"><![CDATA[java -jar %CD%\webroot\WEB-INF\lib\runwar.jar --war webroot --port 8888 --processname Railo --logdir . --background true --open-browser true --open-url /]]></echo>
 		<zip destfile="${railo.express.zip.file}" update="false">
 			<zipfileset dir="${railobuild.dist.dir}/railo-express/" includes="start,stop" filemode="755" />
 			<zipfileset dir="${railobuild.dist.dir}/railo-express/" excludes="start,stop"/>
