@@ -1,17 +1,15 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head>
-	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
-	<meta name="description" content="This is the start page of Railo express running on Resins. Railo 3.1 OS is a fast and reliable open source CFML engine."/>
-	<meta name="keywords" content="CFML,Cold Fusion,Scripting Language,Performance,Tuning,Open Source,JBoss,Reactor,ModelGlue,ColdBox,Transfer"/>
-    <title>Welcome to Railo <cfoutput>#left(server.railo.version,3)#</cfoutput></title><link rel="stylesheet" href="css/style.css" type="text/css" media="all"/>
-</head>
-   <body id="documentation" class="twoCol">
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+	    <title>Welcome to Railo <cfoutput>#left(server.railo.version,3)#</cfoutput></title><link rel="stylesheet" href="res/css/style.css" type="text/css" media="all"/>
+	</head>
+    <body id="documentation" class="twoCol">
    	<div id="container" class="sysDocumentation">
    		<div id="masthead">
    			<div id="header" class="clearfix">
    				<div class="wrap"><h1><a href="http://www.getrailo.org/go.cfm/community_website">Default</a></h1>
-   					<h2 id="navPrimary">Welcome to the Railo world.</h2>
+   					<h2 id="navPrimary">Welcome to the Railo World!</h2>
    				</div>
    			</div>
    		</div>
@@ -23,57 +21,66 @@
 						<li><a href="http://www.getrailo.org/go.cfm/quick-start-guide" target="_blank">Getting Started</a>
 						<li><a href="http://www.getrailo.org/go.cfm/community_website" target="_blank">Community Website</a></li>
 						<li><a href="http://www.getrailo.org/go.cfm/wiki" target="_blank">Wiki - Documentation</a></li>
-						<li><a href="http://www.getrailo.org/go.cfm/mailing-list" target="_blank">Railo mailing list</a></li>
-						<li><a href="http://www.getrailo.org/go.cfm/getrailo_com" target="_blank">Support & c onsulting</a></li>
+						<li><a href="http://www.getrailo.org/go.cfm/mailing-list" target="_blank">Railo Mailing List</a></li>
+						<li><a href="http://www.getrailo.org/go.cfm/getrailo_com" target="_blank">Support &amp; Consulting</a></li>
 					</ul>
 				</div>			
    				<div id="deck">
-   					<div class="bg">
-   					</div>
+   					<div class="bg"></div>
    					<div class="wrap">
    						<div class="lead">
 							<h3>Railo #left(server.railo.version,3)#</h3>
-							<p>You are now successfully running Railo #left(server.railo.version,3)# (#server.railo.version#). Please check the Railo Server Administrator for current updates and patches for your Version.</p>
+							<p>You are now successfully running Railo #left(server.railo.version,3)#.
+							<br>Please check the Railo Server Administrator for available updates and patches.
 						</div>
    					</div>
    				</div>
    				<div id="main">
    					<div id="primary" class="content">
 	   					<div id="explanation">
-	   					<h2>Important notes</h2>
-						<p>Thank you for choosing Railo Server as your CFML engine. If you have installed Railo on your production server, please make sure
-						that your Server Administrator is protected and that you have set a default password for the Web Administrator.<br><br>
-						Please check the <a href="http://www.getrailo.org/go.cfm/quick-start-guide" target="_blank">quick 
-						start guide</a> on our page on how to begin. In our Wiki you will find a lot of useful information and documentation.<br>
-						If you have installed Railo Express, please check out our 
+		   					<h2>Important Notes</h2>
+							<p>Thank you for choosing Railo as your CFML engine. If you have installed Railo on a public server, please be sure to secure the Server and Web Administrators with strong passwords and whatever means you deem necessary.
+							
+							<p>If you are new to Railo, please check the <a href="http://www.getrailo.org/go.cfm/quick-start-guide" target="_blank">Getting Started</a> guide on our page on how to begin. In our Wiki you will find a lot of useful information and documentation.
+
+							<p>If you want to start running some code in this Railo instance, simply place it in the website's folder at:
+							<div style="border: 1px solid ##999; border-radius: 5px; margin: 1em; padding: 1em; font-family: monospace;">#getDirectoryFromPath( expandPath( '/' ) )#</div>
+						</div>
+
+	   					<h2>System Information</h2>
+	   					
+	   					<cfset sysInfo = {
+
+	   						  "Java Version"		: Server.java.version
+	   						, "Railo Version"		: Server.Railo.version
+	   						, "Railo Server"		: expandPath( '{railo-server}' )
+	   						, "Servlet Container"	: Server.servlet.name
+	   						, "System Time"			: listGetAt( now(), 2, "'" ) & " (#getTickCount()#)"
+	   						, "Website Root"		: expandPath( '/' )
+	   					}>
+
+	   					<cfdump var="#sysInfo#" label="System Information">
+	   					<p>
+
+	   					<h2>Railo Administration</h2>
+						<p>The default Railo Server and Web Administrator pages are located in the virtual folders <a href="#CGI.CONTEXT_PATH#/railo-context/admin/server.cfm">/railo-context/admin/server.cfm</a> and <a href="#CGI.CONTEXT_PATH#/railo-context/admin/web.cfm">/railo-context/admin/web.cfm</a> respectively.
+
+						<p>In the case of the Web Administrator, the host determines the Web context, so for example, http://site1/railo-context/admin/web.cfm will administer site1, and http://site2/railo-context/admin/web.cfm will administer site2.
+
+						<table id="table-admin">
+							<tr><th>Admin Type</th><th>Virtual Folder</th><th>Settings File</th></tr>
+							<tr><td><a href="#CGI.CONTEXT_PATH#/railo-context/admin/server.cfm">Server</a></td><td>/railo-context/admin/server.cfm</td><td>{railo-server}/context/railo-server.xml</td></tr>
+							<tr><td><a href="#CGI.CONTEXT_PATH#/railo-context/admin/web.cfm">Web</a></td><td>/railo-context/admin/web.cfm</td><td>{railo-web}/railo-web.xml.cfm</td></tr>
+						</table>
+
+						<h2>Setup Tips</h2>
+						<p>If you have installed Railo Express, please check out our 
 						<a href="http://www.getrailo.org/go.cfm/Railo_Installation" target="_blank">installation guides</a> for other platforms and 
 						application servers which are available in the wiki.
-						<br><br>
-						At the moment this page runs on the virtual host <b>#cgi.server_name#</b>. If you like to know how to add additional 
-						virtual hosts which result in Railo contexts please check the wiki on how to do this. 
-						<a href="http://www.getrailo.org/go.cfm/Installation:CreateRailoContext" target="_blank">Creating new virtual hosts</a><br />
 						
-						</p>
-	   					<h2>Railo Administration</h2>
-						<p>
-							If you want to call the Railo Administrator, just follow this link:
-							<ul>
-								<li><a href="#cgi.context_path#/railo-context/admin/server.cfm">Railo Server Administrator</a></li>
-								<li><a href="#cgi.context_path#/railo-context/admin/web.cfm">Railo Web Administrator</a></li>
-                                <!--- <cfif FindNoCase('Tomcat',server.servlet.name)><li><a href="#cgi.context_path#/index.jsp">Tomcat Administrator</a></li></cfif>--->
-							</ul>
-						</p>
-						</div>
-						<div id="sample">
-						<h2>Sample Data</h2>
-						<p>Below you'll find a dump of some sample data:<br>
-							<cfset railo_team = query("name":["Michael","Gert","Peter","Sean","Mark","Tanja","Roland"],"lastname":["Offner-Streit","Franz","Bell","Corfield","Drew","Stadelmann","Ringgenberg"],"Title":["CTO & Founder","CEO & Founder","Marketing & Sales - US","CEO - US","CEO - UK","Project Manager, Designer & Founder","Core Developer - BlazeDS"])>
-							<!--- --->
-							<cfdump var="#railo_team#"><br />
-							<cfdump eval=cgi>
-							
-						</p>
-	   					</div>
+						<p>This page is running on the virtual host <b>#CGI.SERVER_NAME#</b> on port <b>#CGI.SERVER_PORT#</b>.  Check out the Wiki entry <a href="http://www.getrailo.org/go.cfm/Installation:CreateRailoContext" target="_blank">Creating New Virtual Hosts</a> to learn how to setup more virtual hosts and websites.
+						
+	   					<cfdump eval=CGI>
    					</div>
    				</div>
    			</div>
@@ -81,7 +88,7 @@
    		</div>
    	</div>
    	<div id="footer" class="clearfix">
-   		<div class="wrap"><p>&copy;2006-<cfoutput>#year(now())#</cfoutput> Railo Technologies GmbH, Switzerland.</p></div>
+   		<div class="wrap">&copy;2006-<cfoutput>#year(now())#</cfoutput> Railo Technologies GmbH, Switzerland.</div>
    	</div>
    </body>
 </html>

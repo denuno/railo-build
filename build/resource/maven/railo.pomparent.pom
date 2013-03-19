@@ -1,54 +1,82 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <modelVersion>4.0.0</modelVersion>
-  <groupId>org.getrailo</groupId>
-  <artifactId>railo.pomparent</artifactId>
-  <version>${railo.build.version.long}</version>
-  <name>Railo</name>
-  <packaging>pom</packaging>
+<project
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+	xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>org.getrailo</groupId>
+	<artifactId>railo.pomparent</artifactId>
+	<version>${railo.build.version.long}</version>
+	<name>Railo</name>
+	<packaging>pom</packaging>
 
-  <dependencies>
-    <dependency>
-      <groupId>org.getrailo</groupId>
-      <artifactId>railo.core</artifactId>
-      <version>${railo.build.version.long}</version>
-      <type>jar</type>
-    </dependency>
-  </dependencies>
+	<dependencies>
+		<dependency>
+			<groupId>org.getrailo</groupId>
+			<artifactId>railo</artifactId>
+			<version>${railo.build.version.long}</version>
+		</dependency>
+	</dependencies>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 	</properties>
-
+<!-- 
+	These may be useful in children POMs
 	<build>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-dependency-plugin</artifactId>
-				<version>2.3</version>
-				<inherited>true</inherited>
+				<version>2.4</version>
 				<executions>
-				      <execution>
-				        <id>unpack-libs</id>
-				        <phase>prepare-package<!-- or any other valid maven phase --></phase>
-				        <goals>
-				          <goal>unpack-dependencies</goal>
-				        </goals>
-				        <configuration>
-				          <includeGroupIds>org.getrailo</includeGroupIds>
-				          <includeArtifactIds>railo.libs</includeArtifactIds>
-				          <outputDirectory>
-				             ${project.build.directory}/${project.artifactId}-${project.version}/WEB-INF/lib
-				             <!-- or: ${project.basedir}/wherever/you/want/it -->
-				          </outputDirectory>
-				        </configuration>
-				      </execution>
+					<execution>
+						<id>copy-dependencies</id>
+						<phase>package</phase>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+					</execution>
 				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-clean-plugin</artifactId>
+				<version>2.5</version>
+				<configuration>
+					<filesets>
+						<fileset>
+							<directory>${project.build.directory}/${project.artifactId}-${project.version}/WEB-INF/lib</directory>
+							<includes>
+								<include>**/*</include>
+							</includes>
+							<excludes>
+								<exclude>**/railo-server.xml</exclude>
+							</excludes>
+							<followSymlinks>false</followSymlinks>
+						</fileset>
+						<fileset>
+							<directory>${project.build.directory}/${project.artifactId}-${project.version}/WEB-INF/flex</directory>
+							<includes>
+								<include>**/*</include>
+							</includes>
+							<followSymlinks>false</followSymlinks>
+						</fileset>
+						<fileset>
+							<directory>${project.build.directory}/${project.artifactId}-${project.version}/WEB-INF/railo</directory>
+							<includes>
+								<include>**/*</include>
+							</includes>
+							<excludes>
+								<exclude>**/railo-web.xml.cfm</exclude>
+							</excludes>
+							<followSymlinks>false</followSymlinks>
+						</fileset>
+					</filesets>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>
-
+ -->
 
 </project>

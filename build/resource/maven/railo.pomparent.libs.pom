@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+	xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>org.getrailo</groupId>
+	<artifactId>railo.pomparent.libs</artifactId>
+	<version>${railo.build.version.long}</version>
+	<name>Railo</name>
+	<packaging>pom</packaging>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.getrailo</groupId>
+			<artifactId>railo-jar</artifactId>
+			<version>${railo.build.version.long}</version>
+			<type>jar</type>
+		</dependency>
+		<dependency>
+			<groupId>org.getrailo</groupId>
+			<artifactId>railo.libs</artifactId>
+			<version>${railo.build.version.major}.0</version>
+			<type>zip</type>
+		</dependency>
+	</dependencies>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+	</properties>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<version>2.3</version>
+				<inherited>true</inherited>
+				<executions>
+					<execution>
+						<id>unpack-libs</id>
+						<phase>prepare-package<!-- or any other valid maven phase --></phase>
+						<goals>
+							<goal>unpack-dependencies</goal>
+						</goals>
+						<configuration>
+							<includeGroupIds>org.getrailo</includeGroupIds>
+							<includeArtifactIds>railo.libs</includeArtifactIds>
+							<outputDirectory>
+								${project.build.directory}/${project.artifactId}-${project.version}/WEB-INF/lib
+				             <!-- or: ${project.basedir}/wherever/you/want/it -->
+							</outputDirectory>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+
+
+</project>

@@ -5,8 +5,13 @@
 	<groupId>org.getrailo</groupId>
 	<artifactId>railo.pomparent.war</artifactId>
 	<packaging>pom</packaging>
-  	<version>${railo.build.version.long}</version>
+	<version>${railo.build.version.long}</version>
 	<name>Railo WAR</name>
+
+	<properties>
+		<java.version>1.6</java.version>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
 
 	<parent>
 		<groupId>org.getrailo</groupId>

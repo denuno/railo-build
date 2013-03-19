@@ -7,18 +7,22 @@
 	<packaging>pom</packaging>
 	<version>${railo.build.version.long}</version>
 	<name>Railo with Winstone</name>
-
-	<parent>
-		<groupId>org.getrailo</groupId>
-		<artifactId>railo.pomparent.war</artifactId>
-		<version>${railo.build.version.long}</version>
-	</parent>
-
 	<dependencies>
+		<dependency>
+			<groupId>org.getrailo</groupId>
+			<artifactId>railo</artifactId>
+			<version>${railo.build.version.long}</version>
+		</dependency>
+		<dependency>
+			<groupId>net.sourceforge.winstone</groupId>
+			<artifactId>winstone</artifactId>
+			<version>0.9.10</version>
+		</dependency>
 	    <dependency>
-	      <groupId>net.sourceforge.winstone</groupId>
-	      <artifactId>winstone</artifactId>
-	      <version>0.9.10</version>
+	      <classifier>javax-servlet</classifier>
+	      <groupId>org.getrailo</groupId>
+	      <artifactId>railo.dep</artifactId>
+	      <version>${railo.build.version.major}.0</version>
 	    </dependency>
 	</dependencies>
 
@@ -39,12 +43,22 @@
 							<artifactItems>
 								<artifactItem>
 									<groupId>net.sourceforge.winstone</groupId>
-							      	<artifactId>winstone</artifactId>
-							      	<version>0.9.10</version>
+									<artifactId>winstone</artifactId>
+									<version>0.9.10</version>
 									<type>jar</type>
 									<overWrite>false</overWrite>
 									<outputDirectory>${project.build.directory}</outputDirectory>
 									<destFileName>winstone.jar</destFileName>
+								</artifactItem>
+								<artifactItem>
+									<groupId>org.getrailo</groupId>
+									<artifactId>railo.dep</artifactId>
+									<version>${railo.build.version.major}.0</version>
+									<classifier>railo-inst</classifier>
+									<type>jar</type>
+									<overWrite>false</overWrite>
+									<outputDirectory>${project.build.directory}</outputDirectory>
+									<destFileName>railo-inst.jar</destFileName>
 								</artifactItem>
 							</artifactItems>
 							<outputDirectory>${project.build.directory}</outputDirectory>
@@ -52,7 +66,6 @@
 							<overWriteSnapshots>true</overWriteSnapshots>
 						</configuration>
 					</execution>
-
 				</executions>
 			</plugin>
 		</plugins>

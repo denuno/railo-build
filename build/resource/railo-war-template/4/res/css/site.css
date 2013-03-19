@@ -7,16 +7,14 @@ Author: blueriver.com
 html, body {
 height: 100%;
 }
-body {
-font-size: 62.5%;
-}
 textarea {
 font-family: "Lucida Grande", "Lucida Sans", Verdana, Helvetica, Arial, sans-serif;
 }
 ul, ol, dl { margin-bottom: 1.8em; }
 a {
-text-decoration: none;
-color: #57A3BE;
+	text-decoration: none;
+	color: #4072BD;
+	font-weight: bold;
 }
 a:hover {
 text-decoration: underline;
@@ -30,6 +28,13 @@ margin-left: 1.5em;
 h3 {
 color: #bbbbbb;
 }
+
+#table-admin { margin: 1em auto; padding: 0.5em; border: solid 1px #CCC;}
+#table-admin th { font-size: 0.9em; }
+#table-admin td { padding: 0.25em 1em; }
+
+.r99f { white-space: nowrap; }	/* dump label */
+
 /* @end GLOBALS
 -------------------------------- */
 /* @group LAYOUT
@@ -80,7 +85,7 @@ border-bottom: 1px solid #e8e8e8;
 }
 .twoCol #primary {
 width: 740px;
-margin-left: 39px;
+margin-left: 1.5em;
 }
 .threeCol #primary {
 width: 526px;
@@ -215,7 +220,7 @@ background: url(../images/mura.png) no-repeat;
 position: relative;
 float: left;
 width: 779px;
-margin: 0 0 3.7em;
+margin-bottom: 1em;
 color: #afafaf;
 }
 #deck .bg {
@@ -232,7 +237,7 @@ position: relative;
 z-index: 2;
 width: auto;
 min-height: 1px; /* override #content .wrap */
-padding: 1.7em 21px 1.5em 40px;
+padding: 0.5em 1em 1em 2em;
 background: url(../images/bg-deck-burst.jpg) no-repeat -333px 0;
 }
 #deck .lead {
@@ -244,8 +249,8 @@ margin: 0 0 .353em;
 color: #fff;
 }
 #deck p {
-margin: 0 0 1.25em;
-font-size: 1.6em;
+margin: 0;
+font-size: 1.2em;
 line-height: 1.25;
 }
 #crumbList {
@@ -396,8 +401,7 @@ background: url(../images/bg-nav-secondary-sub-ul.png) no-repeat 0 0;
 }
 .navSecondary li a {
 display: block;
-padding: 1em 16px;
-font-size: 1.3em !important;
+padding: 1em 0.25em;
 font-weight: 700;
 color: #2d2f32;
 }
@@ -464,10 +468,10 @@ padding-bottom: .5em;
 margin-left: 50px;
 margin-bottom: .25em;
 font-size: 1.6em;
-color: #57a3be;
+color: #4072BD;
 }
 .home .svSyndRemote dt a {
-color: #57a3be;
+color: #4072BD;
 }
 .home .svSyndRemote dt.releaseDate {
 position: absolute;
@@ -497,9 +501,7 @@ font-size: 1.6em !important;
 .home .svSyndRemote dd {
 margin-left: 50px;
 }
-.home .svSyndRemote dd p {
-line-height: 1.334;
-}
+
 /* @end [Home] Blog Feed
 -------------------------------- */
 /* @group [Sidebar] Promo
@@ -630,3 +632,4 @@ height: 1%;
 .clearfix {
 display: block;
 }
+

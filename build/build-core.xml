@@ -88,7 +88,7 @@
 		</jar>
 		
 		<copy todir="${temp.dir}/temprc">
-			<fileset dir="${build-core.build.dir}/classes" excludes="**/servlet/**"/>
+			<fileset dir="${build-core.build.dir}/classes"/>
 		</copy>
 		<mkdir dir="${temp.dir}/temprc/core"/>
     	<jar destfile="${temp.dir}/temprc/core/core.rc">
@@ -178,6 +178,10 @@
     	<echo>Admin compiled to: ${build-core.railo.admin_source_abs}/railo-context.ra</echo>
     	<echo>Copying Railo Admin archive...</echo>
 		<copy tofile="${build-core.src.dir}/resource/context/railo-context.ra" file="${build-core.railo.admin_source_abs}/railo-context.ra" overwrite="yes"/>
+		<!-- TODO: figure out languages between railo-cfml/admin/resources/language and core/admin/resources/language -->
+    	<copy todir="${build-core.src.dir}/resource/context/admin/resources/language" overwrite="true">
+			<fileset dir="${build-core.railo.admin_source_abs}/admin/resources/language"/>
+		</copy>
 		<copy todir="${build-core.src.dir}/resource/context/admin/dbdriver">
 			<fileset dir="${build-core.railo.admin_source_abs}/admin/dbdriver"/>
 		</copy>
@@ -212,7 +216,7 @@
     <target name="RailoCore.package" depends="RailoCore.copy" description="Creates the the core.rc file.">
         <echo>Packaging the core.rc</echo>
     	<jar destfile="${build-core.dist.dir}/${build-core.core.version}.rc">
-			<fileset dir="${build-core.build.dir}/classes" excludes="**/servlet/**"/>
+			<fileset dir="${build-core.build.dir}/classes"/>
 		</jar>
     </target>
 		

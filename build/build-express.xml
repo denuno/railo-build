@@ -40,13 +40,13 @@ if test -z "${JAVA_EXE}"; then
 JAVA_EXE=java
 fi
 cd $(dirname $0)
-exec $JAVA_EXE -jar webroot/WEB-INF/lib/runwar.jar --war webroot --port 8888 --processname Railo --logdir . --background true --open-browser true --open-url /]]>
+exec $JAVA_EXE -javaagent:webroot/WEB-INF/lib/railo-inst.jar -jar webroot/WEB-INF/lib/runwar.jar --war webroot --port 8888 --processname Railo --logdir . --background true --open-browser true --open-url /]]>
 </echo>
 		<echo file="${railobuild.dist.dir}/railo-express/start.bat"><![CDATA[
-java -jar webroot/WEB-INF/lib/runwar.jar --war webroot --port 8888 --processname Railo --logdir . --background true --open-browser true --open-url /]]>
+java -javaagent:webroot/WEB-INF/lib/railo-inst.jar -jar webroot/WEB-INF/lib/runwar.jar --war webroot --port 8888 --processname Railo --logdir . --background true --open-browser true --open-url /]]>
 </echo>
 		<chmod file="${railobuild.dist.dir}/railo-express/start" perm="ugo+rx"/>
-		<echo file="${railobuild.dist.dir}/railo-express/start.bat"><![CDATA[java -jar %CD%\webroot\WEB-INF\lib\runwar.jar --war webroot --port 8888 --processname Railo --logdir . --background true --open-browser true --open-url /]]></echo>
+		<echo file="${railobuild.dist.dir}/railo-express/start.bat"><![CDATA[java -javaagent:webroot/WEB-INF/lib/railo-inst.jar -jar %CD%\webroot\WEB-INF\lib\runwar.jar --war webroot --port 8888 --processname Railo --logdir . --background true --open-browser true --open-url /]]></echo>
 		<zip destfile="${railo.express.zip.file}" update="false">
 			<zipfileset dir="${railobuild.dist.dir}/railo-express/" includes="start,stop" filemode="755" />
 			<zipfileset dir="${railobuild.dist.dir}/railo-express/" excludes="start,stop"/>
@@ -57,7 +57,7 @@ java -jar webroot/WEB-INF/lib/runwar.jar --war webroot --port 8888 --processname
 		<set-build-info />
     	<property name="railo.express.winstone.zip.file" value="${railobuild.dist.dir}/express/railo-express-winstone-${railo.build.version.long}.zip" />
     	<property name="winstone.version" value="0.9.10" />
-    	<property name="winstone.jar" value="winstone-lite-${winstone.version}.jar" />
+    	<property name="winstone.jar" value="winstone-${winstone.version}.jar" />
     	<property name="winstone.jar.path" value="${ext.dir}/winstone/${winstone.jar}" />
     	<property name="winstone.ext.dir" value="${ext.dir}/winstone/"/>
     	<mkdir dir="${winstone.ext.dir}"/>
@@ -86,11 +86,11 @@ if test -z "${JAVA_EXE}"; then
 JAVA_EXE=java
 fi
 cd $(dirname $0)
-exec $JAVA_EXE -jar webroot/WEB-INF/lib/${winstone.jar} --webroot=./webroot --httpPort=8888]]>
+exec $JAVA_EXE -javaagent:webroot/WEB-INF/lib/railo-inst.jar -jar webroot/WEB-INF/lib/${winstone.jar} --webroot=./webroot --httpPort=8888]]>
 </echo>
     	
 		<chmod file="${railobuild.dist.dir}/railo-express/start" perm="ugo+rx"/>
-		<echo file="${railobuild.dist.dir}/railo-express/start.bat"><![CDATA[java -jar %CD%\webroot\WEB-INF\lib\${winstone.jar} --webroot=./webroot --httpPort=8888]]></echo>
+		<echo file="${railobuild.dist.dir}/railo-express/start.bat"><![CDATA[java -javaagent:webroot/WEB-INF/lib/railo-inst.jar -jar %CD%\webroot\WEB-INF\lib\${winstone.jar} --webroot=./webroot --httpPort=8888]]></echo>
     	<!-- add dtd and xsd so no network connections are used -->
     	<zip destfile="${railobuild.dist.dir}/railo-express/webroot/WEB-INF/lib/${winstone.jar}" update="true">
 			<zipfileset dir="${cfdistro.basedir}/dtd/" prefix="javax/servlet/resources/"/>
@@ -101,7 +101,7 @@ exec $JAVA_EXE -jar webroot/WEB-INF/lib/${winstone.jar} --webroot=./webroot --ht
 		</zip>
     </target>	
 	
-    <target name="Railo.winstone" description="builds express.">
+    <target name="Railo.winstone" description="builds embedded with winstone">
 		<set-build-info />
     	<property name="railo.winstone.zip.file" value="${railobuild.dist.dir}/express/railo-winstone-${railo.build.version.long}.zip" />
     	<property name="winstone.version" value="0.9.10" />
@@ -140,10 +140,10 @@ if test -z "${JAVA_EXE}"; then
 JAVA_EXE=java
 fi
 cd $(dirname $0)
-exec $JAVA_EXE -jar railo-winstone.jar --httpPort=8888]]>
+exec $JAVA_EXE -javaagent:webroot/WEB-INF/lib/railo-inst.jar -jar railo-winstone.jar --httpPort=8888]]>
 </echo>
 		<chmod file="${railobuild.dist.dir}/railo-express/start" perm="ugo+rx"/>
-		<echo file="${railobuild.dist.dir}/railo-express/start.bat"><![CDATA[java -jar %CD%\railo-winstone.jar --httpPort=8888]]></echo>
+		<echo file="${railobuild.dist.dir}/railo-express/start.bat"><![CDATA[java -javaagent:webroot/WEB-INF/lib/railo-inst.jar -jar %CD%\railo-winstone.jar --httpPort=8888]]></echo>
 		<delete dir="${railobuild.dist.dir}/railo-express/webroot/"/>
 		<zip destfile="${railo.winstone.zip.file}" update="false">
 			<zipfileset dir="${railobuild.dist.dir}/railo-express/" includes="start,stop" filemode="755" />
@@ -180,15 +180,15 @@ exec $JAVA_EXE -jar railo-winstone.jar --httpPort=8888]]>
     	<delete>
     		<fileset dir="${jetty.dir}/lib/" includes="jetty-annotations-*.jar,jetty-annotationsasm1.jar,annotations/org.objectweb*.jar"/>
 		</delete>
-    	<rename src="${jetty.dir}/lib/jetty-annotationsasm.jar" dest="${jetty.dir}/lib/jetty-annotations-${jetty.version.long}.jar" />
+    	<move file="${jetty.dir}/lib/jetty-annotationsasm.jar" tofile="${jetty.dir}/lib/jetty-annotations-${jetty.version.long}.jar" />
 
     	<move todir="${jetty.dir}/webroot">
     		<fileset dir="${war.target.dir}" excludes="WEB-INF/**" />
     	</move>
-    	<echo file="${jetty.dir}/start" message="#!/bin/bash${line.separator}${line.separator}cd $(dirname $0)${line.separator}java -DSTOP.PORT=8887 -DSTOP.KEY=railo -jar -Xms256M  -Xmx512M start.jar"/>
-    	<echo file="${jetty.dir}/stop" message="#!/bin/bash${line.separator}${line.separator}cd $(dirname $0)${line.separator}java -DSTOP.PORT=8887 -DSTOP.KEY=railo -jar start.jar --stop"/>
-    	<echo file="${jetty.dir}/start.bat" message="java -DSTOP.PORT=8887 -DSTOP.KEY=railo -jar -Xms256M  -Xmx512M start.jar"/>
-    	<echo file="${jetty.dir}/stop.bat" message="java -DSTOP.PORT=8887 -DSTOP.KEY=railo -jar start.jar --stop"/>
+    	<echo file="${jetty.dir}/start" message="#!/bin/bash${line.separator}${line.separator}cd $(dirname $0)${line.separator}java -DSTOP.PORT=8887 -DSTOP.KEY=railo -javaagent:webroot/WEB-INF/lib/railo-inst.jar -jar -Xms256M  -Xmx512M start.jar"/>
+    	<echo file="${jetty.dir}/stop" message="#!/bin/bash${line.separator}${line.separator}cd $(dirname $0)${line.separator}java -DSTOP.PORT=8887 -DSTOP.KEY=railo -javaagent:webroot/WEB-INF/lib/railo-inst.jar -jar start.jar --stop"/>
+    	<echo file="${jetty.dir}/start.bat" message="java -DSTOP.PORT=8887 -DSTOP.KEY=railo -javaagent:webroot/WEB-INF/lib/railo-inst.jar -jar -Xms256M  -Xmx512M start.jar"/>
+    	<echo file="${jetty.dir}/stop.bat" message="java -DSTOP.PORT=8887 -DSTOP.KEY=railo -javaagent:webroot/WEB-INF/lib/railo-inst.jar -jar start.jar --stop"/>
     	<delete dir="${jetty.dir}/javadoc"/>
     	<delete dir="${jetty.dir}/webapps"/>
     	<delete dir="${jetty.dir}/contexts"/>

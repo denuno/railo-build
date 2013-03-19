@@ -25,23 +25,13 @@
 
 body {
 	font-family: 'Helvetica Neue', Arial, Helvetica, sans-serif;
-	color: #787a7d;
+	color: #222;
 	}
 
 p, ul, ol, blockquote {
-	margin-bottom: 1.5em;
-	line-height: 1.5;
+	margin-bottom: 1.0em;
+	line-height: 1.25;
 	}
-
-p, li, dt, dd, table { font-size: 1.2em; }
-
-p.intro {
-	margin: 0 0 2.231em;
-	font-size: 1.3em;
-	line-height: 1.385;
-	}
-
-li *, dt *, dd *, td *, th * { font-size: 1em !important; }
 
 blockquote, q { padding: 0 4em; quotes: none; }
 blockquote:before, blockquote:after, q:before, q:after { content: ''; content: none; }
@@ -92,14 +82,17 @@ h2 a, h3 a, h4 a, h5 a, h6 a {
 	}
 
 h2 {
-	margin: 0 0 .236em;
-	font-size: 3.4em;
+	margin-top: 1.5em;
+	font-size: 1.6em;
 	letter-spacing: -0.01em;
 	}
 
+h2:first-child { margin-top: 0; }
+
+
 h3 {
 	margin: 0 0 .375em;
-	font-size: 2.4em;
+	font-size: 2.0em;
 	letter-spacing: -0.01em;
 	
 	margin-top: 29px;
