@@ -153,6 +153,7 @@
 	<property name="tests.dir" location="../tests" />
 	<property name="conf.dir" location="../conf" />
 	<property name="temp.dir" location="./temp" />
+	<property name="temp.dir.absolute" location="${temp.dir}" />
 	<property name="temp.file" location="${temp.dir}/sometempfile.txt" />
 	<property name="mappings.path.rel.to.war" value="true" />
 
@@ -168,8 +169,6 @@
 	<property name="ext.mappings.dir" location="${ext.dir}/mappings" />
 	<property name="ext.acf.dir" location="${ext.dir}/acf" />
 	<property name="ext.acf.war" location="${ext.acf.dir}/9/cfusion.war" />
-	<property name="temp.dir" location="./temp" />
-	<property name="temp.dir.absolute" location="${temp.dir}" />
 
 	<property name="mappings.file" value="${basedir}/mappings.xml" />
 	<property name="mappings.relative" value="true" />
@@ -231,6 +230,7 @@ a tiny 2m jar but getPageContext() throws errors!!
 	<import file="maven.xml" />
 	<import file="rpm.xml" />
 	<import file="ci.xml" />
+	<import file="docgen.xml" />
 
 <!--
  	<delete dir="${temp.dir}" />
@@ -296,8 +296,9 @@ a tiny 2m jar but getPageContext() throws errors!!
 
 	<target name="cfdistro.copy" description="copies cfdistro files to ${basedir}/cfdistro">
 		<delete dir="${basedir}/cfdistro/" excludes="ant/**"/>
+		<property name="cfdistro.dist.excludes" value="ext/**,artifacts/**,**/.git/**,**/.svn/**,**/temp/**,rpmbuild/SOURCES/**,rpmbuild/RPMS/**,buckminster/director*.zip,java/cfmlengcrypt/**" />
 		<copy todir="${basedir}/cfdistro" verbose="false" overwrite="true">
-			<fileset dir="${cfdistro.basedir}/" excludes="ext/** artifacts/** **/.svn/** .git/**" defaultexcludes="false" />
+			<fileset dir="${cfdistro.basedir}/" excludes="${cfdistro.dist.excludes}" defaultexcludes="false" />
 		</copy>
 	</target>
 
@@ -644,6 +645,7 @@ a tiny 2m jar but getPageContext() throws errors!!
 	<macrodef name="mapping">
 		<attribute name="physical" default="" />
 		<attribute name="physicalxml" default="@{physical}" />
+		<attribute name="archive" default="" />
 		<attribute name="virtual" />
 		<element name="args" optional="true" />
 		<sequential>
@@ -692,7 +694,7 @@ a tiny 2m jar but getPageContext() throws errors!!
 					<replace-attributes string="@{physical}" propertyname="mapping.physical" />
 					<antcontrib:switch value="${default.cfengine}">
 						<case value="railo">
-							<railo-mapping physical="${mapping.physical}" virtual="@{virtual}" />
+							<railo-mapping archive="@{archive}" physical="${mapping.physical}" virtual="@{virtual}" />
 						</case>
 						<case value="acf">
 							<acf-mapping physical="${mapping.physical}" virtual="@{virtual}" />
@@ -977,6 +979,13 @@ a tiny 2m jar but getPageContext() throws errors!!
 		<echoproperties destfile="${temp.file}"/>
 		<loadfile property="mappings.xml" srcFile="${mappings.file}">
 			<filterchain>
+				<replacetokens>
+					<token key="src.dir" value="${src.dir}" />
+					<token key="dist.dir" value="${dist.dir}" />
+					<token key="user.home" value="${user.home}" />
+					<token key="distro.name" value="${distro.name}" />
+					<token key="war.target.dir" value="${war.target.dir}" />
+				</replacetokens>
 				<filterreader classname="org.apache.tools.ant.filters.ReplaceTokens">
 					<param type="propertiesfile" value="${temp.file}" />
 				</filterreader>
@@ -1021,6 +1030,7 @@ a tiny 2m jar but getPageContext() throws errors!!
 	<equals arg1="${exists.datasources.xml}" arg2="true" />
 		<then>
 			<echo message="datasources settings file exists : ${datasources.file} " />
+			<echoproperties destfile="${temp.file}"/>
 			<loadfile property="datasources.xml" srcFile="${datasources.file}">
 				<filterchain>
 					<replacetokens>
@@ -1030,8 +1040,9 @@ a tiny 2m jar but getPageContext() throws errors!!
 						<token key="distro.name" value="${distro.name}" />
 						<token key="war.target.dir" value="${war.target.dir}" />
 					</replacetokens>
+					<expandproperties />
 					<filterreader classname="org.apache.tools.ant.filters.ReplaceTokens">
-						<param type="propertiesfile" value="${creds.token.file}" />
+						<param type="propertiesfile" value="${temp.file}" />
 					</filterreader>
 				</filterchain>
 			</loadfile>
@@ -1321,7 +1332,9 @@ THIS WAS MOSTLY REPLACED WITH THE LOAD OF ~/.cfdistrorc
 
 <target name="cfdistro.dist" depends="clean" description="creates a minimal build">
 <property name="dist.type" value="minimal" />
+<property name="cfdistro.dist.excludes" value="ext/**,artifacts/**,**/.git/**,**/temp/**,rpmbuild/SOURCES/**,rpmbuild/RPMS/**,buckminster/director*.zip,java/cfmlengcrypt/**" />
 <antcontrib:propertyregex property="creds.token.filename" input="${creds.token.file}" global="true" override="yes" regexp=".*[\\|/](.+)" select="\1" />
+<delete dir="${dist.dir}/${distro.name}/build/cfdistro/"/>
 <antcontrib:switch value="${dist.type}">
 	<case value="minimal">
 		<echo message="miminal dist, build and cfdistro only ${creds.token.file}" />
@@ -1343,14 +1356,13 @@ THIS WAS MOSTLY REPLACED WITH THE LOAD OF ~/.cfdistrorc
 			<fileset dir="${basedir}/">
 				<exclude name="**/.git/**" />
 				<exclude name="cfdistro/**" />
-				<exclude name="cfdistro/ext/**" />
 				<exclude name="${temp.dir}" />
 				<exclude name="${creds.token.filename}" />
 				<exclude name="*.key" />
 			</fileset>
 		</copy>
 		<copy todir="${dist.dir}/${distro.name}/build/cfdistro" verbose="false">
-			<fileset dir="${cfdistro.basedir}/" excludes="ext/**,artifacts/**,**/.git/**,**/temp/**,rpmbuild/SOURCES/**,rpmbuild/RPMS/**" />
+			<fileset dir="${cfdistro.basedir}/" excludes="${cfdistro.dist.excludes}" />
 		</copy>
 	</case>
 	<case value="src">
@@ -1374,7 +1386,7 @@ THIS WAS MOSTLY REPLACED WITH THE LOAD OF ~/.cfdistrorc
 			</fileset>
 		</copy>
 		<copy todir="${dist.dir}/${distro.name}/build/cfdistro" verbose="false">
-			<fileset dir="${cfdistro.basedir}/" excludes="ext/**,artifacts/**,**/.git/**,**/temp/**,rpmbuild/SOURCES/**,rpmbuild/RPMS/**" />
+			<fileset dir="${cfdistro.basedir}/" excludes="${cfdistro.dist.excludes}" />
 		</copy>
 	</case>
 	<case value="all">
@@ -1387,7 +1399,7 @@ THIS WAS MOSTLY REPLACED WITH THE LOAD OF ~/.cfdistrorc
 			</fileset>
 		</copy>
 		<copy todir="${dist.dir}/${distro.name}/build/cfdistro" verbose="false">
-			<fileset dir="${cfdistro.basedir}/" excludes="ext/**,artifacts/**,**/.git/**,**/temp/**,rpmbuild/SOURCES/**,rpmbuild/RPMS/**" />
+			<fileset dir="${cfdistro.basedir}/" excludes="${cfdistro.dist.excludes}" />
 		</copy>
 	</case>
 	<default>
@@ -1399,7 +1411,7 @@ THIS WAS MOSTLY REPLACED WITH THE LOAD OF ~/.cfdistrorc
 	</case>
 	<default>
 		<copy todir="${dist.dir}/${distro.name}/build/cfdistro" verbose="false">
-			<fileset dir="${cfdistro.basedir}/" excludes="ext/**,artifacts/**,**/.git/**,**/temp/**,rpmbuild/SOURCES/**,rpmbuild/RPMS/**" />
+			<fileset dir="${cfdistro.basedir}/" excludes="${cfdistro.dist.excludes}" />
 		</copy>
 		<chmod file="${dist.dir}/${distro.name}/build/cfdistro/ant/bin/ant" perm="ugo+rx" />
 		<!-- set the cfdistro file path to included cfdistro -->
@@ -1421,6 +1433,7 @@ THIS WAS MOSTLY REPLACED WITH THE LOAD OF ~/.cfdistrorc
 <chmod file="${dist.dir}/${distro.name}/${distro.name}" perm="ugo+rx" />
 <chmod file="${dist.dir}/${distro.name}/build/cfdistro.sh" perm="ugo+rx" />
 <!-- use our macrodef that uses OS zip executable so we retain file permissions -->
+<delete file="${dist.dir}/${distro.name}.zip" />
 <zipdir destfile="${dist.dir}/${distro.name}.zip" sourcedir="${dist.dir}/" />
 <length file="${dist.dir}/${distro.name}.zip" property="distro.length" />
 <formatfilesize kilobytes="${distro.length}" />
