@@ -58,8 +58,8 @@ java -javaagent:webroot/WEB-INF/lib/railo-inst.jar -jar webroot/WEB-INF/lib/runw
     	<property name="railo.express.winstone.zip.file" value="${railobuild.dist.dir}/express/railo-express-winstone-${railo.build.version.long}.zip" />
     	<property name="winstone.version" value="0.9.10" />
     	<property name="winstone.jar" value="winstone-${winstone.version}.jar" />
-    	<property name="winstone.jar.path" value="${ext.dir}/winstone/${winstone.jar}" />
     	<property name="winstone.ext.dir" value="${ext.dir}/winstone/"/>
+    	<property name="winstone.jar.path" value="${winstone.ext.dir}/${winstone.jar}" />
     	<mkdir dir="${winstone.ext.dir}"/>
         <dependency groupId="net.sourceforge.winstone"
           artifactId="winstone-lite" type="jar" unzip="false"
@@ -88,7 +88,6 @@ fi
 cd $(dirname $0)
 exec $JAVA_EXE -javaagent:webroot/WEB-INF/lib/railo-inst.jar -jar webroot/WEB-INF/lib/${winstone.jar} --webroot=./webroot --httpPort=8888]]>
 </echo>
-    	
 		<chmod file="${railobuild.dist.dir}/railo-express/start" perm="ugo+rx"/>
 		<echo file="${railobuild.dist.dir}/railo-express/start.bat"><![CDATA[java -javaagent:webroot/WEB-INF/lib/railo-inst.jar -jar %CD%\webroot\WEB-INF\lib\${winstone.jar} --webroot=./webroot --httpPort=8888]]></echo>
     	<!-- add dtd and xsd so no network connections are used -->
@@ -149,7 +148,7 @@ exec $JAVA_EXE -javaagent:webroot/WEB-INF/lib/railo-inst.jar -jar railo-winstone
 			<zipfileset dir="${railobuild.dist.dir}/railo-express/" includes="start,stop" filemode="755" />
 			<zipfileset dir="${railobuild.dist.dir}/railo-express/" excludes="start,stop"/>
 		</zip>
-    </target>	
+    </target>
 	
     <target name="Railo.express.jetty" description="Builds express jetty.">
 		<set-build-info />
@@ -199,6 +198,5 @@ exec $JAVA_EXE -javaagent:webroot/WEB-INF/lib/railo-inst.jar -jar railo-winstone
 			<zipfileset dir="${railobuild.dist.dir}/railo-express/" excludes="start,stop"/>
 		</zip>
     </target>
-
 	
 </project>

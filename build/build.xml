@@ -102,13 +102,44 @@
 		</antcontrib:if>
 	</target>
 
+	<target name="build.all" depends="build.main">
+		<mkdir dir="${railobuild.dist.dir}/war"/>
+		<mkdir dir="${railobuild.dist.dir}/rc"/>
+		<mkdir dir="${railobuild.dist.dir}/express"/>
+		<echo>*************************************</echo>
+        <echo>***** Building railo express  ************</echo>
+    	<echo>*************************************</echo>
+		<antcontrib:runtarget target="Railo.express" />
+		<antcontrib:runtarget target="Railo.express.jetty" />
+		<antcontrib:runtarget target="Railo.express.winstone" />
+		<antcontrib:runtarget target="Railo.mini.express" />
+
+		<echo>*************************************</echo>
+        <echo>***** Building railo.war ************</echo>
+    	<echo>*************************************</echo>
+		<delete dir="${railobuild.dist.dir}/railo.war"/>
+		<mkdir dir="${railobuild.dist.dir}/railo.war/WEB-INF/lib"/>
+		<copy todir="${railobuild.dist.dir}/railo.war">
+			<fileset dir="${basedir}/resource/railo-war-template/${railo.build.version.major}/" />
+		</copy>
+		<copy todir="${railobuild.dist.dir}/railo.war/WEB-INF/lib">
+			<fileset dir="${src.dir}/railo-java/libs" excludes="${railo.libs.zip.excludes}" />
+		</copy>
+		<copy file="${railobuild.dist.dir}/jar/railo-${railo.build.version.long}.jar" tofile="${railobuild.dist.dir}/railo.war/WEB-INF/lib/railo.jar" />
+		<!-- compress war -->
+		<mkdir dir="${railobuild.dist.dir}/compressed" />
+		<jar jarfile="${railobuild.dist.dir}/compressed/railo-${railo.build.version.long}.war" basedir="${railobuild.dist.dir}/railo.war" />
+		<delete dir="${railobuild.dist.dir}/railo.war" />
+		<move file="${railobuild.dist.dir}/compressed/railo-${railo.build.version.long}.war" todir="${railobuild.dist.dir}/war" />
+		<delete dir="${railobuild.dist.dir}/compressed" />
+		<echo>*** WAR file exported to ${railobuild.dist.dir}/railo-${railo.build.version.long}.war ***</echo>
+
+	</target>
+
 	<target name="build.main" depends="init">
 		<antcontrib:runtarget target="scminfo"/>
 		<mkdir dir="${railobuild.dist.dir}"/>
 		<mkdir dir="${railobuild.dist.dir}/jar"/>
-		<mkdir dir="${railobuild.dist.dir}/war"/>
-		<mkdir dir="${railobuild.dist.dir}/rc"/>
-		<mkdir dir="${railobuild.dist.dir}/express"/>
 		<echoproperties destfile="${temp.dir}/railo.properties" prefix="railo" />
 		<antcontrib:propertyregex override="yes" property="railo.build.version.major" input="${railo.build.version.long}" 
 			regexp="(\d).*" select="\1" />
@@ -164,34 +195,6 @@
 							<fileset file="${src.dir}/railo-java/railo/dist/railo.jar"/>
 						</zip>
 
-						<echo>*************************************</echo>
-				        <echo>***** Building railo express  ************</echo>
-				    	<echo>*************************************</echo>
-						<antcontrib:runtarget target="Railo.express" />
-						<antcontrib:runtarget target="Railo.express.jetty" />
-						<antcontrib:runtarget target="Railo.express.winstone" />
-						<antcontrib:runtarget target="Railo.mini.express" />
-
-						<echo>*************************************</echo>
-				        <echo>***** Building railo.war ************</echo>
-				    	<echo>*************************************</echo>
-						<delete dir="${railobuild.dist.dir}/railo.war"/>
-						<mkdir dir="${railobuild.dist.dir}/railo.war/WEB-INF/lib"/>
-						<copy todir="${railobuild.dist.dir}/railo.war">
-							<fileset dir="${basedir}/resource/railo-war-template/${railo.build.version.major}/" />
-						</copy>
-						<copy todir="${railobuild.dist.dir}/railo.war/WEB-INF/lib">
-							<fileset dir="${src.dir}/railo-java/libs" excludes="${railo.libs.zip.excludes}" />
-						</copy>
-						<copy file="${railobuild.dist.dir}/jar/railo-${railo.build.version.long}.jar" tofile="${railobuild.dist.dir}/railo.war/WEB-INF/lib/railo.jar" />
-						<!-- compress war -->
-						<mkdir dir="${railobuild.dist.dir}/compressed" />
-						<jar jarfile="${railobuild.dist.dir}/compressed/railo-${railo.build.version.long}.war" basedir="${railobuild.dist.dir}/railo.war" />
-						<delete dir="${railobuild.dist.dir}/railo.war" />
-						<move file="${railobuild.dist.dir}/compressed/railo-${railo.build.version.long}.war" todir="${railobuild.dist.dir}/war" />
-						<delete dir="${railobuild.dist.dir}/compressed" />
-						<echo>*** WAR file exported to ${railobuild.dist.dir}/railo-${railo.build.version.long}.war ***</echo>
-
 			<copy file="${railobuild.dist.dir}/rc/${railo.build.version.long}.rc" tofile="${railobuild.dist.dir}/rc/${railo.build.version.long}.${build.lastcommithash}.rc"  failonerror="false"/>
 			<move file="${railobuild.dist.dir}/commit.log" tofile="${railobuild.dist.dir}/commit.${build.lastcommithash}.log"  failonerror="false"/>
 			<propertyfile file="${basedir}/buildinfo.properties" comment="Build Information">
@@ -203,12 +206,12 @@
 				<equals arg1="${build.lastcommithash}" arg2="${build.commithash}" />
 				</or>
 				<then>
-					<git command="log" dir="${src.dir}"><args><arg value="-n"/><arg value="10"/></args></git>
+					<git command="log" dir="${src.dir}"><args><arg line="HEAD~10..HEAD"/></args></git>
 					<echo file="${railobuild.dist.dir}/commit.log">No prior builds.  Last 10 commits: 
 ${git.results}</echo>
 				</then>
 				<else>
-					<git command="log" dir="${src.dir}"><args><arg value="${build.lastcommithash}..${build.commithash}"/><arg value="-n"/><arg value="50"/></args></git>
+					<git command="log" dir="${src.dir}"><args><arg value="${build.lastcommithash}..${build.commithash}"/><arg line="HEAD~50..HEAD"/></args></git>
 					<echo file="${railobuild.dist.dir}/commit.log">Commits since last build 
 ${build.lastcommithash}..${build.commithash}:
 ${git.results}</echo>
@@ -219,7 +222,7 @@ ${git.results}</echo>
 	
 	<target name="scminfo">
 		<git-currentbranch dir="${src.dir}"/>
-		<git command="log" dir="${src.dir}"><args><arg value="-n"/><arg value="1"/></args></git>
+		<git command="log" dir="${src.dir}"><args><arg line="HEAD^..HEAD"/></args></git>
 		<antcontrib:propertyregex override="yes" property="commithash" input="${git.results}" regexp=".*commit\s(.\w+).*" select="\1" />
 		<antcontrib:propertyregex override="yes" property="commitdate" input="${git.results}" regexp="(?ism).*Date:\s(.*\d+)" select="\1" />
 		<antcontrib:propertyregex override="yes" property="commitmessage" input="${git.results}" regexp="(?im).*Date:\s(.*\d+)?(.*)+" select="\2" />
@@ -253,8 +256,8 @@ ${git.results}</echo>
     
     <macrodef name="build-branch">
 	    <sequential>
-			<input addproperty="branch" message="branch [ 3.2 | 3.3 | develop | [tag] ] :"/>
-			<antcontrib:var name="ext.railo.war.version" value="3.2.1.000" />
+			<input addproperty="branch" message="branch [ 4.0 | 4.1 | develop | [tag] ] :"/>
+			<antcontrib:var name="ext.railo.war.version" value="4.0.4.001" />
 			<xmltask source="${basedir}/src.xml" dest="${basedir}/src.xml">
 				<attr path="src/project/src[@dest='@src.dir@/']" attr="branch" value="${branch}" />
 			</xmltask>
@@ -327,10 +330,15 @@ ${git.results}</echo>
 	    <echo message="Java home: ${java.home}"/> 
 	    <fail message="Unsupported Java version: ${java.version}. Make sure that the JRE version is ${railo.javac.compiler} by setting JAVA_HOME to the correct JRE. (JAVA_HOME = ${java.home})"> 
 	        <condition> 
-	            <not> 
-	                <or> 
-	                    <contains string="${java.version}" substring="${railo.javac.compiler}" casesensitive="false" /> 
-	                </or> 
+	            <not>
+	            <or>
+                    <contains string="${java.version}" substring="${railo.javac.compiler}" casesensitive="false" /> 
+	            	<!--  temporarily allow 1.6 or 1.7 for version 4 -->
+	            	<and>
+						<equals arg1="${__major}" arg2="4" />
+                    	<contains string="${java.version}" substring="1.7" casesensitive="false" /> 
+	            	</and>
+	            </or>
 	            </not> 
 	        </condition> 
 	    </fail> 

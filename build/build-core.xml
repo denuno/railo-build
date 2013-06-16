@@ -185,6 +185,12 @@
 		<copy todir="${build-core.src.dir}/resource/context/admin/dbdriver">
 			<fileset dir="${build-core.railo.admin_source_abs}/admin/dbdriver"/>
 		</copy>
+		<copy todir="${build-core.src.dir}/resource/context/admin/cdriver">
+			<fileset dir="${build-core.railo.admin_source_abs}/admin/cdriver"/>
+		</copy>
+		<copy todir="${build-core.src.dir}/resource/context/admin/gdriver">
+			<fileset dir="${build-core.railo.admin_source_abs}/admin/gdriver"/>
+		</copy>
 		<copy todir="${build-core.src.dir}/resource/context/admin/plugin">
 			<fileset dir="${build-core.railo.admin_source_abs}/admin/plugin"/>
 		</copy>

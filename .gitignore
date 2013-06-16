@@ -2,5 +2,6 @@
 /src
 /jre
 /dist
+/CFML-Installers
 .DS_Store
 .svn

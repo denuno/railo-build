@@ -1,17 +1,18 @@
 <project name="build-installer" default="build.installer" xmlns:antcontrib="antlib:net.sf.antcontrib" xmlns:redline="antlib:org.redline_rpm"  xmlns:artifact="antlib:org.apache.maven.artifact.ant" basedir=".">
 	
 	<target name="build.installer">
-		<set-build-info />
 		<property name="installer.patchlevel" value="0"/>
 		<mkdir dir="${dist.dir}/installer/" />
 		<antcontrib:osfamily property="os.family" />
+		<antcontrib:var name="railo.version" value="4.1.0.005"/>
 		<property name="bitrock.git.repo" value="git://github.com/utdream/CFML-Installers.git"/>
 		<property name="bitrock.platform" value="${os.family}"/>
 		<property name="bitrock.installers" value="${basedir}/../CFML-Installers/" />
 		<property name="bitrock.license" location="${basedir}/license.xml"/>
+		<property name="installer.version" value="${railo.version}-pl${installer.patchlevel}"/>
 		<property name="bitrock.cmd" value="${user.home}/installbuilder-8.2.0/bin/builder"/>
 		<property name="bitrock.cmd" value="${user.home}/bitrock/bin/Builder.app/Contents/MacOS/installbuilder.sh"/>
-		<!-- we would need to give the build tons of ram to use jgit, so we don't -->
+		<!-- we would need to give the build tons of ram to use jgit, so we don't
 		<antcontrib:if>
 			<available file="${bitrock.installers}" />
 			<then>
@@ -23,24 +24,52 @@
 				<git-clone repository="${bitrock.git.repo}" dest="${bitrock.installers}" use-jgit="false" />
 			</else>
 		</antcontrib:if>
+		 -->
+		<version-splitter property="railo.version" version="${railo.version}" bump=""/>
+		
+		<delete dir="${bitrock.installers}/railo/railo/lib" />
+		<dependency groupId="org.getrailo" artifactId="railo.dep" classifier="javax-servlet" 
+			version="${railo.version.major}.0" dest="${bitrock.installers}/railo/railo/lib" type="jar" unzip="false"/>
 
-		<delete dir="${bitrock.installers}/railo/railo/lib" />
-		<copy todir="${bitrock.installers}/railo/railo/lib">
-			<fileset dir="${src.dir}/railo-java/libs" excludes="${railo.libs.zip.excludes}" />
-		</copy>
-		<delete dir="${bitrock.installers}/railo/railo/lib" />
-		<copy todir="${bitrock.installers}/railo/railo/lib">
-			<fileset dir="${src.dir}/railo-java/libs" excludes="${railo.libs.zip.excludes}" />
-		</copy>
 		<xmltask source="${bitrock.installers}/railo/railo.xml" dest="${bitrock.installers}/railo/railo.xml">
-			<replace path="/project/version/text()" withText="${railo.build.version.long}-pl${installer.patchlevel}"/>
+			<replace path="/project/version/text()" withText="${installer.version}"/>
 		</xmltask>
-		<copy file="${railobuild.dist.dir}/jar/railo-${railo.build.version.long}.jar" 
-			tofile="${bitrock.installers}/railo/railo/lib/railo.jar" />
+
+		<dependency groupId="org.getrailo" artifactId="railo-jar" version="${railo.version.long}" 
+			dest="${bitrock.installers}/railo/railo/lib/" unzip="false" type="jar" />
+
+		<delete dir="${bitrock.installers}/jre" />
+
+<!--
+		<dependency groupId="oracle" artifactId="jre" version="${jre.version}" type="zip"
+			classifier="win32" dest="${bitrock.installers}/jre/jre32-win/jre/" unzip="true" />
+		<dependency groupId="oracle" artifactId="jre" version="${jre.version}" type="zip" 
+			classifier="win64" dest="${bitrock.installers}/jre/jre64-win/jre/" unzip="true" />
+		<dependency groupId="oracle" artifactId="jre" version="${jre.version}"  type="zip"
+			classifier="linux32" dest="${bitrock.installers}/jre/jre32-lin/jre/" unzip="true" />
+		<dependency groupId="oracle" artifactId="jre" version="${jre.version}"  type="zip"
+			classifier="linux64" dest="${bitrock.installers}/jre/jre64-lin/jre/" unzip="true" />
+		<dependency groupId="oracle" artifactId="jre" version="${jre.version}"  type="zip"
+			classifier="darwin64" dest="${bitrock.installers}/jre/jre64-darwin/jre/" unzip="true" />
+-->
+
+		<property name="jre.path.prefix" value="${maven.repo.local}/oracle/jre/${jre.version}/jre-${jre.version}" />
+		
+		<unzip src="${jre.path.prefix}-win32.zip" 
+			dest="${bitrock.installers}/jre/jre32-win/jre/"/>
+		<unzip src="${jre.path.prefix}-win64.zip" 
+			dest="${bitrock.installers}/jre/jre64-win/jre/"/>
+		<unzip src="${jre.path.prefix}-linux32.zip" 
+			dest="${bitrock.installers}/jre/jre32-lin/jre/"/>
+		<unzip src="${jre.path.prefix}-linux64.zip" 
+			dest="${bitrock.installers}/jre/jre64-lin/jre/"/>
+		<unzip src="${jre.path.prefix}-darwin64.zip" 
+			dest="${bitrock.installers}/jre/jre64-darwin/jre/"/>
 		<!-- 
 		linux linux-x64 linux-ia64 windows osx solaris-sparc solaris-intel linux-ppc linux-s390 freebsd freebsd4 freebsd6 freebsd6-x64 freebsd7 freebsd7-x64 openbsd3 hpux aix irix-n32 rpm deb cdrom 
 	        <arg line="build railo/railo.xml ${bitrock.platform}"></arg>
 		-->
+		
 		<exec executable="${bitrock.cmd}" dir="${bitrock.installers}">
 	        <arg line="build railo/railo.xml linux-x64 --setvars project.outputDirectory=${dist.dir}/installer/"></arg>
 	        <arg line="--license ${bitrock.license}"></arg>
@@ -53,13 +82,26 @@
                 <arg line="build railo/railo.xml windows --setvars project.outputDirectory=${dist.dir}/installer/"></arg>
 	        <arg line="--license ${bitrock.license}"></arg>
         </exec>
+		<exec executable="${bitrock.cmd}" dir="${bitrock.installers}">
+                <arg line="build railo/railo.xml osx --setvars project.outputDirectory=${dist.dir}/installer/"></arg>
+	        <arg line="--license ${bitrock.license}"></arg>
+        </exec>
+		<zip destfile="${railobuild.dist.dir}/installer/railo-${installer.version}-osx-installer.zip" update="false">
+			<fileset dir="${railobuild.dist.dir}/installer/" 
+				includes="railo-${installer.version}-osx-installer.app/**"
+				excludes="railo-${installer.version}-osx-installer.app/Contents/MacOS/**"/>
+			<zipfileset dir="${railobuild.dist.dir}/installer/" 
+				includes="railo-${installer.version}-osx-installer.app/Contents/MacOS/**"
+				filemode="711"/>
+		</zip>
 
 		<pom-and-deploy pomid="railo.installer.pom" packaging="pom" buildtype="${mvn.type}"
-		 groupId="org.getrailo" artifactId="railo.installer" version="${railo.build.version.long}" name="railo.installer">
+		 groupId="org.getrailo" artifactId="railo.installer" version="${installer.version}" name="railo.installer">
         	<attachments>
-        		<attach file="${railobuild.dist.dir}/installer/railo-${railo.build.version.long}-pl${installer.patchlevel}-linux-x64-installer.run" type="run" classifier="linux64"/>
-        		<attach file="${railobuild.dist.dir}/installer/railo-${railo.build.version.long}-pl${installer.patchlevel}-linux-installer.run" type="run" classifier="linux32"/>
-        		<attach file="${railobuild.dist.dir}/installer/railo-${railo.build.version.long}-pl${installer.patchlevel}-windows-installer.exe" type="exe" classifier="windows32"/>
+        		<attach file="${railobuild.dist.dir}/installer/railo-${installer.version}-linux-x64-installer.run" type="run" classifier="linux64"/>
+        		<attach file="${railobuild.dist.dir}/installer/railo-${installer.version}-linux-installer.run" type="run" classifier="linux32"/>
+        		<attach file="${railobuild.dist.dir}/installer/railo-${installer.version}-windows-installer.exe" type="exe" classifier="windows32"/>
+        		<attach file="${railobuild.dist.dir}/installer/railo-${installer.version}-osx-installer.zip" type="zip" classifier="darwin64"/>
         	</attachments>
 		</pom-and-deploy>
 		

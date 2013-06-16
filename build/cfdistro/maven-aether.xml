@@ -6,9 +6,9 @@
     <property name="mvn.repo.dest" value="remote" />
     <property name="mvn.repo.dest" value="local" />
     <property name="mvn.repo.id" value="mvn.repo.${mvn.repo.dest}" />
-    <property name="maven.repo.local" location="${pub.dir}/maven2" />
    	-->
-    <property name="maven.ant.tasks.jar" value="${cfdistro.basedir}/lib/maven-ant-tasks-2.1.3.jar" />
+    <property name="maven.repo.local" location="${cfdistro.basedir}/artifacts" />
+    <property name="maven.ant.tasks.jar" value="${cfdistro.basedir}/lib/aether-ant-tasks-0.9.0-SNAPSHOT-uber.jar" />
 	<path id="maven.ant.tasks.classpath" path="${maven.ant.tasks.jar}" />
     <available property="maven.ant.tasks.jar.exists" file="${maven.ant.tasks.jar}" />
 
@@ -344,42 +344,41 @@
 	</target>	
 		
 	
-	<macrodef name="mvn-repo">
+	<macrodef name="mvn-repo" xmlns:repo="antlib:org.eclipse.aether.ant">
 		<attribute name="id" />
 		<attribute name="url"/>
 		<element name="authentication" optional="true" />
 		<element name="enablement" optional="true" />
 		<sequential>
-			<typedef resource="org/apache/maven/artifact/ant/antlib.xml"
-				uri="antlib:org.apache.maven.artifact.ant" classpathref="maven.ant.tasks.classpath" />
-		    <artifact:remoteRepository id="@{id}" url="@{url}">
+			<repo:remoterepo id="@{id}" url="@{url}" type="default" releases="true" snapshots="true" updates="always" checksums="fail">
 		      	<authentication />
 		      	<enablement />
-		    </artifact:remoteRepository>
+		    </repo:remoterepo>
+			<repo:remoterepos id="aether.repositories">
+				<repo:remoterepo refid="@{id}"/>
+			</repo:remoterepos>
 		</sequential>
 	</macrodef>
 
 
-	<macrodef name="mvn-get" xmlns:artifact="antlib:org.apache.maven.artifact.ant">
+	<macrodef name="mvn-get" xmlns:artifact="antlib:org.eclipse.aether.ant">
 		<attribute name="groupId" />
 		<attribute name="artifactId"/>
 		<attribute name="version"/>
 		<attribute name="classifier" default=""/>
 		<attribute name="type" default="zip"/>
-		<attribute name="scope" default="runtime" />
 		<attribute name="toFile" default=""/>
-		<attribute name="toDir" default=""/>
 		<sequential>
-			<echo message="Dependency: @{groupId}:@{artifactId}:@{version}:@{classifier}:@{type}"/>
-	        <antcontrib:var unset="true" name="_dependency.fileset" />
+			<echo message="@{groupId}:@{artifactId}:@{version}:@{classifier}:@{type}"/>
 	        <path id="maven.ant.tasks.classpath" path="${maven.ant.tasks.jar}" />
-	        <typedef resource="org/apache/maven/artifact/ant/antlib.xml" uri="urn:maven-artifact-ant" classpathref="maven.ant.tasks.classpath" />
-	        <artifact:dependencies filesetId="_dependency.fileset" useScope="@{scope}">
+			<taskdef uri="antlib:org.eclipse.aether.ant" resource="org/eclipse/aether/ant/antlib.xml" classpathref="maven.ant.tasks.classpath" />
+			<echo message="LOCALREPO: ${maven.repo.local}"/>
+			<artifact:localrepo dir="${maven.repo.local}"/>
+			<artifact:resolve>
+			<dependencies>
 	            <dependency groupId="@{groupId}" artifactId="@{artifactId}" version="@{version}" classifier="@{classifier}" type="@{type}"/>
-	            <localRepository path="${cfdistro.repo.local.path}" />
-	            <remoteRepository refid="cfdistro.repo.local" />
-	            <remoteRepository refid="cfdistro.repo.remote" />
-	        </artifact:dependencies>
+	        </dependencies>
+			</artifact:resolve>
 	        <antcontrib:if>
 	        	<equals arg1="@{toFile}" arg2="" />
 	        	<then/><else>
@@ -392,15 +391,6 @@
 					<copy tofile="@{toFile}" file="${cfdistro.repo.local.path}/${dependency.location}/@{version}/@{artifactId}-@{version}.@{type}" />
 	        	</else>
 	        </antcontrib:if>
-			<antcontrib:if>
-				<equals arg1="@{toDir}" arg2="" /><then/>
-				<else>
-					<copy todir="@{toDir}">
-					  <fileset refid="_dependency.fileset" />
-					  <mapper type="flatten" />
-					</copy>
-				</else>
-			</antcontrib:if>
 		</sequential>
 	</macrodef>
 	
@@ -469,7 +459,7 @@
 			</antcontrib:if>
 			<antcontrib:var name="_dep.loc" value="${cfdistro.repo.local.path}/${dependency.location}/@{artifactId}/@{version}/"/>
 			<antcontrib:var name="_dep.file" value="${cfdistro.repo.local.path}/${dependency.location}/@{artifactId}/@{version}/@{artifactId}-@{version}${_dep.classifier}.@{type}"/>
-			<mvn-get groupId="@{groupId}" artifactId="@{artifactId}" version="@{version}" type="@{type}" classifier="@{classifier}" toDir="@{dest}" />
+			<mvn-get groupId="@{groupId}" artifactId="@{artifactId}" version="@{version}" type="@{type}" classifier="@{classifier}" />
 			<antcontrib:if>
 				<equals arg1="@{dest}" arg2="" /><then/>
 				<else>
@@ -510,7 +500,7 @@
 				</else>
 			</antcontrib:if>
 			<antcontrib:if>
-				<equals arg1="@{isExtension}" arg2="true" />
+				<equals arg1="${isExtension}" arg2="true" />
 				<then>
 					<railo-extension-install extension-zip="${_dep.file}" />
 				</then>
@@ -580,12 +570,11 @@
 					</artifact:pom>
 				</else>
 			</antcontrib:if>
+
 			<antcontrib:if>
 				<equals arg1="@{artifact}" arg2="" />
 				<then>
-					<delete file="${temp.dir}/tmppom.pom" />
-					<artifact:writepom pomrefid="@{pomid}" file="${temp.dir}/tmppom.pom" trim="true"/>
-					<artifact:deploy file="${temp.dir}/tmppom.pom">
+					<artifact:deploy>
 					  <remoteRepository refid="@{repoId}" />
 					  <!-- <localRepository path="${cfdistro.repo.local.path}" /> -->
 			          <attachments />
@@ -616,7 +605,7 @@
 		
 	<macrodef name="bug170workaround">
 		<attribute name="pomid" />
-		<attribute name="dir" default="${temp.dir}" />
+		<attribute name="dir" default="/tmp" />
 		<sequential>
 			<artifact:writepom pomrefid="@{pomid}_tmp" file="@{dir}/tmppom.xml" trim="true"/>
 			<artifact:pom id="@{pomid}" file="@{dir}/tmppom.xml" />
@@ -639,6 +628,4 @@
 		</authentication>
     </mvn-repo>
 
-	
-	
 </project>

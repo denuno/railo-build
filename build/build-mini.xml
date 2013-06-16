@@ -1,10 +1,9 @@
 <project name="RailoMini" default="Railo.mini.express" basedir="." xmlns:antcontrib="antlib:net.sf.antcontrib">
 	<description>Ant build file to build mini version</description>
 
-	<property name="railo.mini.excludes" value="apache-jakarta-commons-net-ftp.jar, 
+	<property name="railo.mini.excludes" value="
 		apache-lucene*, 
 		flex-messaging-*, 
-		apache-poi-ooxml-schemas.jar,
 		PDFBox.jar,
 		PDFRenderer.jar,
 		jpedal_gpl.jar,
@@ -13,39 +12,82 @@
 		bcprov-jdk14.jar,
 		ehcache.jar,
 		lowagie.itext.jar,
-		apache-poi-ooxml.jar,
 		fonts.jar,
-		apache-ws-axis.jar,
 		antlr.jar,
 		h2.jar,
-		jffmpeg.jar,
 		jfreechart*,
 		junit.jar,
 		microsoft*,
 		jtds.jar,
 		mysql-connector-java-bin.jar,
 		ojdbc14.jar,
+		xdb.jar,
 		openamf*,
 		org.mortbay.jetty.jar,
 		postgresql.jar,
-		sun-jndi-ldap.jar,
 		jffmpeg.jar,
 		xmlbeans.jar,
 		xmlparserv2.jar,
-		 apache-logging-log4j.jar,
-		 icepdf-core.jar,
-		 ESAPI.jar,
-		jfreechart.jar"
+		apache-logging-log4j.jar,
+		icepdf-core.jar,
+		ESAPI.jar,
+		 jta.jar,
+		 jacob.jar,
+		 apache-poi-tm-extractors.jar,
+		 com.naryx.tagfusion.cfx.jar,
+		 ss_css2.jar,
+		 dom4j.jar,
+
+		apache-commons-httpclient.jar,
+		apache-commons-httpcore.jar,
+		apache-commons-httpmime.jar,
+		apache-commons-sanselan.jar,
+
+		apache-jakarta-commons-discovery.jar,
+		apache-jakarta-commons-email.jar,
+		apache-jakarta-commons-httpclient.jar,
+		apache-jakarta-commons-net-ftp.jar,
+		
+		apache-poi-ooxml-schemas.jar,
+		apache-poi-ooxml.jar,
+		apache-poi-tm-extractors.jar,
+		apache-poi.jar,
+		apache-ws-axis-ant.jar,
+		apache-ws-axis.jar,
+		backport-util-concurrent.jar,		
+
+		hibernate.jar,
+		stax-api.jar,
+		sun-activation.jar,
+		sun-jai_codec.jar,
+		sun-jai_core.jar,
+		sun-jndi-ldap.jar,
+		sun-jndi-ldapbp.jar,
+		sun-jndi-ldapsec.jar,
+		sun-jndi-providerutil.jar,
+		sun-mail.jar,
+		sun-security-jaas.jar,
+		sun-xml-jaxrpc.jar,
+		sun-xml-wsdl4j.jar,
+		sun-xml.saaj.jar,	
+		
+		javassist.jar,
+		jcommon.jar,
+		javaparser.jar,
+		metadata-extractor.jar,
+		
+		jfreechart*"
 	/>
-	
-    <target name="Railo.mini.express" description="builds express.">
+	<!-- needs hypersonic-*.jar for internal db -->
+
+	<target name="Railo.mini.express" description="builds express.">
     	<set-build-info />
     	
     	<property name="railo.mini.zip.file" value="${railobuild.dist.dir}/express/railo-mini-${railo.build.version.long}.zip" />
     	<property name="winstone.version" value="0.9.10" />
     	<property name="winstone.jar" value="winstone-lite-${winstone.version}.jar" />
-    	<property name="winstone.jar.path" value="${winstone.ext.dir}/${winstone.jar}" />
     	<property name="winstone.ext.dir" value="${ext.dir}/winstone/"/>
+    	<property name="winstone.jar.path" value="${winstone.ext.dir}/${winstone.jar}" />
     	<mkdir dir="${winstone.ext.dir}"/>
         <dependency groupId="net.sourceforge.winstone"
           artifactId="winstone-lite" type="jar" unzip="false"
@@ -73,10 +115,11 @@ if test -z "${JAVA_EXE}"; then
 JAVA_EXE=java
 fi
 cd $(dirname $0)
-exec $JAVA_EXE -jar webroot/WEB-INF/lib/${winstone.jar} --webroot=./webroot --httpPort=8888]]>
+exec $JAVA_EXE -javaagent:webroot/WEB-INF/lib/railo-inst.jar -jar webroot/WEB-INF/lib/${winstone.jar} --webroot=./webroot --httpPort=8888]]>
 </echo>
 		<chmod file="${railobuild.dist.dir}/railo-mini/start" perm="ugo+rx"/>
-		<echo file="${railobuild.dist.dir}/railo-mini/start.bat"><![CDATA[java -jar %CD%\webroot\WEB-INF\lib\${winstone.jar} --webroot=./webroot --httpPort=8888]]></echo>
+		<echo file="${railobuild.dist.dir}/railo-mini/start.bat"><![CDATA[java -javaagent:webroot/WEB-INF/lib/railo-inst.jar -jar %CD%\webroot\WEB-INF\lib\${winstone.jar} --webroot=./webroot --httpPort=8888]]></echo>
+		<delete file="${railo.mini.zip.file}"/>
 		<zip destfile="${railo.mini.zip.file}" update="false">
 			<fileset dir="${railobuild.dist.dir}/railo-mini/"/>
 		</zip>

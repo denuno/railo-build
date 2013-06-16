@@ -14,7 +14,7 @@
 		<version>${railo.build.version.long}</version>
 	</parent>
 	<properties>
-		<jetty.version>9.0.0.v20130308</jetty.version>
+		<jetty.version>9.0.3.v20130506</jetty.version>
 	</properties>
 
 	<dependencies>

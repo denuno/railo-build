@@ -24,10 +24,6 @@
 		</enablement>
 	</mvn-repo>
  	-->
-
-	<!-- default jre to use for building jre bundles -->
-	<property name="mvn.jre.version" value="1.7.0_17" />
-	<property name="mvn.jre.version" value="1.6.0_41" />
        	
   	<property name="mvn.remote.repo" 
    		value="http://127.0.0.1:8081/nexus/content/repositories/railo-${mvn.type}s/" />
@@ -51,17 +47,14 @@
 			<sequential>
 				<antcontrib:var name="basename" unset="true" />
 				<basename file="@{file}" property="basename" suffix=".jar" />
-				<antcontrib:propertyregex 
-				property="basename" 
-				input="${basename}" 
-				global="true" override="yes" 
-				regexp="\." 
-				replace="-"/>
-				<echo message="${basename}"/>
-				<antcontrib:var name="libsxml"
-					value='${libsxml}&lt;attach file="@{file}" classifier="${basename}" type="jar"/&gt;${line.separator}' />
+				<get-mvn-version jar="${basename}" property="__depVer" />
+				<antcontrib:propertyregex property="basename" input="${basename}" 
+				 regexp="\." replace="-" global="true" override="yes"/>
+				<echo message="${basename} ${__depVer}"/>
+				<pom-and-deploy pomid="railolibs.${basename}.pom" artifact="@{file}" packaging="jar" buildtype="${mvn.type}"
+				 groupId="org.getrailo.lib" artifactId="${basename}" version="${__depVer}" name="${basename}" />
 				<antcontrib:var name="depsxml"
-					value='${depsxml}&lt;dependency groupId="org.getrailo" artifactId="railo.dep" version="${railo.build.version.major}.0" classifier="${basename}"/&gt;${line.separator}' />
+					value='${depsxml}&lt;dependency groupId="org.getrailo.lib" artifactId="${basename}" version="${__depVer}"/&gt;${line.separator}' />
 			</sequential>
 		</antcontrib:for>
     	<!-- add optional libs -->
@@ -72,23 +65,18 @@
 			<sequential>
 				<antcontrib:var name="basename" unset="true" />
 				<basename file="@{file}" property="basename" suffix=".jar" />
-				<antcontrib:propertyregex 
-				property="basename" 
-				input="${basename}" 
-				global="true" override="yes" 
-				regexp="\." 
-				replace="-"/>
-				<echo message="${basename}"/>
-				<antcontrib:var name="libsxml"
-					value='${libsxml}&lt;attach file="@{file}" classifier="${basename}" type="jar"/&gt;${line.separator}' />
+				<get-mvn-version jar="${basename}" property="__depVer" />
+				<antcontrib:propertyregex property="basename" input="${basename}" 
+				 regexp="\." replace="-" global="true" override="yes"/>
+				<echo message="${basename} ${__depVer}"/>
+				<pom-and-deploy pomid="railolibs.${basename}.pom" artifact="@{file}" packaging="jar" buildtype="${mvn.type}"
+				 groupId="org.getrailo.lib" artifactId="${basename}" version="${__depVer}" name="${basename}" />
 				<antcontrib:var name="depsxml"
-					value='${depsxml}&lt;dependency groupId="org.getrailo" artifactId="railo.dep" version="${railo.build.version.major}.0" classifier="${basename}" optional="true"/&gt;${line.separator}' />
+					value='${depsxml}&lt;dependency groupId="org.getrailo.lib" artifactId="${basename}" version="${__depVer}" optional="true"/&gt;${line.separator}' />
 			</sequential>
 		</antcontrib:for>
 		<echo file="${basedir}/build-mvnlibs.xml"><![CDATA[<project><import file="${basedir}/build.xml"/>
-		<target name="libsxml.pom"><pom-and-deploy pomid="railo.dep.pom" packaging="pom" buildtype="${mvn.type}"
-	 		groupId="org.getrailo" artifactId="railo.dep" version="${railo.build.version.major}.0" name="railo.dep">
-       		<attachments>${libsxml}</attachments></pom-and-deploy>
+		<target name="libsxml.pom">
        		<pom-and-deploy pomid="railo" artifact="${railobuild.dist.dir}/jar/railo-${railo.build.version.long}.jar" packaging="jar" buildtype="${mvn.type}"
 	 		groupId="org.getrailo" artifactId="railo" version="${railo.build.version.long}" name="railo">
        		<dependencies>${depsxml}</dependencies></pom-and-deploy>
@@ -116,23 +104,16 @@
 			<sequential>
 				<antcontrib:var name="basename" unset="true" />
 				<basename file="@{file}" property="basename" suffix=".jar" />
-				<antcontrib:propertyregex 
-				property="basename" 
-				input="${basename}" 
-				global="true" override="yes" 
-				regexp="\." 
-				replace="-"/>
+				<get-mvn-version jar="${basename}" property="__depVer" />
+				<antcontrib:propertyregex property="basename" input="${basename}" 
+				 regexp="\." replace="-" global="true" override="yes"/>
 				<echo message="${basename}"/>
-				<antcontrib:var name="libsxml"
-					value='${libsxml}&lt;attach file="@{file}" classifier="${basename}" type="jar"/&gt;${line.separator}' />
 				<antcontrib:var name="depsxml"
-					value='${depsxml}&lt;dependency groupId="org.getrailo" artifactId="railo.dep.min" version="${railo.build.version.major}.0" classifier="${basename}"/&gt;${line.separator}' />
+					value='${depsxml}&lt;dependency groupId="org.getrailo.lib" artifactId="${basename}" version="${__depVer}"/&gt;${line.separator}' />
 			</sequential>
 		</antcontrib:for>
 		<echo file="${basedir}/build-mvnlibs.xml"><![CDATA[<project><import file="${basedir}/build.xml"/>
-		<target name="libsxml.pom"><pom-and-deploy pomid="railo.dep.min.pom" packaging="pom" buildtype="${mvn.type}"
-	 		groupId="org.getrailo" artifactId="railo.dep.min" version="${railo.build.version.major}.0" name="railo.dep.min">
-       		<attachments>${libsxml}</attachments></pom-and-deploy>
+		<target name="libsxml.pom">
        		<pom-and-deploy pomid="railo.min" artifact="${railobuild.dist.dir}/jar/railo-${railo.build.version.long}.jar" packaging="jar" buildtype="${mvn.type}"
 	 		groupId="org.getrailo" artifactId="railo.min" version="${railo.build.version.long}" name="railo.min">
        		<dependencies>${depsxml}</dependencies></pom-and-deploy>
@@ -171,35 +152,52 @@
 
 		<!-- deploy the railo archtype-ish projects -->
 
-		<copy file="${basedir}/resource/maven/railo.pomparent.pom" tofile="${temp.dir}/railo.pomparent.pom" overwrite="true">
+		<copy toDir="${temp.dir}" overwrite="true">
+			<fileset dir="${basedir}/resource/maven/" includes="*.pom" />
 			<filterchain><expandproperties /></filterchain>
 		</copy>
 		<pom-and-deploy pomid="railo.pomparent.pom" file="${temp.dir}/railo.pomparent.pom"  packaging="pom" buildtype="${mvn.type}"
 			artifact="${railobuild.dist.dir}/jar/railo-${railo.build.version.long}.jar"/>
 		
-		<copy file="${basedir}/resource/maven/railo.pomparent.libs.pom" tofile="${temp.dir}/railo.pomparent.libs.pom" overwrite="true">
-			<filterchain><expandproperties /></filterchain>
-		</copy>
 		<pom-and-deploy pomid="rail.pomparent.libs.pom" file="${temp.dir}/railo.pomparent.libs.pom"  packaging="pom" buildtype="${mvn.type}"
 			artifact="${railobuild.dist.dir}/jar/railo-${railo.build.version.long}.jar"/>
 		
-		<copy file="${basedir}/resource/maven/railo.pomparent.war.pom" tofile="${temp.dir}/railo.pomparent.war.pom" overwrite="true">
-			<filterchain><expandproperties /></filterchain>
-		</copy>
 		<pom-and-deploy pomid="railo.pomparent.war.pom" file="${temp.dir}/railo.pomparent.war.pom" buildtype="${mvn.type}"
 		  artifact="${railobuild.dist.dir}/jar/railo-${railo.build.version.long}.jar" packaging="pom" />
 
-		<copy file="${basedir}/resource/maven/railo.pomparent.jetty.pom" tofile="${temp.dir}/railo.pomparent.jetty.pom" overwrite="true">
-			<filterchain><expandproperties /></filterchain>
-		</copy>
 		<pom-and-deploy pomid="railo.pomparent.jetty.pom" file="${temp.dir}/railo.pomparent.jetty.pom" packaging="pom"
 			artifact="${railobuild.dist.dir}/jar/railo-${railo.build.version.long}.jar" buildtype="${mvn.type}" />
 
-		<copy file="${basedir}/resource/maven/railo.pomparent.winstone.pom" tofile="${temp.dir}/railo.pomparent.winstone.pom" overwrite="true">
-			<filterchain><expandproperties /></filterchain>
-		</copy>
 		<pom-and-deploy pomid="railo.pomparent.winstone.pom" file="${temp.dir}/railo.pomparent.winstone.pom" packaging="pom"
 			artifact="${railobuild.dist.dir}/jar/railo-${railo.build.version.long}.jar" buildtype="${mvn.type}" />
+
+		<pom-and-deploy pomid="railo.pomparent.heroku.jetty.pom" file="${temp.dir}/railo.pomparent.heroku.jetty.pom" packaging="pom"
+			artifact="${railobuild.dist.dir}/jar/railo-${railo.build.version.long}.jar" buildtype="${mvn.type}" />
+	
+		<pom-and-deploy pomid="railo.pomparent.heroku.winstone.pom" file="${temp.dir}/railo.pomparent.heroku.winstone.pom" packaging="pom"
+			artifact="${railobuild.dist.dir}/jar/railo-${railo.build.version.long}.jar" buildtype="${mvn.type}" />
+	
 	</target>
+
+	<macrodef name="get-mvn-version">
+		<attribute name="jar"/>
+		<attribute name="property"/>
+		<sequential>
+			<antcontrib:var name="@{property}" unset="true"/>
+			<xmltask source="${src.dir}/railo-java/libs/versions">
+				<copy path="/jars/jar[@path='@{jar}.jar']/@version" property="@{property}"/>
+			</xmltask>
+			<antcontrib:if>
+			<or>
+				<equals arg1="" arg2="${@{property}}" />
+				<equals arg1="$${@{property}}" arg2="${@{property}}" />
+			</or>
+				<then>
+				<checksum file="${src.dir}/railo-java/libs/@{jar}.jar" property="foobarMD5"/>
+				<fail message="no version info: @{jar}.jar ${foobarMD5} ${@{property}}"/>
+				</then>
+			</antcontrib:if>
+		</sequential>
+	</macrodef>
 
 </project>
