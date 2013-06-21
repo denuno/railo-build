@@ -183,18 +183,32 @@
 		<attribute name="jar"/>
 		<attribute name="property"/>
 		<sequential>
+			<antcontrib:var name="foobarMD5" unset="true"/>
+			<checksum file="${src.dir}/railo-java/libs/@{jar}.jar" property="foobarMD5"/>
 			<antcontrib:var name="@{property}" unset="true"/>
+			<!--
 			<xmltask source="${src.dir}/railo-java/libs/versions">
 				<copy path="/jars/jar[@path='@{jar}.jar']/@version" property="@{property}"/>
 			</xmltask>
+			<xmltask source="${basedir}/resource/maven/versions" dest="${basedir}/resource/maven/versions">
+				<attr path="/jars/jar[@path='@{jar}.jar']" attr="zzhash" value="${foobarMD5}"/>
+			</xmltask>
+			-->
+			<xmltask source="${basedir}/resource/maven/versions">
+				<copy path="/jars/jar[@hash='${foobarMD5}']/@version" property="@{property}"/>
+			</xmltask>
+
 			<antcontrib:if>
 			<or>
 				<equals arg1="" arg2="${@{property}}" />
 				<equals arg1="$${@{property}}" arg2="${@{property}}" />
 			</or>
 				<then>
-				<checksum file="${src.dir}/railo-java/libs/@{jar}.jar" property="foobarMD5"/>
 				<fail message="no version info: @{jar}.jar ${foobarMD5} ${@{property}}"/>
+				<!--
+				<property name="@{property}" value="${railo.build.version.long}" />
+				<echo message="no version info: @{jar}.jar ${foobarMD5}, using railo.version.long for version"/>
+				-->
 				</then>
 			</antcontrib:if>
 		</sequential>

@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<jars>
+	<jar path="antlr.jar" version="2.7.6" comment="used by hibernate" hash="97c6bb68108a3d68094eab0f67157962"/>
+	<jar path="apache-jakarta-commons-codec.jar" version="1.6" comment="" hash="5970f54883b4831b24b97f1125ba27e6"/>
+	<jar path="apache-jakarta-commons-collections.jar" version="3.2.1" comment="" hash="13bc641afd7fd95e09b260f69c1e4c91"/>
+	<jar path="apache-jakarta-commons-compress.jar" version="1.3" comment="" hash="5e41739c4e9fcf4c0b0ecfcf5e6cb2ae"/>
+	<jar path="apache-jakarta-commons-discovery.jar" version="0.4" comment="used by 3 party" hash="cdbb606faa974f9361a85d6df53aeb9f"/>
+	<jar path="apache-jakarta-commons-email.jar" version="1.2" comment="" hash="c585677cce2c0efc663296730ba57b2c"/>
+	<jar path="apache-jakarta-commons-fileupload.jar" version="1.2.1" comment="" hash="5ad1ab0c8a813b45fe9014f54a341a2a"/>
+	<jar path="apache-jakarta-commons-httpclient.jar" version="3.0.1" comment="" hash="456245a3b1b49eb51c57d037acebfefc"/>
+	<jar path="apache-jakarta-commons-io.jar" version="2.1" comment="" hash="4854c2344aa182ad4f37976e83348aa0"/>
+	<jar path="apache-jakarta-commons-lang.jar" version="2.6" comment="" hash="4d5c1693079575b362edf41500630bbd"/>
+	<jar path="apache-jakarta-commons-logging-adapters.jar" version="1.1.1" comment="" hash="d955f7cdb65df53936654db488084ea1"/>
+	<jar path="apache-jakarta-commons-logging-api.jar" version="1.1.1" comment="" hash="4ec8e1d8171e578b3151e898311a8710"/>
+	<jar path="apache-jakarta-commons-logging.jar" version="1.1.1" comment="" hash="e2c390fe739b2550a218262b28f290ce"/>
+	<jar path="apache-jakarta-commons-net-ftp.jar" version="0" comment="file is empty" hash="4e681bc87537c0bd04e1ecccab90ec38"/>
+	<jar path="apache-jakarta-commons-net.jar" version="3.1" comment="" hash="23c94d51e72f341fb412d6a015e16313"/>
+	<jar path="apache-jakarta-oro.jar" version="2.0.8" comment="retired" hash="42e940d5d2d822f4dc04c65053e630ab"/>
+	<jar path="apache-logging-log4j.jar" version="1.2.16" comment="" hash="4a11e911b2403bb6c6cf5e746497fe7a"/>
+	<jar path="apache-lucene-analyzers.jar" version="2.4.1" comment="" hash="e1fc6adf34135b7b8933bda84d3557af"/>
+	<jar path="apache-lucene-highlighter.jar" version="2.4.1" comment="" hash="18601ba8b6aa8b6924780f11cbed9465"/>
+	<jar path="apache-lucene-misc.jar" version="2.4.1" comment="" hash="82ec3feb72520e309a2a563a6c6e0d06"/>
+	<jar path="apache-lucene-similarity.jar" version="2.4.1" comment="" hash="ecbfd13351a3295c94459294f2182d4e"/>
+	<jar path="apache-lucene-snowball.jar" version="2.4.1" comment="" hash="be5602b62fc6aa8452c4a1f999712f0e"/>
+	<jar path="apache-lucene-spellchecker.jar" version="2.4.1" comment="" hash="57b416c75c4f0e5407693608bd07347e"/>
+	<jar path="apache-lucene.jar" version="2.4.1" comment="" hash="50373bca7c7436d4b9741a3a8e972a3a"/>
+	<jar path="apache-ws-axis-ant.jar" version="1.4" comment="" hash="b696d8c3fa91cbd57b28e2c362d67c46"/>
+	<jar path="apache-ws-axis.jar" version="1.4" comment="" hash="03dcfdd88502505cc5a805a128bfdd8d"/>
+	<jar path="apache-xml-xalan.jar" version="2.7.1" comment="" hash="126c0c876a6b9726cfdd43f052923660"/>
+	<jar path="apache-xml-xerces.jar" version="2.11" comment="" hash="33ec8d237cbaceeffb2c2a7f52afd79a"/>
+	<jar path="backport-util-concurrent.jar" version="2.2" comment="" hash="b0e73fea8979ac4d6272fd61b1ce5b1e"/>
+	<jar path="bcprov-jdk14.jar" version="1.36" comment="" hash="ce3140b4a54478bf27703064bc65b10b"/>
+	<jar path="com.naryx.tagfusion.cfx.jar" version="1.0" comment="" hash="7787ed0a7e74bcec9273a4389791b453"/>
+	<jar path="concurrent.jar" version="1.3.3" comment="" hash="3d7e23b3bb1f1fee45fe5ea178e16baa"/>
+	<jar path="dom4j.jar" version="1.6.1" comment="used by hibernate" hash="4d8f51d3fe3900efc6e395be48030d6d"/>
+	<jar path="ehcache.jar" version="2.5.2" comment="" hash="60cee0d1d4bc647c12094175a6ec7cc0"/>
+	<jar path="flex-messaging-common.jar" version="3.0" comment="" hash="4bcad51b974956035ab47dadd0931fca"/>
+	<jar path="flex-messaging-core.jar" version="3.0" comment="" hash="2057e4ba4b415ed01760901206e53945"/>
+	<jar path="flex-messaging-opt.jar" version="3.0" comment="" hash="000d717d4505b684def0f0279cae02ee"/>
+	<jar path="flex-messaging-proxy.jar" version="3.0" comment="" hash="e854a2a4a1fc7f7bce034b30b98c99ae"/>
+	<jar path="flex-messaging-remoting.jar" version="3.0" comment="" hash="ac15eecdeca9d9b0a1b85b56a0d7c4a4"/>
+	<jar path="fonts.jar" version="1.0" comment="" hash="3c8033df7dff2d4d1f8f6142cfb5d0b4"/>
+	<jar path="fusiondebug-api-server.jar" version="1.0.20-SNAPSHOT" comment="" hash="10dfed1990de3323f80ad97010286260"/>
+	<jar path="h2.jar" version="1.3.170" comment="" hash="82a94db775d7c828a9505979767926b1"/>
+	<jar path="h2.jar" version="1.3.172" comment="" hash="a93f1f5be4409f559ba57c1d0feb2acb"/>
+	<jar path="hibernate.jar" version="3.5.5" comment="" hash="510f5db2a7bc2c964b2dcaa4a3b89bda"/>
+	<jar path="hypersonic-hsqldb.jar" version="2.7.1" comment="" hash="c7a1219cfeb4c31fe6c996b73bb99da7"/>
+	<jar path="icepdf-core.jar" version="3.1.0_3" comment="" hash="0472366e53dcfca497de542449b74520"/>
+	<jar path="jacob.jar" version="1.16.1" comment="" hash="7ff125ced8d71daab10d8a67df427f53"/>
+	<jar path="javaparser.jar" version="1.0.8" comment="" hash="e0a1c8d350a1d6adcb929d44fa175519"/>
+	<jar path="javassist.jar" version="3.9.0.GA" comment="" hash="e85b97419a1bbea4c6e432b3ab1d4197"/>
+	<jar path="javax.servlet.jar" version="1.4.1-01" comment=""/>
+	<jar path="jcommon.jar" version="1.0.10" comment="" hash="34491283a2b0f2dc6240f04901f5c530"/>
+	<jar path="jencrypt.jar" version="1.4.2_04" comment="" hash="45c680617e49d8f8f51bcbbe7e1f38b7"/>
+	<jar path="jffmpeg.jar" version="1.4.2_09-b05" comment="" hash="957971c17768c7238a4fe1046d8dc332"/>
+	<jar path="jfreechart-patch.jar" version="1.0.12" comment="" hash="3a73eba1d0c0e06e1573258e00166aed"/>
+	<jar path="jfreechart.jar" version="1.0.12" comment="" hash="7e2f2803f493174c7a4352e6f130733d"/>
+	<jar path="jmimemagic.jar" version="0.1.2" comment="" hash="bd49358e1444c66025cde78bf2ebf706"/>
+	<jar path="joda-time.jar" version="2.1" comment="" hash="3da033b9318e910a4e3d718a6b1f5b58"/>
+	<jar path="jpedal_gpl.jar" version="3.51b12" comment="" hash="dd2872eefd5f5614109518ab5a62a5b4"/>
+	<jar path="jta.jar" version="1.1" comment="" hash="ffc9ca23acc1665c90dbbe715645564f"/>
+	<jar path="jtds.jar" version="1.2.5" comment="" hash="5dce2e0fe402cea8e5a0cfb364e59ba2"/>
+	<jar path="jtds.jar" version="1.2.5.1" comment="not sure what changed" hash="70db9761a2a8542384c5ecd1a9f52459"/>
+	<jar path="jug.jar" version="2.0.0" comment="" hash="27e15d9c1de3614f5e7aee0fe891d470"/>
+	<jar path="lowagie.itext.jar" version="2.1.2u-1" comment="" hash="eee2d3d6972d36b3fc9bddadd1a542fe"/>
+	<jar path="metadata-extractor.jar" version="2.4.0-beta-1" comment="retired" hash="6e0ad2f0fe78047cb34ec056b39633d3"/>
+	<jar path="microsoft-mssqlserver.jar" version="4.0" comment="only links to the driver in microsoft-sqljdbc.jar" hash="31be8d60f37c8490046eead41de77fd2"/>
+	<jar path="microsoft-sqljdbc.jar" version="4.0" comment="" hash="402130141d5f2cee727f4371e2e8fd8a"/>
+	<jar path="mysql-connector-java-bin.jar" version="5.0.8" comment="" hash="fa52e6f2e3433c65a9dd14c565030569"/>
+	<jar path="objectweb-asm-all.jar" version="4.0" comment="" hash="ae41c404d45636ce3aaf91c87bba82ac"/>
+	<jar path="ojdbc14.jar" version="" comment="" hash="c7c09896ad999e8d8dfb2e1235832d55"/>
+	<jar path="openamf-astranslator.jar" version="1.5.8" comment="only used for backward compatibility" hash="c47290d836a7fa1c7c1629d33db7b105"/>
+	<jar path="openamf.jar" version="1.5.8" comment="only used for backward compatibility" hash="499ec60e34b392094315c5fd2ff0691e"/>
+	<jar path="org.mortbay.jetty.jar" version="" comment=""/>
+	<jar path="PDFBox.jar" version="0.7.3" comment="" hash="29df520ce17bc40c8dcd5577e3c6ae27"/>
+	<jar path="PDFRenderer.jar" version="1.0.5" comment="" hash="e7fe052428edfc274c6396f84ae13835"/>
+	<jar path="postgresql.jar" version="9.1-901" comment="" hash="f6b4136141500caa9fc47126e2168670"/>
+	<jar path="postgresql.jar" version="9.1-902" comment="" hash="42b118950c660485a77dc7e79a8e06b1"/>
+	<jar path="railo-sl4j.jar" version="1.0" comment="" hash="7b8a9850ef39904f34087f377d99cc4a"/>
+	<jar path="serializer.jar" version="2.7.1" comment="used by xerces" hash="f0fa654c1ea1186e9a5bd56e48e0d4a3"/>
+	<jar path="resolver.jar" version="1.2" comment="used by xerces" hash="706c533146c1f4ee46b66659ea14583a"/>
+	<jar path="slf4j-api.jar" version="1.6.4" comment="used by ehcache" hash="a134d83e0c12a9611824284c855ffb13"/>
+	<jar path="slf4j-nop.jar" version="1.6.4" comment="used by ehcache" hash="cd51ebfa3f6bdc2d511c51ad7dc3f667"/>
+	<jar path="ss_css2.jar" version="0.9.4" comment="" hash="375b2a829d32f0982b1b0ccafbdfb9af"/>
+	<jar path="sun-activation.jar" version="1.1" comment="" hash="d5dd655f6056a72116f6a0666745a386"/>
+	<jar path="sun-jai_codec.jar" version="1.2.1" comment="" hash="b4f498a177858a1bfc423e4ef4683e26"/>
+	<jar path="sun-jai_core.jar" version="1.2.1" comment="" hash="0d5c533d4b9f7d66c538b778e0beda18"/>
+	<jar path="sun-jndi-ldap.jar" version="1.2.4" comment="" hash="6929ff098d9f520f0d2d6508e5f80062"/>
+	<jar path="sun-jndi-ldapbp.jar" version="1.2.4" comment="" hash="c3612d5bb31bce2978af51833e1ac3ae"/>
+	<jar path="sun-jndi-ldapsec.jar" version="1.2.4" comment="" hash="5261be5238b0654d79c5da59911b25c8"/>
+	<jar path="sun-jndi-providerutil.jar" version="1.2.4" comment="" hash="9829e158b36075d37c50d46c2b2624f9"/>
+	<jar path="sun-mail.jar" version="1.3.3_01" comment="" hash="259feb948cff81dd93c8bc42817a8552"/>
+	<jar path="sun-security-jaas.jar" version="1.2.4" comment="" hash="8582d6061bbeee1cb2fa5d1e29610dfc"/>
+	<jar path="sun-xml-jaxrpc.jar" version="1.2.1" comment="" hash="b3f5e2b971eff83c27e67fa8a3d9adcb"/>
+	<jar path="sun-xml-wsdl4j.jar" version="1.5.1" comment="" hash="e76bf26b6955a7fa73d85d096be6e1a6"/>
+	<jar path="sun-xml.saaj.jar" version="1.2.1" comment="" hash="bbc59424764db89879c7216bd4480ec0"/>
+	<jar path="tagsoup.jar" version="1.2.1" comment="" hash="ae73a52cdcbec10cd61d9ef22fab5936"/>
+	<jar path="w3c-dom.jar" version="1.1" comment="" hash="77943ead316d1403908a9c7651688574"/>
+	<jar path="xdb.jar" version="1.0" comment="" hash="0c8525301f33459f57fcc993b7077315"/>
+	<jar path="xml-apis.jar" version="1.3.02" comment="used by xerces and xalan" hash="2e7aed876c51af3ee6a23ed524180d37"/>
+	<jar path="xmlparserv2.jar" version="1.2.2" comment="" hash="a722f6de994a2caa7e8586d2853cd4e2"/>
+	<jar path="apache-commons-sanselan.jar" version="0.97" comment="" hash="84f823e61d93fcedcb3c10a827c45989"/>
+	<jar path="apache-commons-email.jar" version="1.3.1" comment="" hash="14a07019d34e41e52377c802ce399d83"/>
+	<jar path="ESAPI.jar" version="2.0.1" comment="" hash="a06db0d748cb3b74f367c648a91fee21"/>
+	<jar path="apache-poi-ooxml-schemas.jar" version="3.8" comment="" hash="7ebcffdc4d82b2b8cbc6464d4543cd07"/>
+	<jar path="apache-poi-ooxml.jar" version="3.8" comment="" hash="8f147b248f078799c24c8714f185b1a8"/>
+	<jar path="apache-poi.jar" version="3.8" comment="" hash="5c915f48922046c71121fd7021aa23cb"/>
+	<jar path="apache-poi-tm-extractors.jar" version="3.8" comment="" hash="2a790fdea6bd34a603dd99a9e0cbac40"/>
+	<jar path="apache-commons-httpclient.jar" version="4.1.3-RC1" comment="4.0" hash="d88755a725dfe196bd3766922502f4d3"/>
+	<jar path="apache-commons-httpclient.jar" version="4.1.3" comment="4.0" hash="21ae67bb0e4c8f1f190319e24522621a"/>
+	<jar path="apache-commons-httpclient.jar" version="4.2.5" comment="4.1" hash="23bd23d9d6327dd01fa41c12f15bf9bc"/>
+	<jar path="apache-commons-httpcore.jar" version="4.1.3-RC1" comment="" hash="05292f7baf2d8a6b886f8d11198677ee"/>
+	<jar path="apache-commons-httpcore.jar" version="4.1.4" comment="" hash="23019b3f95c2c39097c2fce3944bd503"/>
+	<jar path="apache-commons-httpcore.jar" version="4.2.4" comment="" hash="6ccb86231d8a8b99c551b4ddf926ddd1"/>
+	<jar path="apache-commons-httpmime.jar" version="4.1.3-RC1" comment="" hash="29fafdff35513702628fc83fc0757b61"/>
+	<jar path="apache-commons-httpmime.jar" version="4.1.3" comment="" hash="eee90ebb10c32cd4fce2702dc1b5096b"/>
+	<jar path="apache-commons-httpmime.jar" version="4.2.5" comment="" hash="8df1654c39f4116c9f1fcd04f8505bc2"/>
+	<jar path="xmlbeans.jar" version="2.3.0" comment="" hash="64b05e7adad68fa65d02a8b6daa64afb"/>
+	<jar path="javasysmon.jar" version="0.3.3" comment="" hash="35cf279e0fae25ab5f7ce91de997c31e"/>
+	<jar path="javasysmon.jar" version="0.3.4" comment="" hash="dd261b6c53a0d29543b7f2f6a38a313f"/>
+	<jar path="junit.jar" version="3.8.1" comment="" hash="1f40fb782a4f2cf78f161d32670f7a3a"/>
+	<jar path="stax-api.jar" version="1.0.1" comment="" hash="7d436a53c64490bee564c576babb36b4"/>
+	<jar path="apache-poi-tm-extractors.jar" version="0.4" comment="" hash="2a790fdea6bd34a603dd99a9e0cbac40"/>
+	<jar path="railo-inst.jar" version="1.0" comment="" hash="c192d73f948344d0e8b52962af174812"/>
+	<jar path="railo-inst.jar" version="1.1" comment="" hash="e142ad00dbc6ab4620199e2fb3919091"/>
+</jars>
