@@ -93,9 +93,8 @@
           artifactId="winstone-lite" type="jar" unzip="false"
           version="${winstone.version}" dest="${winstone.ext.dir}"/>
 		<delete dir="${railobuild.dist.dir}/railo-mini"/>
-		<copy todir="${railobuild.dist.dir}/railo-mini/webroot/">
-			<fileset dir="${basedir}/resource/railo-war-template/${railo.build.version.major}/" />
-		</copy>
+		<dependency groupId="org.getrailo" artifactId="railo.wartemplate" version="${railo.wartemplate.version}" type="zip"
+			dest="${railobuild.dist.dir}/railo-mini/webroot/" unzip="true" />
 		<mkdir dir="${railobuild.dist.dir}/railo-mini/webroot/WEB-INF/lib"/>
 		<copy file="${winstone.jar.path}" todir="${railobuild.dist.dir}/railo-mini/webroot/WEB-INF/lib" />
     	

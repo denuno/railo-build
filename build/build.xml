@@ -118,10 +118,9 @@
         <echo>***** Building railo.war ************</echo>
     	<echo>*************************************</echo>
 		<delete dir="${railobuild.dist.dir}/railo.war"/>
+		<dependency groupId="org.getrailo" artifactId="railo.wartemplate" version="${railo.wartemplate.version}" type="zip"
+			dest="${railobuild.dist.dir}/railo.war/" unzip="true" />
 		<mkdir dir="${railobuild.dist.dir}/railo.war/WEB-INF/lib"/>
-		<copy todir="${railobuild.dist.dir}/railo.war">
-			<fileset dir="${basedir}/resource/railo-war-template/${railo.build.version.major}/" />
-		</copy>
 		<copy todir="${railobuild.dist.dir}/railo.war/WEB-INF/lib">
 			<fileset dir="${src.dir}/railo-java/libs" excludes="${railo.libs.zip.excludes}" />
 		</copy>
@@ -133,7 +132,6 @@
 		<move file="${railobuild.dist.dir}/compressed/railo-${railo.build.version.long}.war" todir="${railobuild.dist.dir}/war" />
 		<delete dir="${railobuild.dist.dir}/compressed" />
 		<echo>*** WAR file exported to ${railobuild.dist.dir}/railo-${railo.build.version.long}.war ***</echo>
-
 	</target>
 
 	<target name="build.main" depends="init">

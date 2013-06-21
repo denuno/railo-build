@@ -67,9 +67,8 @@
 		<delete dir="${temp.dir}/temprc"/>
 		<mkdir dir="${war.target.dir}/WEB-INF/lib"/>
     	<!-- copy the WAR template, css, etc. -->
-		<copy todir="${war.target.dir}">
-			<fileset dir="${basedir}/resource/railo-war-template/${railo.build.version.major}" />
-		</copy>
+		<dependency groupId="org.getrailo" artifactId="railo.wartemplate" version="${railo.wartemplate.version}" type="zip"
+			dest="${war.target.dir}" unzip="true" />
 
 		<copy todir="${war.target.dir}/WEB-INF/lib">
 			<fileset dir="${src.dir}/railo-java/libs" excludes="${railo.libs.zip.excludes}" />
@@ -138,9 +137,9 @@
         	
 	<!-- ================================= 
           target: createadmin              
+    <target name="RailoCore.createadmin" description="Create the railo-context.ra">
          ================================= -->
     <target name="RailoCore.createadmin" depends="RailoCore.compile,RailoCore.tempwar" description="Create the railo-context.ra">
-		<property name="railo.url" value="http://${server.host}:${server.port.http}/compileAdmin.cfm" />
     	<property name="build-core.railo.admin_source_abs" location="${build-core.railo.admin_source}"/>
     	<replace-windows-slashes input="${build-core.railo.admin_source_abs}" property="build-core.railo.admin_source_abs" />
     	<input message="Please enter Railo-Admin password:" addproperty="build-core.railo.password" defaultvalue="your admin password"/>
@@ -149,28 +148,21 @@
 		<copy todir="${war.target.dir}">
 			<fileset file="${basedir}/resource/compileAdmin.cfm" />
 		</copy>
-		<antcontrib:runtarget target="server.start"/>					
-		<antcontrib:trycatch property="foo" reference="bar">
-			<try>
-				<echo>Compiling Railo Administrator</echo>
-				<antcontrib:urlencode name="admincfml.location" location="${build-core.railo.admin_source_abs}" />
-				<get src="${build-core.railo.url}?password=${build-core.railo.password}&amp;admin_source=${admincfml.location}" verbose="on" dest="${temp.dir}/generate.html"/>
-		    	<loadfile property="build-core.railo.compile_message" srcFile="${temp.dir}/generate.html" />
-			</try>
-			<catch>
-				<echo message="Something bad happened while trying to build.  Gonna abort now, yo. Sorries."/>
-				<property name="baz" refid="bar" />
-				<echo>From reference: ${baz}</echo>
-				<antcontrib:runtarget target="server.stop"/>
-				<fail message="error occurred running the builds" />
-			</catch>
-		</antcontrib:trycatch>
+		<antcontrib:var name="runwar.port" value="0" />
+		<antcontrib:var name="runwar.stop.socket" value="0" />
+		<server-run>
+			<echo>Compiling Railo Administrator</echo>
+			<antcontrib:urlencode name="admincfml.location" location="${build-core.railo.admin_source_abs}" />
+			<!-- after server-run, runwar.port will be the random port used, so set the url now -->
+			<property name="build-core.railo.url" value="http://${server.host}:${runwar.port}/compileAdmin.cfm" />
+			<get src="${build-core.railo.url}?password=${build-core.railo.password}&amp;admin_source=${admincfml.location}" verbose="on" dest="${temp.dir}/generate.html"/>
+		</server-run>
+    	<loadfile property="build-core.railo.compile_message" srcFile="${temp.dir}/generate.html" />
 		<antcontrib:propertyregex override="yes" property="build-core.generate.error" input="${build-core.railo.compile_message}" regexp=".*rror(.+).*" select="\1" />
 		<antcontrib:if>
 			<equals arg1="${build-core.generate.error}" arg2="$${build-core.generate.error}"/>
 			<then/>
 			<else>
-				<antcontrib:runtarget target="server.stop"/>
 				<fail message="Error generating admin! Message from railo: Error${build-core.generate.error}" />
 			</else>
 		</antcontrib:if>
@@ -197,7 +189,6 @@
 		<copy todir="${build-core.src.dir}/resource/context/templates">
 			<fileset dir="${build-core.railo.admin_source_abs}/templates"/>
 		</copy>
-		<antcontrib:runtarget target="server.stop"/>
     </target>
 	
 	<!-- ================================= 
@@ -208,7 +199,7 @@
     	<copy todir="${build-core.build.dir}/classes/resource">
     		<fileset dir="${build-core.src.dir}/resource"/>
     	</copy>
-		<echo>Copy railo-context.ra (admin) to context (Not yet implemented).</echo>
+		<echo>Copy railo-context.ra (admin) to context.</echo>
 		<copy todir="${build-core.build.dir}/classes/resource/context">
 			<fileset dir="${build-core.build.dir}/admin"/>
 		</copy>

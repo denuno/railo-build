@@ -9,9 +9,10 @@
 		<set-build-info />
     	<property name="railo.express.zip.file" value="${railobuild.dist.dir}/express/railo-express-${railo.build.version.long}.zip" />
 		<delete dir="${railobuild.dist.dir}/railo-express"/>
-		<copy todir="${railobuild.dist.dir}/railo-express/webroot/">
-			<fileset dir="${basedir}/resource/railo-war-template/${railo.build.version.major}/" />
-		</copy>
+
+		<dependency groupId="org.getrailo" artifactId="railo.wartemplate" version="${railo.wartemplate.version}" type="zip"
+			dest="${railobuild.dist.dir}/railo-express/webroot/" unzip="true" />
+			
 		<mkdir dir="${railobuild.dist.dir}/railo-express/webroot/WEB-INF/lib"/>
 		
 		<!-- custom icon for runwar -->
@@ -65,9 +66,8 @@ java -javaagent:webroot/WEB-INF/lib/railo-inst.jar -jar webroot/WEB-INF/lib/runw
           artifactId="winstone-lite" type="jar" unzip="false"
           version="${winstone.version}" dest="${winstone.ext.dir}"/>
 		<delete dir="${railobuild.dist.dir}/railo-express"/>
-		<copy todir="${railobuild.dist.dir}/railo-express/webroot/">
-			<fileset dir="${basedir}/resource/railo-war-template/${railo.build.version.major}/" />
-		</copy>
+		<dependency groupId="org.getrailo" artifactId="railo.wartemplate" version="${railo.wartemplate.version}" type="zip"
+			dest="${railobuild.dist.dir}/railo-express/webroot/" unzip="true" />
 		<mkdir dir="${railobuild.dist.dir}/railo-express/webroot/WEB-INF/lib"/>
 		<copy file="${winstone.jar.path}" todir="${railobuild.dist.dir}/railo-express/webroot/WEB-INF/lib" />
 		<copy todir="${railobuild.dist.dir}/railo-express/webroot/WEB-INF/lib">
@@ -112,9 +112,8 @@ exec $JAVA_EXE -javaagent:webroot/WEB-INF/lib/railo-inst.jar -jar webroot/WEB-IN
           artifactId="winstone-lite" type="jar" unzip="false"
           version="${winstone.version}" dest="${winstone.ext.dir}"/>
 		<delete dir="${railobuild.dist.dir}/railo-express"/>
-		<copy todir="${railobuild.dist.dir}/railo-express/webroot/">
-			<fileset dir="${basedir}/resource/railo-war-template/${railo.build.version.major}/" />
-		</copy>
+		<dependency groupId="org.getrailo" artifactId="railo.wartemplate" version="${railo.wartemplate.version}" type="zip"
+			dest="${railobuild.dist.dir}/railo-express/webroot/" unzip="true" />
 		<mkdir dir="${railobuild.dist.dir}/railo-express/webroot/WEB-INF/lib"/>
 		<copy todir="${railobuild.dist.dir}/railo-express/webroot/WEB-INF/lib">
 			<fileset dir="${src.dir}/railo-java/libs" excludes="${railo.libs.zip.excludes}" />
@@ -158,9 +157,8 @@ exec $JAVA_EXE -javaagent:webroot/WEB-INF/lib/railo-inst.jar -jar railo-winstone
     	<antcontrib:var name="server.sharedlibs" value="true" />
     	<antcontrib:var name="war.target.dir" value="${railobuild.dist.dir}/railo-express/webapps/ROOT.war" />
     	<antcontrib:var name="server.install.force" value="true" />
-		<copy todir="${war.target.dir}/">
-			<fileset dir="${basedir}/resource/railo-war-template/${railo.build.version.major}/" />
-		</copy>
+		<dependency groupId="org.getrailo" artifactId="railo.wartemplate" version="${railo.wartemplate.version}" type="zip"
+			dest="${railobuild.dist.dir}/railo-express/webroot/" unzip="true" />
 		<copy todir="${war.target.dir}/WEB-INF/lib">
 			<fileset dir="${src.dir}/railo-java/libs" excludes="${railo.libs.zip.excludes}" />
 		</copy>

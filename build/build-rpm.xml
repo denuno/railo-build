@@ -53,13 +53,17 @@ fi
 		</echo>
 		<antcontrib:var name="runwar.jar.location" value="${temp.dir}/runwar.jar" />
 		<antcontrib:runtarget target="runwar.jetty.jar" />
+
+		<dependency groupId="org.getrailo" artifactId="railo.wartemplate" version="${railo.wartemplate.version}" type="zip"
+			dest="${temp.dir}/railo-template/" unzip="true" />
+
 		<redline:rpm destination="rpms" release="1"
 			group="org.getrailo" name="railo-runner" version="${railo.build.version.long}"
 			postinstallscript="${temp.dir}/postinstall.sh" packager="${rpm.packager}"
 			url="http://getrailo.org">
 			<tarfileset file="${temp.dir}/runwar.jar" prefix="${rpm.railo.dir}/runner"
 				 filemode="644" username="railo" group="railo" excludes=".classpath, .project" />
-			<tarfileset dir="${basedir}/resource/railo-war-template/${railo.build.version.major}/" prefix="${rpm.railo.dir}/webroot"
+			<tarfileset dir="${temp.dir}/railo-template/" prefix="${rpm.railo.dir}/webroot"
 				 filemode="644" username="railo" group="railo"/>
 			<depends name="railo" version=""/>
 		</redline:rpm>

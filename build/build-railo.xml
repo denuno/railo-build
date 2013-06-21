@@ -43,7 +43,7 @@
           target: copy              
          ================================= -->
     <target name="Railo.copy" depends="Railo.compile" description="Copies the resources.">
-        <echo>Copy the version file. (Needed, but not yet clear how to generate it the right way automaticllay).</echo>
+        <echo>Copy the version file.</echo>
     	<copy todir="${build-railo.build.dir}/classes/railo">
     		<fileset file="${build-railo.src.dir}/railo/version"/>
     	</copy>
