@@ -49,7 +49,6 @@
 	<import file="build-core.xml"/>
 	<import file="build-railo.xml"/>
 	<import file="build-test.xml"/>
-	<import file="build-installer.xml"/>
 	<import file="build-mini.xml"/>
 	<import file="build-express.xml"/>
 	<import file="build-ci.xml"/>
