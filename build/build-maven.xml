@@ -40,6 +40,7 @@
 		<!-- and what the hell, try adding all under one dependency -->
 		<property name="libsxml" value="" />
 		<property name="depsxml" value="" />
+		<property name="depsoptionalxml" value="" />
 		<antcontrib:for param="file">
 			<path>
 				<fileset dir="${src.dir}/railo-java/libs" excludes="${railo.deps.exclude},${railo.deps.optional}" includes="*.jar" />
@@ -73,6 +74,8 @@
 				 groupId="org.getrailo.lib" artifactId="${basename}" version="${__depVer}" name="${basename}" />
 				<antcontrib:var name="depsxml"
 					value='${depsxml}&lt;dependency groupId="org.getrailo.lib" artifactId="${basename}" version="${__depVer}" optional="true"/&gt;${line.separator}' />
+				<antcontrib:var name="depsoptionalxml"
+					value='${depsoptionalxml}&lt;dependency groupId="org.getrailo.lib" artifactId="${basename}" version="${__depVer}"/&gt;${line.separator}' />
 			</sequential>
 		</antcontrib:for>
 		<echo file="${basedir}/build-mvnlibs.xml"><![CDATA[<project><import file="${basedir}/build.xml"/>
@@ -80,6 +83,10 @@
        		<pom-and-deploy pomid="railo" artifact="${railobuild.dist.dir}/jar/railo-${railo.build.version.long}.jar" packaging="jar" buildtype="${mvn.type}"
 	 		groupId="org.getrailo" artifactId="railo" version="${railo.build.version.long}" name="railo">
        		<dependencies>${depsxml}</dependencies></pom-and-deploy>
+
+       		<pom-and-deploy pomid="railo.optional" packaging="pom" buildtype="${mvn.type}"
+	 		groupId="org.getrailo" artifactId="railo.optional" version="${railo.build.version.long}" name="railo">
+       		<dependencies>${depsoptionalxml}</dependencies></pom-and-deploy>
        		</target></project>]]></echo>
 		<ant antfile="${basedir}/build-mvnlibs.xml" inheritAll="true" target="libsxml.pom" />
     	<delete file="${basedir}/build-mvnlibs.xml"/>
@@ -144,6 +151,9 @@
 		<!-- deploy the railo.jar file (railo.core) -->
 		<pom-and-deploy pomid="railo.jar.pom" packaging="jar" artifact="${railobuild.dist.dir}/jar/railo-${railo.build.version.long}.jar" buildtype="${mvn.type}"
 		 groupId="org.getrailo" artifactId="railo-jar" version="${railo.build.version.long}" name="railo-jar" />
+
+		<pom-and-deploy pomid="railo.web.xml.pom" packaging="xml" artifact="${railobuild.dist.dir}/web.xml" buildtype="${mvn.type}"
+		 groupId="org.getrailo" artifactId="railo-web-xml" version="${railo.build.version.long}" name="railo-web-xml" />
 
 		<pom-and-deploy pomid="railo.rc.pom" packaging="rc" 
 			artifact="${railobuild.dist.dir}/rc/${railo.build.version.long}.rc" buildtype="${mvn.type}"

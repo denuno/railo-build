@@ -79,11 +79,13 @@
 		<copy todir="${temp.dir}/temprc/resource/context">
 			<fileset dir="${build-core.build.dir}/admin"/>
 		</copy>
-    	<!-- copy version information inside info.ini into the dist directory -->
+    	<!-- copy version information inside info.ini into the dist directory 
+		<copy tofile="${temp.dir}/temprc/railo/runtime/Info.ini" file="${build-core.build.dir}/classes/railo/runtime/Info.ini" overwrite="yes"/>
+    	-->
 		<copy tofile="${temp.dir}/temprc/railo/runtime/Info.ini" file="${build-core.src.dir}/railo/runtime/Info.ini" overwrite="yes"/>
 
     	<jar destfile="${temp.dir}/temprc/resource/context/railo-context.ra">
-			<fileset dir="${src.dir}/railo-cfml/railo-admin" />
+			<fileset dir="${src.dir}/railo-cfml/railo-admin" excludes="railo-context.ra"/>
 		</jar>
 		
 		<copy todir="${temp.dir}/temprc">
@@ -153,9 +155,11 @@
 		<server-run>
 			<echo>Compiling Railo Administrator</echo>
 			<antcontrib:urlencode name="admincfml.location" location="${build-core.railo.admin_source_abs}" />
+			<antcontrib:urlencode name="admincfml.ra" location="${build-core.build.dir}/classes/resource/context/" />
 			<!-- after server-run, runwar.port will be the random port used, so set the url now -->
 			<property name="build-core.railo.url" value="http://${server.host}:${runwar.port}/compileAdmin.cfm" />
-			<get src="${build-core.railo.url}?password=${build-core.railo.password}&amp;admin_source=${admincfml.location}" verbose="on" dest="${temp.dir}/generate.html"/>
+			<echo>trying to get ${build-core.railo.url}?password=${build-core.railo.password}&amp;admin_source=${admincfml.location}&amp;ra_dir=${admincfml.ra}</echo>
+			<get src="${build-core.railo.url}?password=${build-core.railo.password}&amp;admin_source=${admincfml.location}&amp;ra_dir=${admincfml.ra}" verbose="on" dest="${temp.dir}/generate.html"/>
 		</server-run>
     	<loadfile property="build-core.railo.compile_message" srcFile="${temp.dir}/generate.html" />
 		<antcontrib:propertyregex override="yes" property="build-core.generate.error" input="${build-core.railo.compile_message}" regexp=".*rror(.+).*" select="\1" />
@@ -167,26 +171,28 @@
 			</else>
 		</antcontrib:if>
 		<echo>Message from Railo: ${build-core.railo.compile_message}</echo>
-    	<echo>Admin compiled to: ${build-core.railo.admin_source_abs}/railo-context.ra</echo>
-    	<echo>Copying Railo Admin archive...</echo>
-		<copy tofile="${build-core.src.dir}/resource/context/railo-context.ra" file="${build-core.railo.admin_source_abs}/railo-context.ra" overwrite="yes"/>
+    	<echo>Admin compiled to: ${build-core.build.dir}/classes/resource/context/railo-context.ra</echo>
 		<!-- TODO: figure out languages between railo-cfml/admin/resources/language and core/admin/resources/language -->
-    	<copy todir="${build-core.src.dir}/resource/context/admin/resources/language" overwrite="true">
+    	<copy todir="${build-core.build.dir}/classes/resource/context/admin/resources/language" overwrite="true">
 			<fileset dir="${build-core.railo.admin_source_abs}/admin/resources/language"/>
 		</copy>
-		<copy todir="${build-core.src.dir}/resource/context/admin/dbdriver">
+    	<echo>Adding: ${build-core.src.dir}/resource</echo>
+		<copy todir="${build-core.build.dir}/classes/resource">
+			<fileset dir="${build-core.src.dir}/resource" />
+		</copy>
+		<copy todir="${build-core.build.dir}/classes/resource/context/admin/dbdriver">
 			<fileset dir="${build-core.railo.admin_source_abs}/admin/dbdriver"/>
 		</copy>
-		<copy todir="${build-core.src.dir}/resource/context/admin/cdriver">
+		<copy todir="${build-core.build.dir}/classes/resource/context/admin/cdriver">
 			<fileset dir="${build-core.railo.admin_source_abs}/admin/cdriver"/>
 		</copy>
-		<copy todir="${build-core.src.dir}/resource/context/admin/gdriver">
+		<copy todir="${build-core.build.dir}/classes/resource/context/admin/gdriver">
 			<fileset dir="${build-core.railo.admin_source_abs}/admin/gdriver"/>
 		</copy>
-		<copy todir="${build-core.src.dir}/resource/context/admin/plugin">
+		<copy todir="${build-core.build.dir}/classes/resource/context/admin/plugin">
 			<fileset dir="${build-core.railo.admin_source_abs}/admin/plugin"/>
 		</copy>
-		<copy todir="${build-core.src.dir}/resource/context/templates">
+		<copy todir="${build-core.build.dir}/classes/resource/context/templates">
 			<fileset dir="${build-core.railo.admin_source_abs}/templates"/>
 		</copy>
     </target>
@@ -195,23 +201,19 @@
           target: copy railo.rc dependencies              
          ================================= -->
     <target name="RailoCore.copy" depends="RailoCore.createadmin" description="Copies the resource directory.">
-        <echo>Copy resource directory to build.</echo>
-    	<copy todir="${build-core.build.dir}/classes/resource">
-    		<fileset dir="${build-core.src.dir}/resource"/>
-    	</copy>
 		<echo>Copy railo-context.ra (admin) to context.</echo>
 		<copy todir="${build-core.build.dir}/classes/resource/context">
 			<fileset dir="${build-core.build.dir}/admin"/>
 		</copy>
-    	<!-- copy version information inside info.ini into the dist directory -->
-		<copy tofile="${build-core.build.dir}/classes/railo/runtime/Info.ini" file="${build-core.src.dir}/railo/runtime/Info.ini" overwrite="yes"/>
+    	<!-- set version information inside info.ini into the dist directory -->
+    	<set-build-info />
     </target>
 	
 	<!-- ================================= 
           target: package railo.rc              
          ================================= -->
     <target name="RailoCore.package" depends="RailoCore.copy" description="Creates the the core.rc file.">
-        <echo>Packaging the core.rc</echo>
+        <echo>Packaging the core.rc (${build-core.build.dir}/classes)</echo>
     	<jar destfile="${build-core.dist.dir}/${build-core.core.version}.rc">
 			<fileset dir="${build-core.build.dir}/classes"/>
 		</jar>

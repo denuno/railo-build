@@ -16,7 +16,7 @@
 		<mkdir dir="${railobuild.dist.dir}/railo-express/webroot/WEB-INF/lib"/>
 		
 		<!-- custom icon for runwar -->
-		<copy file="${cfdistro.basedir}/lib/runwar.jar" todir="${railobuild.dist.dir}/railo-express/webroot/WEB-INF/lib" />
+		<copy file="${runwar.jar.file}" tofile="${railobuild.dist.dir}/railo-express/webroot/WEB-INF/lib/runwar.jar" />
         <copy file="${basedir}/resource/railo.png" todir="${temp.dir}" />
         <zip destfile="${railobuild.dist.dir}/railo-express/webroot/WEB-INF/lib/runwar.jar" update="true">
         	<zipfileset file="${temp.dir}/railo.png" fullpath="runwar/icon.png" />
@@ -165,7 +165,8 @@ exec $JAVA_EXE -javaagent:webroot/WEB-INF/lib/railo-inst.jar -jar railo-winstone
 		<copy file="${railobuild.dist.dir}/jar/railo-${railo.build.version.long}.jar" tofile="${war.target.dir}/WEB-INF/lib/railo.jar" />
 
     	<!-- jump through hoops for asm4... we could just delete jetty-annotations and lib/annotations/org.objectweb too -->
-    	<taskdef name="jarjar" classname="com.tonicsystems.jarjar.JarJarTask" classpath="${cfdistro.basedir}/lib/jarjar-1.4.jar"/>
+		<taskdef-dependency name="jarjar" classname="com.tonicsystems.jarjar.JarJarTask" artifactId="jarjar-1-4" groupId="cfdistro.lib" version="1.0.0.0" />
+
     	<antcontrib:runtarget target="jetty.install" />
         <jarjar jarfile="${jetty.dir}/lib/jetty-annotationsasm1.jar">
             <zipgroupfileset dir="${jetty.dir}/lib/" includes="jetty-annotations-*.jar,annotations/org.objectweb*.jar" />

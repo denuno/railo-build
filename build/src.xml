@@ -14,7 +14,7 @@
         uri="http://github.com/getrailo/railo.git"
         user="" password="" branch="4.1" />
 	-->
-        <src branch="develop" dest="@src.dir@/" password="" type="git" uri="http://github.com/getrailo/railo.git" user=""/>
+        <src branch="3.3" dest="@src.dir@/" password="" type="git" uri="http://github.com/getrailo/railo.git" user=""/>
 
 	</project>
 	<sources>

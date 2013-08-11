@@ -1,14 +1,5 @@
 <project name="railobuild" default="build" basedir="./" xmlns:antcontrib="antlib:net.sf.antcontrib">
 
-	<antcontrib:if>
-		<equals arg1="${build.java.home}" arg2="$${build.java.home}" />
-		<then/>
-		<else>
-			<antcontrib:var name="java.home" value="${build.java.home}"/>
-			<antcontrib:var name="JAVA_HOME" value="${build.java.home}"/>
-		</else>
-	</antcontrib:if>
-
 	<tstamp>
 		<format property="todays.date" pattern="yyyy/MM/dd hh:mm:ss"/>
 		<format property="todays.tstamp" pattern="MMddhhmm"/>
@@ -44,6 +35,15 @@
 	<!-- import all the macrodefs and whatnot -->
 	<import file="${cfdistro.build.file}"/>
 
+	<antcontrib:if>
+		<equals arg1="${build.java.home}" arg2="$${build.java.home}" />
+		<then/>
+		<else>
+			<antcontrib:var name="java.home" value="${build.java.home}"/>
+			<antcontrib:var name="JAVA_HOME" value="${build.java.home}"/>
+		</else>
+	</antcontrib:if>
+
 	<!-- railo loader build script -->
 	<import file="build-loader.xml"/>
 	<import file="build-core.xml"/>
@@ -54,6 +54,7 @@
 	<import file="build-ci.xml"/>
 	<import file="build-maven.xml"/>
 	<import file="build-rpm.xml"/>
+	<import file="build-module.xml"/>
 	<import file="build-docs.xml"/>
         
    	<target name="clean">
@@ -127,6 +128,7 @@
 		<!-- compress war -->
 		<mkdir dir="${railobuild.dist.dir}/compressed" />
 		<jar jarfile="${railobuild.dist.dir}/compressed/railo-${railo.build.version.long}.war" basedir="${railobuild.dist.dir}/railo.war" />
+		<copy todir="${railobuild.dist.dir}/" file="${railobuild.dist.dir}/railo.war/WEB-INF/web.xml" />
 		<delete dir="${railobuild.dist.dir}/railo.war" />
 		<move file="${railobuild.dist.dir}/compressed/railo-${railo.build.version.long}.war" todir="${railobuild.dist.dir}/war" />
 		<delete dir="${railobuild.dist.dir}/compressed" />
@@ -161,7 +163,7 @@
 							<then><fail message="Something went south during the core build.  Can't go on.  We're dooooomed."/></then>
 						</antcontrib:if>
 						<antcontrib:if>
-							<not><available file="${src.dir}/railo-cfml/railo-admin/railo-context.ra"/></not> 
+							<not><available file="${build-core.build.dir}/classes/resource/context/railo-context.ra"/></not> 
 							<then>
 						    	<loadfile property="railo.compile_message" srcFile="${src.dir}/railo-java/railo-core/generate.html" />
 								<fail message="Something went south during the admin context build.  Can't go on.  Game over man, game over!: ${railo.compile_message}"/>
@@ -240,7 +242,7 @@ ${git.results}</echo>
 			<property name="railo.build.name-explanation" value="${railoini.name-explanation}"/>
 			<version-splitter property="railo.build.version" version="${railoini.number}" bump="${railo.build.bump}"/>
 			<antcontrib:inifile source="${src.dir}/railo-java/railo-core/src/railo/runtime/Info.ini" 
-				dest="${src.dir}/railo-java/railo-core/src/railo/runtime/Info.ini">
+				dest="${build-core.build.dir}/classes/railo/runtime/Info.ini">
 				   <set section="version" property="release-date" value="${todays.date}" />
 				   <set section="version" property="number" value="${railo.build.version.long}" />
 				   <set section="version" property="level" value="${railo.build.level}" />
@@ -311,6 +313,7 @@ ${git.results}</echo>
 					</and>
 					<then>
 						<property name="railo.javac.compiler" value="1.5" />
+						<antcontrib:var name="railo.wartemplate.version" value="1.0" />
 						<!-- 
 						<antcontrib:runtarget target="get.jre5.location" />
 						<antcontrib:var name="ecj.javacmd" value='${jre5.home}bin/java' />
@@ -318,6 +321,7 @@ ${git.results}</echo>
 					</then>
 					<else>
 						<property name="railo.javac.compiler" value="1.6" />
+						<antcontrib:var name="railo.wartemplate.version" value="1.0" />
 					</else>
 				</antcontrib:if>
 			</else>

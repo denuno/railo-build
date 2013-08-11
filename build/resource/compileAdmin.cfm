@@ -17,7 +17,7 @@
 		action="createArchive"
 		type="web"
 		password="#url.password#"
-		file="#url.admin_source#/railo-context.ra"
+		file="#url.ra_dir#/railo-context.ra"
 		virtual="/railo-context-compiled"
 		secure="true"
 		append="false"

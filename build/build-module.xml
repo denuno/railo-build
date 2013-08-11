@@ -1,0 +1,155 @@
+<project name="railoJbossModule" default="railo.jboss.module" basedir="." xmlns:antcontrib="antlib:net.sf.antcontrib">
+	<description>Ant build file for jboss modules</description>
+
+	<property name="railo.mini.excludes" value="
+		apache-lucene*, 
+		flex-messaging-*, 
+		PDFBox.jar,
+		PDFRenderer.jar,
+		jpedal_gpl.jar,
+		sun-jai_core.jar,
+		apache-poi.jar,
+		bcprov-jdk14.jar,
+		ehcache.jar,
+		lowagie.itext.jar,
+		fonts.jar,
+		antlr.jar,
+		h2.jar,
+		jfreechart*,
+		junit.jar,
+		microsoft*,
+		jtds.jar,
+		mysql-connector-java-bin.jar,
+		ojdbc14.jar,
+		xdb.jar,
+		openamf*,
+		org.mortbay.jetty.jar,
+		postgresql.jar,
+		jffmpeg.jar,
+		xmlbeans.jar,
+		xmlparserv2.jar,
+		apache-logging-log4j.jar,
+		icepdf-core.jar,
+		ESAPI.jar,
+		 jta.jar,
+		 jacob.jar,
+		 apache-poi-tm-extractors.jar,
+		 com.naryx.tagfusion.cfx.jar,
+		 ss_css2.jar,
+		 dom4j.jar,
+
+		apache-commons-httpclient.jar,
+		apache-commons-httpcore.jar,
+		apache-commons-httpmime.jar,
+		apache-commons-sanselan.jar,
+
+		apache-jakarta-commons-discovery.jar,
+		apache-jakarta-commons-email.jar,
+		apache-jakarta-commons-httpclient.jar,
+		apache-jakarta-commons-net-ftp.jar,
+		
+		apache-poi-ooxml-schemas.jar,
+		apache-poi-ooxml.jar,
+		apache-poi-tm-extractors.jar,
+		apache-poi.jar,
+		apache-ws-axis-ant.jar,
+		apache-ws-axis.jar,
+		backport-util-concurrent.jar,		
+
+		hibernate.jar,
+		stax-api.jar,
+		sun-activation.jar,
+		sun-jai_codec.jar,
+		sun-jai_core.jar,
+		sun-jndi-ldap.jar,
+		sun-jndi-ldapbp.jar,
+		sun-jndi-ldapsec.jar,
+		sun-jndi-providerutil.jar,
+		sun-mail.jar,
+		sun-security-jaas.jar,
+		sun-xml-jaxrpc.jar,
+		sun-xml-wsdl4j.jar,
+		sun-xml.saaj.jar,	
+		
+		javassist.jar,
+		jcommon.jar,
+		javaparser.jar,
+		metadata-extractor.jar,
+		
+		jfreechart*"
+	/>
+
+	<target name="build.module">
+    	<set-build-info /><!-- add to module.xml? slot="4.0.5.003" -->
+		<taskdef name="modules" classname="com.osi.ant.tasks.JBossModules" classpath="jboss-modules-ant-tasks-0.1.jar"/>
+		<dependency groupId="org.getrailo" artifactId="railo.war" version="4.1.0.011" type="war"
+			dest="${temp.dir}/railo-war/" unzip="true" />
+		<modules todir="${dist.dir}/jboss/jboss-as-7.1.1.Final/modules" overwrite="true">
+			<module name="org.getrailo.railo" slot="${railo.build.version.long}" dir="${temp.dir}/railo-war/WEB-INF/lib" excludes="${railo.libs.zip.excludes}">
+				<include name="*.jar" />
+				<dependency name="javax.api" />
+				<dependency name="javaee.api" />
+			</module>
+		</modules>
+		<echo file="${jboss.dir}/standalone/deployments/railo.war/META-INF/jboss-deployment-structure.xml"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<jboss-deployment-structure xmlns="urn:jboss:deployment-structure:1.0">
+   <deployment>
+      <dependencies>
+        <module name="org.getrailo.railo" slot="${railo.build.version.long}" >
+            <imports>
+                <include path="META-INF/**"/>
+                <include path="**"/>
+            </imports>
+        </module>
+      </dependencies>
+   </deployment>
+</jboss-deployment-structure>]]></echo>
+	</target>
+	
+	
+	<target name="Railoss.mini.express" description="builds express.">
+    	<set-build-info />
+    	
+    	<property name="railo.mini.zip.file" value="${railobuild.dist.dir}/express/railo-mini-${railo.build.version.long}.zip" />
+    	<property name="winstone.version" value="0.9.10" />
+    	<property name="winstone.jar" value="winstone-lite-${winstone.version}.jar" />
+    	<property name="winstone.ext.dir" value="${ext.dir}/winstone/"/>
+    	<property name="winstone.jar.path" value="${winstone.ext.dir}/${winstone.jar}" />
+    	<mkdir dir="${winstone.ext.dir}"/>
+        <dependency groupId="net.sourceforge.winstone"
+          artifactId="winstone-lite" type="jar" unzip="false"
+          version="${winstone.version}" dest="${winstone.ext.dir}"/>
+		<delete dir="${railobuild.dist.dir}/railo-mini"/>
+		<dependency groupId="org.getrailo" artifactId="railo.wartemplate" version="${railo.wartemplate.version}" type="zip"
+			dest="${railobuild.dist.dir}/railo-mini/webroot/" unzip="true" />
+		<mkdir dir="${railobuild.dist.dir}/railo-mini/webroot/WEB-INF/lib"/>
+		<copy file="${winstone.jar.path}" todir="${railobuild.dist.dir}/railo-mini/webroot/WEB-INF/lib" />
+    	
+    	<copy todir="${railobuild.dist.dir}/railo-mini/webroot/WEB-INF/lib">
+			<fileset dir="${src.dir}/railo-java/libs" excludes="${railo.libs.zip.excludes},${railo.mini.excludes}" />
+		</copy>
+		<copy file="${src.dir}/railo-java/libs/javax.servlet.jar" todir="${railobuild.dist.dir}/railo-mini/webroot/WEB-INF/lib" />
+    	<copy file="${railobuild.dist.dir}/jar/railo-${railo.build.version.long}.jar" tofile="${railobuild.dist.dir}/railo-mini/webroot/WEB-INF/lib/railo.jar" />
+		<echo file="${railobuild.dist.dir}/railo-mini/start"><![CDATA[#!/bin/sh
+if test -n "${JAVA_HOME}"; then
+if test -z "${JAVA_EXE}"; then
+JAVA_EXE=$JAVA_HOME/bin/java
+fi
+fi
+
+if test -z "${JAVA_EXE}"; then
+JAVA_EXE=java
+fi
+cd $(dirname $0)
+exec $JAVA_EXE -javaagent:webroot/WEB-INF/lib/railo-inst.jar -jar webroot/WEB-INF/lib/${winstone.jar} --webroot=./webroot --httpPort=8888]]>
+</echo>
+		<chmod file="${railobuild.dist.dir}/railo-mini/start" perm="ugo+rx"/>
+		<echo file="${railobuild.dist.dir}/railo-mini/start.bat"><![CDATA[java -javaagent:webroot/WEB-INF/lib/railo-inst.jar -jar %CD%\webroot\WEB-INF\lib\${winstone.jar} --webroot=./webroot --httpPort=8888]]></echo>
+		<delete file="${railo.mini.zip.file}"/>
+		<zip destfile="${railo.mini.zip.file}" update="false">
+			<fileset dir="${railobuild.dist.dir}/railo-mini/"/>
+		</zip>
+    </target>
+	
+	
+</project>

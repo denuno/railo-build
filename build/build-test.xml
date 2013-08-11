@@ -26,7 +26,7 @@
 		</server-run>
 	</target>
 	
-	<target name="tests.mxunit.run">
+	<target name="tests.mxunit.run" depends="build">
 		<property file="${src.dir}/railo-java/railo-core/src/railo/runtime/Info.ini" prefix="railoini"/>
 		<version-splitter property="railo.build.version" version="${railoini.number}" bump=""/>
 		<copy file="${railobuild.dist.dir}/rc/${railo.build.version.long}.rc" todir="${war.target.dir}/WEB-INF/lib/railo-server/patches/" />
@@ -34,27 +34,19 @@
 		<copy todir="${war.target.dir}/WEB-INF/railo/context/admin/plugin/">
 			<fileset dir="${basedir}/../ci/extension/src/plugin/" />
 		</copy>
-		 -->
-		<dependency groupId="org.mxunit" artifactId="core" version="2.1.1" mapping="/mxunit" />
-		<mapping physical="${src.dir}/../tests" virtual="/tests"/>
 		<customtag physical="${src.dir}/../tests/jira" virtual="/tests/jira"/>
+		 -->
+		<echo file="${src.dir}/railo-cfml/railo-test/HttpAntRunner.cfc"><![CDATA[<cfcomponent extends="mxunit.runner.HttpAntRunner"></cfcomponent>]]></echo>
+		<dependency groupId="org.mxunit" artifactId="core" version="2.1.1" mapping="/mxunit" />
+		<mapping physical="${src.dir}/railo-cfml/railo-test" virtual="/railo-test"/>
 		<railo-datasource name="railo_mirror" jdbcstring="jdbc:h2:${temp.dir}/h2dbs/railo-db/railo-db"/>
 		<server-run>
 			<antcontrib:var name="mxunit.tests.results.dir" value="${dist.dir}/testresults" />
 			<antcontrib:var name="mxunit.failonerror" value="false" />
-			<antcontrib:var name="mxunit.tests.dir" value="${tests.dir}/mxunit/base" />
-			<antcontrib:var name="mxunit.runner" value="/tests/mxunit/base/HttpAntRunner.cfc" />
-			<antcontrib:var name="mxunit.componentpath" value="tests.mxunit.base" />
-			<antcontrib:var name="mxunit.packageName" value="tests.mxunit.base" />
-			<antcontrib:var name="mxunit.recurse" value="true" />
-			<antcontrib:runtarget target="mxunit.tests" />
-
-			<antcontrib:var name="mxunit.tests.results.dir" value="${dist.dir}/testresults" />
-			<antcontrib:var name="mxunit.failonerror" value="false" />
-			<antcontrib:var name="mxunit.tests.dir" value="${tests.dir}/mxunit/ORMEventHandler" />
-			<antcontrib:var name="mxunit.runner" value="/tests/mxunit/ORMEventHandler/HttpAntRunner.cfc" />
-			<antcontrib:var name="mxunit.componentpath" value="tests.mxunit.base" />
-			<antcontrib:var name="mxunit.packageName" value="tests.mxunit.base" />
+			<antcontrib:var name="mxunit.tests.dir" value="${src.dir}/railo-cfml/railo-test" />
+			<antcontrib:var name="mxunit.runner" value="/railo-test/HttpAntRunner.cfc" />
+			<antcontrib:var name="mxunit.componentpath" value="org" />
+			<antcontrib:var name="mxunit.packageName" value="org" />
 			<antcontrib:var name="mxunit.recurse" value="true" />
 			<antcontrib:runtarget target="mxunit.tests" />
 		</server-run>
