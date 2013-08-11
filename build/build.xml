@@ -241,6 +241,7 @@ ${git.results}</echo>
 			<property file="${src.dir}/railo-java/railo-core/src/railo/runtime/Info.ini" prefix="railoini"/>
 			<property name="railo.build.name-explanation" value="${railoini.name-explanation}"/>
 			<version-splitter property="railo.build.version" version="${railoini.number}" bump="${railo.build.bump}"/>
+			<mkdir dir="${build-core.build.dir}/classes/railo/runtime/" />
 			<antcontrib:inifile source="${src.dir}/railo-java/railo-core/src/railo/runtime/Info.ini" 
 				dest="${build-core.build.dir}/classes/railo/runtime/Info.ini">
 				   <set section="version" property="release-date" value="${todays.date}" />
