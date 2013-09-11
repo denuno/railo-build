@@ -132,4 +132,5 @@
 	<jar path="apache-poi-tm-extractors.jar" version="0.4" comment="" hash="2a790fdea6bd34a603dd99a9e0cbac40"/>
 	<jar path="railo-inst.jar" version="1.0" comment="" hash="c192d73f948344d0e8b52962af174812"/>
 	<jar path="railo-inst.jar" version="1.1" comment="" hash="e142ad00dbc6ab4620199e2fb3919091"/>
+	<jar path="railo-inst.jar" version="1.2" comment="" hash="ed0e0886fe93018ffc1530ed7528b311"/>
 </jars>
