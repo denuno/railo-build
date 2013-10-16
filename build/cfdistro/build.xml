@@ -37,6 +37,13 @@
 	<property name="dist.root.dir.abs" location="${dist.root.dir}" />
 	<antcontrib:var name="dist.root.dir" value="${dist.root.dir.abs}" />
 
+    <antcontrib:if>
+      <available file="${user.cfdistrorc}" /><then/>
+      <else>
+        <echo file="${user.cfdistrorc}" message="# cfdistro user properties loaded before every run ${line.separator}#do not commit this file.  ignore if possible! ${line.separator}#gmail.user=someuser${line.separator}#gmail.password=fournick8" />
+      </else>
+    </antcontrib:if>
+
 	<import file="ant-util.xml" />
 	<import file="maven.xml" />
 
@@ -119,6 +126,8 @@
 
 	<property name="cfdistro.debug" value="false" />
 	<property name="default.cfengine" value="railo" />
+	<property name="cfdistro.dist.excludes" value="ext/**,lib/**,dist/**,artifacts/**,**/.git/**,**/temp/**,rpmbuild/SOURCES/**,rpmbuild/RPMS/**,buckminster/director*.zip,java/cfmlengcrypt/lib/**" />
+
 	<property name="src.dir" location="../src" />
 	<property name="dist.dir" location="./dist" />
 	<property name="pub.dir" location="../pub" />
@@ -238,7 +247,7 @@
 	<target name="clean" description="cleans project">
 		<sanitizeContextPath />
 		<delete dir="${temp.dir}" />
-		<!-- <delete dir="${dist.dir}" /> -->
+		<delete dir="${dist.dir}" />
 	</target>
 
 	<target name="jar.war">
@@ -257,7 +266,6 @@
 
 	<target name="cfdistro.copy" description="copies cfdistro files to ${basedir}/cfdistro">
 		<delete dir="${basedir}/cfdistro/" excludes="ant/**"/>
-		<property name="cfdistro.dist.excludes" value="ext/**,artifacts/**,**/.git/**,**/.svn/**,**/temp/**,rpmbuild/SOURCES/**,rpmbuild/RPMS/**,buckminster/director*.zip,java/cfmlengcrypt/lib/**,java/cfmlengcrypt/src/**" />
 		<copy todir="${basedir}/cfdistro" verbose="false" overwrite="true">
 			<fileset dir="${cfdistro.basedir}/" excludes="${cfdistro.dist.excludes}" defaultexcludes="false" />
 		</copy>
@@ -321,6 +329,28 @@
 		<startscript script-path="${target.dir}/${distro.name}" />
 	</target>
 
+
+	<target name="cfdistro.completion">
+		<script language="javascript" classpathref="build.lib.path"><![CDATA[
+			println("hello, world")
+			var props = project.getProperties();
+			var targs = project.getTargets().elements();
+	        var comps = "complete -W '";
+	        while( targs.hasMoreElements() )
+	        {
+	            var targ = targs.nextElement();
+	            if(targ.getDescription() != null) {
+	                println(targ.getName());
+	                comps += targ.getName() + " ";
+	            }
+	        }
+	        project.setProperty("bash.completion.script", comps + "' cfdistro");
+	      ]]>
+		</script>
+		<echo file="${cfdistro.basedir}/bin/cfdistro_bash_completion" append="false" message="${bash.completion.script}"/>
+		<echo message="bash completion script generated: ${cfdistro.basedir}/bin/cfdistro_bash_completion"/>
+	</target>
+
 	<target name="war.init">
 		<!--
 		<load-buildtype-properties buildtype="${build.type}" />
@@ -352,6 +382,12 @@
 		<mkdir dir="${ext.dir}/jboss" />
 		<copy file="${ext.dir}/jboss/jboss-classloading.xml" tofile="${war.target.dir}/WEB-INF/jboss-classloading.xml" overwrite="true" />
 		-->
+		<antcontrib:if>
+			<equals arg1="${urlrewritefilter.install}" arg2="true" />
+			<then>
+				<antcontrib:runtarget target="urlrewritefilter.servlet.install" />
+			</then>
+		</antcontrib:if>
 	</target>
 
 	<target name="build.localdev" description="build localdev">
@@ -459,13 +495,11 @@
 		<antcontrib:if>
 			<equals arg1="${cfeclipsecall.install}" arg2="true" />
 			<then>
-				<requires-ext resource="${ext.railo.dir}/error.cfm" />
-				<requires-ext resource="${ext.dir}/cfeclipse" />
 				<property name="cfmlengine.inspect.templates" value="always" />
-				<addlibs from="${ext.dir}/cfeclipse" />
-				<copy file="${ext.dir}/cfeclipse/cfeclipsecall.cfm" todir="${war.target.dir}" />
-				<copy file="${ext.dir}/cfeclipse/Dump.cfc" todir="${war.target.dir}/WEB-INF/lib/railo-server/context/library/tag/railo" />
-				<copy file="${ext.railo.dir}/error.cfm" todir="${war.target.dir}/WEB-INF/lib/railo-server/context/library/tag/" />
+				<addlibs from="${cfdistro.basedir}/cfeclipse" />
+				<copy file="${cfdistro.basedir}/cfeclipse/cfeclipsecall.cfm" todir="${war.target.dir}" />
+				<copy file="${cfdistro.basedir}/cfeclipse/Dump.cfc" todir="${war.target.dir}/WEB-INF/lib/railo-server/context/library/tag/railo" />
+				<copy file="${cfdistro.basedir}/cfeclipse/error.cfm" todir="${war.target.dir}/WEB-INF/lib/railo-server/context/library/tag/" />
 				<error-template path="/WEB-INF/lib/railo-server/context/library/tag/error.cfm" />
 			</then>
 		</antcontrib:if>
@@ -521,7 +555,7 @@
 		<antcontrib:runtarget target="start" />
 	</target>
 
-	<target name="start-clean" depends="build">
+	<target name="start-clean" depends="clean, build">
 		<exec executable="${basedir}/start.sh" spawn="true">
 		</exec>
 	</target>
@@ -1125,22 +1159,6 @@
 </antcontrib:if>
 </target>
 
-<!--
-THIS WAS MOSTLY REPLACED WITH THE LOAD OF ~/.cfdistrorc 
-<target name="check.creds">
-<antcontrib:if>
-	<available file="${creds.token.file}" />
-	<then>
-		<antcontrib:var file="${creds.token.file}" />
-	</then>
-	<else>
-		<echo file="${creds.token.file}" message="# credential tokens and values: replaces @tokens@ in src.xml, datasources.xml, mail.xml ${line.separator}#do not commit this file.  ignore if possible! ${line.separator}#gmail.user=someuser${line.separator}#gmail.password=fournick8" />
-	</else>
-</antcontrib:if>
-</target>
-
- -->
-
 <target name="exists.mail.xml">
 <available file="${basedir}/mail.${build.type}.xml" type="file" property="exists.mail.xml" />
 <antcontrib:if>
@@ -1179,8 +1197,14 @@ THIS WAS MOSTLY REPLACED WITH THE LOAD OF ~/.cfdistrorc
 				</xmltask>
 			</then>
 			<else>
+				<xmltask destbuffer="mail.buff">
+		 			<insert path="/" xml='&lt;mail&gt;&lt;settings log="./temp/logs/mail.log" spool-enable="yes" spool-interval="5" timeout="30" /&gt;&lt;servers&gt;&lt;server password="" port="25" smtp="127.0.0.1" ssl="false" tls="false" username="" /&gt;&lt;/servers&gt;&lt;/mail&gt;'
+        			position="under" />
+				</xmltask>
 				<echo message="No build mail settings file to import : ${basedir}/mail.${build.type}.xml does not exist." />
 				<echo message="No mail settings file to import : ${basedir}/mail.xml does not exist." />
+				<echo message="Adding default 127.0.0.1:25 mail server" />
+				<antcontrib:var name="exists.mail.xml" value="true" />
 			</else>
 		</antcontrib:if>
 	</else>
@@ -1280,39 +1304,50 @@ THIS WAS MOSTLY REPLACED WITH THE LOAD OF ~/.cfdistrorc
 </target>
 
 <target name="expandResinToTempDir">
-<unzip dest="${temp.dir}" src="${resin.install.zip}">
-	<patternset>
-		<exclude name="*MACOSX" />
-	</patternset>
-</unzip>
+	<unzip dest="${temp.dir}" src="${resin.install.zip}">
+		<patternset>
+			<exclude name="*MACOSX" />
+		</patternset>
+	</unzip>
 </target>
 
 <target name="copySources">
-<mkdir dir="${war.target.dir}/railotempdir" />
-<copy todir="${war.target.dir}">
-	<fileset dir="${src.dir}/">
-		<include name="**" />
-	</fileset>
-</copy>
+	<mkdir dir="${war.target.dir}/railotempdir" />
+	<copy todir="${war.target.dir}">
+		<fileset dir="${src.dir}/">
+			<include name="**" />
+		</fileset>
+	</copy>
 </target>
 
 <target name="cfdistro.update">
 	<property name="cfdistro.update.basedir" value="${cfdistro.basedir}" />
 	<property name="cfdistro.update.url" value="http://cfmlprojects.org/artifacts/cfdistro/latest/cfdistro.zip" />
 	<property name="cfdistro.update.tempdir" value="${cfdistro.basedir}/temp-cfd-update" />
+	<delete dir="${cfdistro.update.tempdir}" />
 	<mkdir dir="${cfdistro.update.tempdir}" />
-	<get src="${cfdistro.update.url}" dest="${cfdistro.update.tempdir}" />
+	<get src="${cfdistro.update.url}" dest="${cfdistro.update.tempdir}" skipexisting="false"/>
+    <echo message="unzipping ${cfdistro.update.tempdir}/cfdistro.zip to ${cfdistro.update.basedir}" />
 	<unzip dest="${cfdistro.update.basedir}" src="${cfdistro.update.tempdir}/cfdistro.zip" />
 	<delete dir="${cfdistro.update.tempdir}" />
+    <antcontrib:switch value="${os.family}">
+      <case value="windows">
+        <fixcrlf srcdir="${cfdistro.basedir}" includes="**/*.xml" excludes="" eol="crlf" />
+      </case>
+      <default>
+        <fixcrlf srcdir="${cfdistro.basedir}" includes="**/*.bat" eol="lf" />
+      </default>
+    </antcontrib:switch>
+    <antcontrib:var file="${cfdistro.basedir}/cfdistro.properties" />
+    <echo message="Updated cfdistro to version ${cfdistro.version}" />
 </target>
 
 <target name="echoproperties" description="lists set properties">
 	<echoproperties />
 </target>
 
-<target name="cfdistro.dist" depends="clean" description="creates a minimal build">
+<target name="cfdistro.dist" description="creates a minimal build">
 <property name="dist.type" value="minimal" />
-<property name="cfdistro.dist.excludes" value="ext/**,lib/**,artifacts/**,**/.git/**,**/temp/**,rpmbuild/SOURCES/**,rpmbuild/RPMS/**,buckminster/director*.zip,java/cfmlengcrypt/lib/**" />
 <antcontrib:propertyregex property="creds.token.filename" input="${creds.token.file}" global="true" override="yes" regexp=".*[\\|/](.+)" select="\1" />
 <delete dir="${dist.dir}/${distro.name}/build/cfdistro/"/>
 <antcontrib:switch value="${dist.type}">
@@ -1439,7 +1474,7 @@ THIS WAS MOSTLY REPLACED WITH THE LOAD OF ~/.cfdistrorc
 	<property name="rpm.post" value="sh /home/cfml/${distro.name}/postinst.sh" />
 	
 	<tar destfile="${temp.dir}/rpmbuild/SOURCES/release.tar.gz" compression="gzip">
-		<tarfileset dir="${dist.dir}" excludes="ext/**, **/creds.txt" prefix="${distro.name}-${distro.version}" />
+		<tarfileset dir="${dist.dir}" excludes="${cfdistro.dist.excludes}" prefix="${distro.name}-${distro.version}" />
 	</tar>
 	<copy file="${cfdistro.basedir}/rpmbuild/cfdistro.spec" tofile="${temp.dir}/rpmbuild/SPECS/${distro.name}.spec" overwrite="true">
 		<filterchain>
@@ -1498,7 +1533,7 @@ cfdistro is freaking insane
 		<delete dir="${dist.dir}/cfdistro" />
 		<mkdir dir="${dist.dir}/cfdistro" />
 		<copy todir="${dist.dir}/cfdistro" verbose="false">
-			<fileset dir="${cfdistro.basedir}/" excludes="ext/**,artifacts/**,**/.git/**,**/temp/**,rpmbuild/SOURCES/**,rpmbuild/RPMS/**" />
+			<fileset dir="${cfdistro.basedir}/" excludes="${cfdistro.dist.excludes}" />
 		</copy>
 		<zipdir destfile="${dist.dir}/cfdistro.zip" sourcedir="${dist.dir}/cfdistro" />
 		<mkdir dir="${cfdistro.repo.local.path}/cfdistro/latest" />
@@ -1525,7 +1560,7 @@ cfdistro is freaking insane
 
 	<target name="cfdistro.install" description="installs cfdistro into user home and sets build.property cfdistro path">
 		<copy todir="${user.home}/cfdistro" verbose="false" overwrite="true">
-			<fileset dir="${cfdistro.basedir}/" excludes="ext/**" />
+			<fileset dir="${cfdistro.basedir}/" excludes="${cfdistro.dist.excludes}" />
 		</copy>
 		<loadfile property="project.build.file" srcFile="build.properties" />
 		<antcontrib:propertyregex property="project.build.file" input="${project.build.file}" global="true" override="yes" regexp="(\s)cfdistro.build.file=.*" replace="\1cfdistro.build.file=${user.home}/cfdistro/build.xml" />

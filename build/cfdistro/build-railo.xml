@@ -35,7 +35,7 @@
 		</antcontrib:if>
 	</target>
 
-	<target name="railo.war.init" depends="clean,railo.requires">		
+	<target name="railo.war.init" depends="railo.requires">		
 		<unzip src="${ext.railo.war}" dest="${war.target.dir}"/>
 		<property name="extracted" location="${java.io.tmpdir}/extracted"/> 
 		<mkdir dir="${extracted}"/> 
@@ -666,9 +666,7 @@
 		<attribute name="virtual" />
 		<attribute name="default" default="true"/>
 		<sequential>
-			<!--
-			<servlet-mapping rest="true" virtual="@{virtual}" physical="@{physical}" />
-			-->
+			<servlet-mapping rest="true" virtual="@{virtual}/*" physical="@{physical}" />
 			<antcontrib:var name="___physical" value="@{physical}" />
 			<antcontrib:if>
 				<equals arg1="${mappings.relative}" arg2="true" />
@@ -679,7 +677,7 @@
 			</antcontrib:if>
 			<antcontrib:var name="mapping.exists" unset="true" />
 			<xmltask source="${railo.config.file}" dest="${railo.config.file}">
-				<copy path="/railo-configuration/rest" attrValue="false" property="mapping.exists" />
+				<copy path="/railo-configuration/rest/mapping/@virtual" attrValue="true" property="mapping.exists" />
 				<insert path="/railo-configuration" position="under" unless="mapping.exists">
 				<![CDATA[<rest></rest>]]>
 				</insert>
@@ -890,10 +888,10 @@
 					<!-- if some caches exist we can update and add -->
 					<antcontrib:switch value="${cache.exists}">
 						<case value="true">
-							<echo message="updated cache provider @{name}" />
+							<echo message="updated @{default-type} cache provider @{name} (@{class})" />
 						</case>
 						<default>
-							<echo message="added cache provider @{name}" />
+							<echo message="added @{default-type} cache provider @{name} (@{class})" />
 						</default>
 					</antcontrib:switch>
 					<antcontrib:var name="cache.exists" unset="true" />

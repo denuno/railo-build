@@ -1,15 +1,15 @@
 <project name="rpm" default="rpm" xmlns:antcontrib="antlib:net.sf.antcontrib" xmlns:redline="antlib:org.redline_rpm"  basedir=".">
 	
-    <property name="redline.ant.tasks.jar" value="${cfdistro.basedir}/lib/redline-1.1.10-SNAPSHOT.jar" />
-    <property name="redline.ant.tasks.bootstrap.location" value="http://cloud.github.com/downloads/craigwblake/redline/redline-1.1.9.jar" />
+    <property name="redline.ant.tasks.jar" value="${cfdistro.basedir}/lib/redline-1-1-10-SNAPSHOT.jar" />
     <available property="redline.ant.tasks.jar.exists" file="${redline.ant.tasks.jar}" />
 
     <!-- This will download the "latest version" of the maven-ant-tasks if needed -->
     <target name="bootstrap_redline" unless="redline.ant.tasks.jar.exists">
-        <get src="${redline.ant.tasks.bootstrap.location}" dest="${redline.ant.tasks.jar}" />
+		<dependency artifactId="redline-1-1-10-SNAPSHOT" groupId="cfdistro.lib" version="1.0.0.0" dest="${cfdistro.basedir}/lib" type="jar" unzip="false"/>
     </target>
     
 	<target name="rpm" depends="bootstrap_redline">
+    	<taskdef resource="org/redline_rpm/antlib.xml" uri="antlib:org.redline_rpm" classpathref="build.lib.path"/>
 		<mkdir dir="rpms" />
 		<!--  make RC rpm -->
 		<property name="rpm.user" value="railo" />
@@ -64,6 +64,7 @@ fi
 	</target>
 	
 	<target name="cfdistro.rpm" depends="bootstrap_redline">
+    	<taskdef resource="org/redline_rpm/antlib.xml" uri="antlib:org.redline_rpm" classpathref="build.lib.path"/>
 		<property name="rpm.user" value="cfml" />
 		<property name="rpm.source.dir" value="${dist.dir}" />
 		<property name="rpm.target.dir" value="/opt/${distro.name}" />
@@ -87,9 +88,10 @@ fi
 	</target>
 	
 	<target name="build.cfdistro.rpm" depends="bootstrap_redline">
+    	<taskdef resource="org/redline_rpm/antlib.xml" uri="antlib:org.redline_rpm" classpathref="build.lib.path"/>
 		<property name="rpm.user" value="root" />
 		<property name="rpm.source.dir" value="${cfdistro.basedir}" />
-		<property name="rpm.source.excludes" value="ext/**,artifacts/**,dist/**,**/.git/**,**/.svn/**,**/temp/**,rpmbuild/SOURCES/**,rpmbuild/RPMS/**,buckminster/director*.zip,java/cfmlengcrypt/lib/**" />
+		<property name="rpm.source.excludes" value="ext/**,artifacts/**,dist/**,**/.git/**,**/.svn/**,**/temp/**,rpmbuild/SOURCES/**,rpmbuild/RPMS/**,buckminster/director*.zip,java/cfmlengcrypt/lib/**,lib/**" />
 		<property name="rpm.target.dir" value="/opt/cfdistro" />
 		<property name="rpm.packager" value="cfdistro" />
 		<property name="rpm.group" value="cfdistro" />
@@ -196,6 +198,7 @@ fi
 		<attribute name="rpm.url" default="http://cfmlprojects.org/cfdistro" />
 		<attribute name="rpm.repo" default="${basedir}/../RPMS/noarch" />
 		<sequential>
+    		<taskdef resource="org/redline_rpm/antlib.xml" uri="antlib:org.redline_rpm" classpathref="build.lib.path"/>
 			<mkdir dir="@{rpm.repo}" />
 			<!--  make RC rpm -->
 			<echo file="${temp.dir}/preinstall.sh">

@@ -9,14 +9,8 @@
 	</target>
 
 	<target name="test">
-		<property file="${src.dir}/railo-java/railo-core/src/railo/runtime/Info.ini" prefix="railoini"/>
-		<version-splitter property="railo.build.version" version="${railoini.number}" bump=""/>
-		<copy file="${railobuild.dist.dir}/rc/${railo.build.version.long}.rc" todir="${war.target.dir}/WEB-INF/lib/railo-server/patches/" />
-		<!-- 
-		<copy todir="${war.target.dir}/WEB-INF/railo/context/admin/plugin/">
-			<fileset dir="${basedir}/../ci/extension/src/plugin/" />
-		</copy>
-		 -->
+		<delete dir="${war.target.dir}" />
+		<unzip dest="${war.target.dir}" src="${railobuild.dist.dir}/railo-${railo.build.version.long}.war" />
 		<mapping physical="${src.dir}/../tests" virtual="/tests"/>
 		<customtag physical="${src.dir}/../tests/jira" virtual="/tests/jira"/>
 		<railo-datasource name="railo_mirror" jdbcstring="jdbc:h2:${temp.dir}/h2dbs/railo-db/railo-db"/>
@@ -29,7 +23,8 @@
 	<target name="tests.mxunit.run" depends="build">
 		<property file="${src.dir}/railo-java/railo-core/src/railo/runtime/Info.ini" prefix="railoini"/>
 		<version-splitter property="railo.build.version" version="${railoini.number}" bump=""/>
-		<copy file="${railobuild.dist.dir}/rc/${railo.build.version.long}.rc" todir="${war.target.dir}/WEB-INF/lib/railo-server/patches/" />
+		<delete dir="${war.target.dir}" />
+		<unzip dest="${war.target.dir}" src="${railobuild.dist.dir}/railo-${railo.build.version.long}.war" />
 		<!-- 
 		<copy todir="${war.target.dir}/WEB-INF/railo/context/admin/plugin/">
 			<fileset dir="${basedir}/../ci/extension/src/plugin/" />

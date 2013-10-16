@@ -47,6 +47,18 @@
     	<mkdir dir="${build-core.build.dir}/classes"/>
     	<mkdir dir="${build-core.build.dir}/admin"/>
     	<mkdir dir="${build-core.dist.dir}"/>
+		<path id="railo.runtime.classpath">
+			<fileset dir="${src.dir}/railo-java/libs" excludes="${railo.deps.exclude},${railo.deps.optional},flex*,felix*" includes="*.jar" />
+		</path>
+		<pathconvert property="rc.manifest.classpath" pathsep="; ">
+		  <path refid="railo.runtime.classpath"/>
+		  <mapper>
+		    <chainedmapper>
+		       <flattenmapper/>
+		    </chainedmapper>
+		  </mapper>
+		</pathconvert>
+		<echo message="MANIFESTCLASSPATH: ${rc.manifest.classpath}"/>
     </target>
 	
 	<!-- ================================= 
@@ -62,7 +74,7 @@
 	<!-- ================================= 
           target: build temp war for compiling admin             
          ================================= -->
-    <target name="RailoCore.tempwar" description="Creates a temp war for building admin.">
+    <target name="RailoCore.tempwar" description="Creates a temp war for building admin." depends="RailoLoader.package">
 		<delete dir="${war.target.dir}"/>
 		<delete dir="${temp.dir}/temprc"/>
 		<mkdir dir="${war.target.dir}/WEB-INF/lib"/>
@@ -93,15 +105,25 @@
 		</copy>
 		<mkdir dir="${temp.dir}/temprc/core"/>
     	<jar destfile="${temp.dir}/temprc/core/core.rc">
+		    <manifest>
+			    <attribute name="railo-core-version" value="${build-core.core.version}"/>
+			    <attribute name="Class-Path" value="${rc.manifest.classpath}"/>
+		    </manifest>    	
 			<fileset dir="${temp.dir}/temprc" excludes="**/core.rc"/>
 		</jar>
 		<delete dir="${temp.dir}/temprc" includes="*"/>
 		<mkdir dir="${temp.dir}/temprc/railo"/>
 		<copy tofile="${temp.dir}/temprc/railo/version" file="${build-railo.src.dir}/railo/version" />
-		<copy tofile="${temp.dir}/temprc/railo.jar" file="${src.dir}/railo-java/libs/railo-loader.jar" />
+		<copy tofile="${temp.dir}/temprc/railo.jar" file="${railo.loader.dist.dir}/railo-loader.jar" />
 		<zip destfile="${temp.dir}/temprc/railo.jar" update="true">
 			<fileset dir="${temp.dir}/temprc/" includes="railo/**,core/**"/>
 		</zip>
+<!--
+		<move todir="${war.target.dir}/WEB-INF/lib/railo-server/jars/">
+			<fileset dir="${war.target.dir}/WEB-INF/lib" excludes="flex*, felix*" />
+		</move>
+		<copy tofile="${war.target.dir}/WEB-INF/lib/railo.jar" file="${railo.loader.dist.dir}/railo-loader.jar" />
+-->
 		<copy tofile="${war.target.dir}/WEB-INF/lib/railo.jar" file="${temp.dir}/temprc/railo.jar" />
 
 		<copy file="${src.dir}/railo-java/railo-core/src/resource/config/web.xml" 
@@ -180,17 +202,8 @@
 		<copy todir="${build-core.build.dir}/classes/resource">
 			<fileset dir="${build-core.src.dir}/resource" />
 		</copy>
-		<copy todir="${build-core.build.dir}/classes/resource/context/admin/dbdriver">
-			<fileset dir="${build-core.railo.admin_source_abs}/admin/dbdriver"/>
-		</copy>
-		<copy todir="${build-core.build.dir}/classes/resource/context/admin/cdriver">
-			<fileset dir="${build-core.railo.admin_source_abs}/admin/cdriver"/>
-		</copy>
-		<copy todir="${build-core.build.dir}/classes/resource/context/admin/gdriver">
-			<fileset dir="${build-core.railo.admin_source_abs}/admin/gdriver"/>
-		</copy>
-		<copy todir="${build-core.build.dir}/classes/resource/context/admin/plugin">
-			<fileset dir="${build-core.railo.admin_source_abs}/admin/plugin"/>
+		<copy todir="${build-core.build.dir}/classes/resource/context/admin">
+			<fileset dir="${build-core.railo.admin_source_abs}/admin"/>
 		</copy>
 		<copy todir="${build-core.build.dir}/classes/resource/context/templates">
 			<fileset dir="${build-core.railo.admin_source_abs}/templates"/>
@@ -215,6 +228,10 @@
     <target name="RailoCore.package" depends="RailoCore.copy" description="Creates the the core.rc file.">
         <echo>Packaging the core.rc (${build-core.build.dir}/classes)</echo>
     	<jar destfile="${build-core.dist.dir}/${build-core.core.version}.rc">
+		    <manifest>
+			    <attribute name="railo-core-version" value="${build-core.core.version}"/>
+			    <attribute name="Class-Path" value="../../railo.jar; ${rc.manifest.classpath}"/>
+		    </manifest>    	
 			<fileset dir="${build-core.build.dir}/classes"/>
 		</jar>
     </target>
