@@ -73,6 +73,7 @@
 	<jar path="metadata-extractor.jar" version="2.4.0-beta-1" comment="retired" hash="6e0ad2f0fe78047cb34ec056b39633d3"/>
 	<jar path="microsoft-mssqlserver.jar" version="4.0" comment="only links to the driver in microsoft-sqljdbc.jar" hash="31be8d60f37c8490046eead41de77fd2"/>
 	<jar path="microsoft-sqljdbc.jar" version="4.0" comment="" hash="402130141d5f2cee727f4371e2e8fd8a"/>
+	<jar path="microsoft-sqljdbc.jar" version="4.0" comment="" hash="a99205071acbe2709103b971662992e0"/>
 	<jar path="mysql-connector-java-bin.jar" version="5.0.8" comment="" hash="fa52e6f2e3433c65a9dd14c565030569"/>
 	<jar path="mysql-connector-java-bin.jar" version="5.1.25" comment="" hash="24a6d6cab39d9fd970e0ee00bd2f9e7c"/>
 	<jar path="mysql-connector-java-bin.jar" version="5.1.20" comment="" hash="a910cc2459211c6649316a969920df5d"/>
