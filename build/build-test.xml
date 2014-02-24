@@ -29,7 +29,9 @@
 		<antcontrib:var name="server.sharedlibs" value="false" />
 		<antcontrib:var name="server.jvm.args" value="-Xms256M -Xmx326M -XX:PermSize=128M -XX:MaxPermSize=128M  -Djava.net.preferIPv4Stack=true" />
 		<antcontrib:var name="railo.config.file" value="${war.target.dir}/WEB-INF/railo/railo-web.xml.cfm" />
+		<antcontrib:var name="railo.web.config.dir" value="${war.target.dir}/WEB-INF/railo" />
 		<antcontrib:var name="railo.web.config.file" value="${war.target.dir}/WEB-INF/railo/railo-web.xml.cfm" />
+		<antcontrib:var name="railo.server.config.dir" value="${war.target.dir}/WEB-INF/lib/railo-server" />
 		<antcontrib:var name="railo.server.config.file" value="${railo.server.config.dir}/context/railo-server.xml" />
 		<antcontrib:var name="cfadmin.password" value="server" />
 		<antcontrib:var name="cfml.request.timeout" value="30" />
