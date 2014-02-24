@@ -88,7 +88,7 @@
 				</fileset>
 			</classpath>
 			<arg line='-data "${workspace.dir}"' />
-			<arg line="-r http://download.eclipse.org/tools/buckminster/headless-3.7/,http://download.eclipse.org/releases/indigo/" />
+			<arg line="-r http://download.eclipse.org/tools/buckminster/headless-4.2/,http://download.eclipse.org/releases/indigo/" />
 			<arg line='-d "${buckminster-headless.dir}"' />
 			<arg line="-p Buckminster" />
 			<arg line="-i org.eclipse.buckminster.cmdline.product" />
@@ -259,6 +259,7 @@
 		<attribute name="script"/>
 		<element name="properties" implicit="true"/>
 		<sequential>
+			<antcontrib:runtarget target="install-buckminster-headless" />
 			<antcontrib:runtarget target="init.platform" />
 			<echo message="running @{script} (workspace.dir: ${workspace.dir})"/>
 			<echo message="Current Platform -- os: ${os} ws: ${ws} arch:${arch}"/>
@@ -282,7 +283,7 @@
 				<arg line="-publishArtifacts" />
 			</java>
 -->
-			<java fork="true" dir="${buckminster-headless.dir}" logError="true" classname="org.eclipse.core.launcher.Main" failonerror="true">
+			<java fork="true" dir="${buckminster-headless.dir}" logError="true" classname="org.eclipse.core.launcher.Main" failonerror="true" outputproperty="laughn">
 				<classpath>
 					<fileset dir="${buckminster-headless.dir}/plugins">
 						<include name="org.eclipse.equinox.launcher_*.jar" />
@@ -310,6 +311,7 @@
 				<sysproperty key="eclipse.p2.MD5Check" value="false" />
 				<jvmarg line=" -Xms256m -Xmx512m -XX:MaxPermSize=128M"/>
 			</java>
+			<echo message="${laughn}" />
 			
 		</sequential>
 	</macrodef>
@@ -477,7 +479,7 @@
 		</concat>
 	</target>
 
-	<target name="test" depends="test-init">
+	<target name="buckminster.test" depends="test-init">
 		<delete dir="${junit-report-output}" quiet="true" />
 		<delete dir="${raw-junit-report-output}" quiet="true" />
 		<antcall target="core-test">
@@ -493,7 +495,7 @@
 		</junitreport>
 	</target>
 
-	<target name="buildAndTest" depends="clean, build.test.product, test" description="Runs all tests and creates a final product for the current platform">
+	<target name="buildAndTest" depends="clean, build.test.product, buckminster.test" description="Runs all tests and creates a final product for the current platform">
 		<condition property="junit.tests.failed">
 			<or>
 				<resourcecontains resource="${junit-report-output}/all-tests.xml" substring="&lt;error " />

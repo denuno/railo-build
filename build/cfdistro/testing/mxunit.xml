@@ -163,6 +163,8 @@
 		<attribute name="recurse" default="${mxunit.recurse}"/>
 		<attribute name="failonerror" default="${mxunit.failonerror}"/>
 		<attribute name="outputdir" default="${mxunit.tests.results.dir}"/>
+		<attribute name="defaultrunner" default="${mxunit.runner}"/>
+		<attribute name="inspect" default="false"/>
 		<sequential>
 			<taskdef-dependency name="mxunittask" classname="org.mxunit.ant.MXUnitAntTask" artifactId="mxunit-ant" groupId="cfdistro.lib" version="1.0.0.0" />
 			<delete dir="@{outputdir}" />
@@ -173,15 +175,60 @@
 			<echo message="Running MXUnit - mxunit.failonerror:@{failonerror} outputdir:@{outputdir}" />
 			<antcontrib:trycatch property="_erredbrah">
 				<try>
-					<mxunittask server="${server.host}" port="${server.port.http}"
-						defaultrunner="${mxunit.runner}" outputdir="@{outputdir}"
-						failureproperty="tests.fail" errorproperty="tests.error" haltonerror="false"
-						testResultsSummary="testresults.properties" verbose="true">
-						<!-- <testcase name="mxunit.tests.framework.AssertTest" packageName="mxunit.asserttests" /> -->
-						<directory runner="${mxunit.runner}"
-							remoteMethod="run" path="${mxunit.tests.dir.abs}" componentPath="@{componentPath}"
-							packageName="@{packageName}" recurse="@{recurse}" />
-					</mxunittask>
+					<antcontrib:if>
+						<equals arg1="@{inspect}" arg2="true" />
+						<then>
+							<property name="testcasesxml" value="" />
+					    	<antcontrib:for param="file">
+								<path><fileset dir="${mxunit.tests.dir}" includes="**/*.cfc" casesensitive="no">
+									<or>
+										<contains text="org.railo.cfml.test.RailoTestCase"/>
+										<contains text="mxunit.framework.TestCase"/>
+									</or>
+								</fileset>
+								</path>
+								<sequential>
+									<antcontrib:propertyregex property="testcasecfc" input="@{file}" 
+									 regexp="${mxunit.tests.dir}" replace="" global="true" override="yes"/>
+									<antcontrib:propertyregex property="testcasecfc" input="${testcasecfc}" 
+									 regexp="\\|/" replace="\." global="true" override="yes"/>
+									<antcontrib:propertyregex property="testcasecfc" input="${testcasecfc}" 
+									 regexp="^\.(.*)\.cfc$" replace="testcases.\1" global="true" override="yes"/>
+									<antcontrib:var name="testcasesxml"
+										value='${testcasesxml}&lt;testcase name="${testcasecfc}" packageName="@{packageName}"/&gt;${line.separator}' />
+								</sequential>
+							</antcontrib:for>
+							<echo file="${basedir}/build-testcasesrun.xml"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+								<project><import file="${basedir}/build.xml"/>
+								<target name="rundemtests">
+								 <taskdef-dependency name="mxunittask" classname="org.mxunit.ant.MXUnitAntTask" artifactId="mxunit-ant" version="1.0.0.0" />
+								<mxunittask server="${server.host}" port="${server.port.http}"
+									defaultrunner="@{defaultrunner}" outputdir="@{outputdir}"
+									failureproperty="tests.fail" errorproperty="tests.error" haltonerror="false"
+						 			testResultsSummary="testresults.properties" verbose="true">
+									${testcasesxml}
+								</mxunittask>
+								</target>
+								</project>
+								]]>
+							</echo>
+							<ant antfile="${basedir}/build-testcasesrun.xml" inheritAll="true" target="rundemtests" />
+					    	<!--
+					    	<delete file="${basedir}/build-testcasesrun.xml"/>
+					    	-->
+						</then>
+						<else>
+							<mxunittask server="${server.host}" port="${server.port.http}"
+								defaultrunner="${mxunit.runner}" outputdir="@{outputdir}"
+								failureproperty="tests.fail" errorproperty="tests.error" haltonerror="false"
+								testResultsSummary="testresults.properties" verbose="true">
+								<!-- <testcase name="mxunit.tests.framework.AssertTest" packageName="mxunit.asserttests" /> -->
+								<directory runner="${mxunit.runner}"
+									remoteMethod="run" path="${mxunit.tests.dir.abs}" componentPath="@{componentPath}"
+									packageName="@{packageName}" recurse="@{recurse}" />
+							</mxunittask>
+						</else>
+					</antcontrib:if>
 				</try>
 				<catch>
 					<echo message="MXUnit run failed: ${_erredbrah}"/>

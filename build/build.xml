@@ -129,7 +129,9 @@
 		<mkdir dir="${railobuild.dist.dir}/compressed" />
 		<jar jarfile="${railobuild.dist.dir}/compressed/railo-${railo.build.version.long}.war" basedir="${railobuild.dist.dir}/railo.war" />
 		<copy todir="${railobuild.dist.dir}/" file="${railobuild.dist.dir}/railo.war/WEB-INF/web.xml" />
+		<!--
 		<delete dir="${railobuild.dist.dir}/railo.war" />
+		-->
 		<move file="${railobuild.dist.dir}/compressed/railo-${railo.build.version.long}.war" todir="${railobuild.dist.dir}/war" />
 		<delete dir="${railobuild.dist.dir}/compressed" />
 		<echo>*** WAR file exported to ${railobuild.dist.dir}/railo-${railo.build.version.long}.war ***</echo>

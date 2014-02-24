@@ -8,7 +8,7 @@
 	<target name="build.and.test" depends="build,test">
 	</target>
 
-	<target name="test">
+	<target name="test.noxml">
 		<delete dir="${war.target.dir}" />
 		<unzip dest="${war.target.dir}" src="${railobuild.dist.dir}/railo-${railo.build.version.long}.war" />
 		<mapping physical="${src.dir}/../tests" virtual="/tests"/>
@@ -20,30 +20,33 @@
 		</server-run>
 	</target>
 	
-	<target name="tests.mxunit.run" depends="build">
+	<target name="test">
+
 		<property file="${src.dir}/railo-java/railo-core/src/railo/runtime/Info.ini" prefix="railoini"/>
-		<version-splitter property="railo.build.version" version="${railoini.number}" bump=""/>
-		<delete dir="${war.target.dir}" />
-		<unzip dest="${war.target.dir}" src="${railobuild.dist.dir}/railo-${railo.build.version.long}.war" />
-		<!-- 
-		<copy todir="${war.target.dir}/WEB-INF/railo/context/admin/plugin/">
-			<fileset dir="${basedir}/../ci/extension/src/plugin/" />
-		</copy>
-		<customtag physical="${src.dir}/../tests/jira" virtual="/tests/jira"/>
-		 -->
-		<echo file="${src.dir}/railo-cfml/railo-test/HttpAntRunner.cfc"><![CDATA[<cfcomponent extends="mxunit.runner.HttpAntRunner"></cfcomponent>]]></echo>
-		<dependency groupId="org.mxunit" artifactId="core" version="2.1.1" mapping="/mxunit" />
-		<mapping physical="${src.dir}/railo-cfml/railo-test" virtual="/railo-test"/>
+		<antcontrib:var name="railo.version" value="${railoini.number}" />
+		<antcontrib:var name="war.target.dir" value="${dist.dir}/railo.war" />
+		<antcontrib:var name="runwar.war.path" value="${war.target.dir}" />
+		<antcontrib:var name="server.sharedlibs" value="false" />
+		<antcontrib:var name="server.jvm.args" value="-Xms256M -Xmx326M -XX:PermSize=128M -XX:MaxPermSize=128M  -Djava.net.preferIPv4Stack=true" />
+		<antcontrib:var name="railo.config.file" value="${war.target.dir}/WEB-INF/railo/railo-web.xml.cfm" />
+		<antcontrib:var name="railo.web.config.file" value="${war.target.dir}/WEB-INF/railo/railo-web.xml.cfm" />
+		<antcontrib:var name="railo.server.config.file" value="${railo.server.config.dir}/context/railo-server.xml" />
+		<antcontrib:var name="cfadmin.password" value="server" />
+		<antcontrib:var name="cfml.request.timeout" value="30" />
+		<antcontrib:runtarget target="railo.war.config" />
+		<echo message="${mappings.file}" />
+		<echo file="${src.dir}/tests/HttpAntRunner.cfc"><![CDATA[<cfcomponent extends="mxunit.runner.HttpAntRunner"></cfcomponent>]]></echo>
+		<dependency groupId="org.mxunit" artifactId="core" version="2.1.3" mapping="/mxunit" />
+		<mapping physical="${src.dir}/tests" virtual="/railo-tests"/>
+		<mapping physical="${src.dir}/tests/testcases" virtual="/testcases"/>
 		<railo-datasource name="railo_mirror" jdbcstring="jdbc:h2:${temp.dir}/h2dbs/railo-db/railo-db"/>
 		<server-run>
-			<antcontrib:var name="mxunit.tests.results.dir" value="${dist.dir}/testresults" />
-			<antcontrib:var name="mxunit.failonerror" value="false" />
-			<antcontrib:var name="mxunit.tests.dir" value="${src.dir}/railo-cfml/railo-test" />
-			<antcontrib:var name="mxunit.runner" value="/railo-test/HttpAntRunner.cfc" />
-			<antcontrib:var name="mxunit.componentpath" value="org" />
-			<antcontrib:var name="mxunit.packageName" value="org" />
-			<antcontrib:var name="mxunit.recurse" value="true" />
-			<antcontrib:runtarget target="mxunit.tests" />
+			<mxunit-call 
+				path="${mxunit.tests.dir}" componentPath="${mxunit.componentpath}"
+				packageName="testcases" recurse="${mxunit.recurse}"
+				outputdir="${mxunit.tests.results.dir}" failonerror="${mxunit.failonerror}" 
+				defaultrunner="/railo-tests/HttpAntRunner.cfc" inspect="true"
+			/>
 		</server-run>
 	</target>
 	
