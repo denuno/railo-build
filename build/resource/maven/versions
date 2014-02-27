@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <jars>
 	<jar path="antlr.jar" version="2.7.6" comment="used by hibernate" hash="97c6bb68108a3d68094eab0f67157962"/>
+	<jar path="org-apache-cxf.jar" version="2.7.10" comment="" hash="01257a0273c2d47ad85a338c791495c0"/>
 	<jar path="apache-jakarta-commons-codec.jar" version="1.6" comment="" hash="5970f54883b4831b24b97f1125ba27e6"/>
 	<jar path="apache-jakarta-commons-collections.jar" version="3.2.1" comment="" hash="13bc641afd7fd95e09b260f69c1e4c91"/>
 	<jar path="apache-jakarta-commons-compress.jar" version="1.3" comment="" hash="5e41739c4e9fcf4c0b0ecfcf5e6cb2ae"/>
