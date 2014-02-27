@@ -108,6 +108,7 @@
 	<jar path="sun-security-jaas.jar" version="1.2.4" comment="" hash="8582d6061bbeee1cb2fa5d1e29610dfc"/>
 	<jar path="sun-xml-jaxrpc.jar" version="1.2.1" comment="" hash="b3f5e2b971eff83c27e67fa8a3d9adcb"/>
 	<jar path="sun-xml-wsdl4j.jar" version="1.5.1" comment="" hash="e76bf26b6955a7fa73d85d096be6e1a6"/>
+	<jar path="sun-xml-wsdl4j.jar" version="1.6.3" comment="" hash="cfc28d89625c5e88589aec7a9aee0208"/>
 	<jar path="sun-xml.saaj.jar" version="1.2.1" comment="" hash="bbc59424764db89879c7216bd4480ec0"/>
 	<jar path="tagsoup.jar" version="1.2.1" comment="" hash="ae73a52cdcbec10cd61d9ef22fab5936"/>
 	<jar path="w3c-dom.jar" version="1.1" comment="" hash="77943ead316d1403908a9c7651688574"/>
