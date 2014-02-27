@@ -2,6 +2,10 @@
 <jars>
 	<jar path="antlr.jar" version="2.7.6" comment="used by hibernate" hash="97c6bb68108a3d68094eab0f67157962"/>
 	<jar path="org-apache-cxf.jar" version="2.7.10" comment="" hash="01257a0273c2d47ad85a338c791495c0"/>
+	<jar path="org-apache-neethi.jar" version="3.0.3" comment="" hash="8a81813a03e2899ccd31f0e92f6cc691"/>
+	<jar path="org-apache-ws-xmlschema-core.jar" version="2.1.0" comment="" hash="0856f69b09dcb6e0f47f1aee13c9b74d"/>
+	<jar path="org-codehaus-stax2-api.jar" version="3.1.1" comment="" hash="40d088c7b8b3f6759a40db54ce1f30e5"/>
+	<jar path="org-codehaus-woodstox-core-asl.jar" version="4.2.0" comment="" hash="ac7e73fcf52654c0642afdfccc7d9f57"/>
 	<jar path="apache-jakarta-commons-codec.jar" version="1.6" comment="" hash="5970f54883b4831b24b97f1125ba27e6"/>
 	<jar path="apache-jakarta-commons-collections.jar" version="3.2.1" comment="" hash="13bc641afd7fd95e09b260f69c1e4c91"/>
 	<jar path="apache-jakarta-commons-compress.jar" version="1.3" comment="" hash="5e41739c4e9fcf4c0b0ecfcf5e6cb2ae"/>
