@@ -205,6 +205,9 @@
 		<copy todir="${build-core.build.dir}/classes/resource/context/admin">
 			<fileset dir="${build-core.railo.admin_source_abs}/admin"/>
 		</copy>
+		<copy todir="${build-core.build.dir}/classes/resource/context/res">
+			<fileset dir="${src.dir}/railo-cfml/railo-admin/res" />
+		</copy>
 		<copy todir="${build-core.build.dir}/classes/resource/context/templates">
 			<fileset dir="${build-core.railo.admin_source_abs}/templates"/>
 		</copy>
