@@ -8,7 +8,7 @@
     <property name="mvn.repo.id" value="mvn.repo.${mvn.repo.dest}" />
    	-->
     <property name="maven.repo.local" location="${cfdistro.basedir}/artifacts" />
-    <property name="maven.ant.tasks.jar" value="${cfdistro.basedir}/lib/aether-ant-tasks-0.9.0-SNAPSHOT-uber.jar" />
+    <property name="maven.ant.tasks.jar" value="${cfdistro.lib.dir}/aether-ant-tasks-0.9.0-SNAPSHOT-uber.jar" />
 	<path id="maven.ant.tasks.classpath" path="${maven.ant.tasks.jar}" />
     <available property="maven.ant.tasks.jar.exists" file="${maven.ant.tasks.jar}" />
 
@@ -133,7 +133,7 @@
 	</target>
 
 	<target name="nexus.start" depends="nexus.configure">
-		<java jar="${cfdistro.basedir}/lib/runwar.jar" fork="true" spawn="false" maxmemory="${runwar.maxmemory}" failonerror="true">
+		<java jar="${cfdistro.lib.dir}/runwar.jar" fork="true" spawn="false" maxmemory="${runwar.maxmemory}" failonerror="true">
 			<jvmarg line="${server.jvm.args}"/>
 			<arg value="-war" /><arg value="${nexus.war}/" />
 			<arg value="-context" /><arg value="${nexus.context}" />
@@ -154,7 +154,7 @@
 	</target>
 
 	<target name="nexus.stop" depends="nexus.configure">
-		<java jar="${cfdistro.basedir}/lib/runwar.jar" fork="true" spawn="false" maxmemory="${runwar.maxmemory}" failonerror="true">
+		<java jar="${cfdistro.lib.dir}/runwar.jar" fork="true" spawn="false" maxmemory="${runwar.maxmemory}" failonerror="true">
 			<jvmarg line="${server.jvm.args}"/>
 			<arg value="-stop" /><arg value="8992" />
 		</java>

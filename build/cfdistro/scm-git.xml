@@ -31,7 +31,7 @@
 					</antcontrib:trycatch>
 				</then>
 				<else>
-					<dependency artifactId="jgit-cli" groupId="cfdistro.lib" version="1.0.0.0" dest="${cfdistro.basedir}/lib" type="jar" unzip="false"/>
+					<dependency artifactId="jgit-cli" groupId="cfdistro.lib" version="1.0.0.0" dest="${cfdistro.lib.dir}" type="jar" unzip="false"/>
 					<args2property property="gitcmdline"><args /></args2property>
 					<echo message="JGit - command: @{command} ${gitcmdline} (@{dir})" /><!-- <echoxml><elem /></echoxml> -->
 					<antcontrib:trycatch property="foo" reference="bar">
@@ -420,11 +420,15 @@
 									<arg value="@{remote}" />
 								</args>
 							</git>
-							<git-has-modifications dir="@{dest}" remote="" property="git.hasmods" />
+							<git-has-modifications dir="@{dest}" remote="@{remote}" branch="@{branch}" property="git.hasmods" />
 							<antcontrib:if>
+								<and>
 								<equals arg1="${git.hasmods}" arg2="true"/>
+								<equals arg1="${scm.autobranch}" arg2="true"/>
+								</and>
 								<then>
 									<antcontrib:var name="NOW_BRANCH" unset="true" />
+									<antcontrib:var name="revisions.remote.differ" value="true" />
 									<tstamp><format property="NOW_BRANCH" pattern="yyyyMMdd_HHmmss"/></tstamp>
 									<echo message="Detected local modifications, stashing sources in autobranch${NOW_BRANCH}" />
 									<git command="checkout" dir="@{dest}">
@@ -593,7 +597,7 @@
 			<git command="diff" dir="@{dir}/">
 				<args>
 					<arg value="--name-status" />
-					<arg value="origin/master" />
+					<arg value="@{remote}/@{branch}" />
 				</args>
 			</git>
 			<antcontrib:propertyregex override="yes" property="git.hasmodifications" input="${git.results}" 
