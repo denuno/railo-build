@@ -260,6 +260,7 @@ ${git.results}</echo>
 	    <sequential>
 			<input addproperty="branch" message="branch [ 4.0 | 4.1 | develop | [tag] ] :"/>
 			<antcontrib:var name="sc.railo.branch" value="${branch}" />
+			<antcontrib:var name="sc.railo.http" value="https://github.com/getrailo/railo/tree/${sc.railo.branch}" />
 			<git-fetch-from-remote />
 			<!-- use the system git as jgit has trouble with conflicts -->
 			<git command="checkout" dir="${src.dir}" use-jgit="false">
