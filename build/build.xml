@@ -259,10 +259,7 @@ ${git.results}</echo>
     <macrodef name="build-branch">
 	    <sequential>
 			<input addproperty="branch" message="branch [ 4.0 | 4.1 | develop | [tag] ] :"/>
-			<antcontrib:var name="ext.railo.war.version" value="4.0.4.001" />
-			<xmltask source="${basedir}/src.xml" dest="${basedir}/src.xml">
-				<attr path="src/project/src[@dest='@src.dir@/']" attr="branch" value="${branch}" />
-			</xmltask>
+			<antcontrib:var name="sc.railo.branch" value="${branch}" />
 			<git-fetch-from-remote />
 			<!-- use the system git as jgit has trouble with conflicts -->
 			<git command="checkout" dir="${src.dir}" use-jgit="false">

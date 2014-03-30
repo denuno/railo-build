@@ -2,6 +2,7 @@
 <mappings>
 <mapping physical="@src.dir@/railo-cfml" virtual="/railo-cfml"/>
 <mapping physical="@ext.mappings.dir@/mxunit" virtual="/mxunit"/>
-<mapping physical="../src/tests" virtual="/railo-tests"/>
-<mapping physical="../src/tests/testcases" virtual="/testcases"/>
+<mapping physical="@ext.mappings.dir@/org.coldbox/testbox/1.1.0" virtual="/testbox"/>
+<mapping physical="@src.dir@/tests" scmurl="https://github.com/getrailo/railo/tree/4.1" virtual="/railo-tests"/>
+<mapping physical="@src.dir@/tests/testcases" scmurl="https://github.com/getrailo/railo/tree/4.1" virtual="/testcases"/>
 </mappings>
