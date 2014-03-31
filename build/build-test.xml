@@ -39,8 +39,8 @@
 		<echo file="${src.dir}/tests/HttpAntRunner.cfc"><![CDATA[<cfcomponent extends="mxunit.runner.HttpAntRunner"></cfcomponent>]]></echo>
 		<dependency artifactId="testbox" groupId="org.coldbox" version="1.1.0" mapping="/testbox" />
 		<mapping physical="@ext.mappings.dir@/org.coldbox/testbox/1.1.0/system/testing/compat" virtual="/mxunit"/>
-		<mapping physical="@src.dir@/tests" virtual="/railo-tests" scmurl="${sc.railo.http}"/>
-		<mapping physical="@src.dir@/tests/testcases" virtual="/testcases" scmurl="${sc.railo.http}"/>
+		<mapping physical="@src.dir@/tests" virtual="/railo-tests" scmurl="@sc.railo.http@"/>
+		<mapping physical="@src.dir@/tests/testcases" virtual="/testcases" scmurl="@sc.railo.http@"/>
 		<railo-datasource name="railo_mirror" jdbcstring="jdbc:h2:${temp.dir}/h2dbs/railo-db/railo-db"/>
 		<copy file="${basedir}/resource/tboxrunner.cfm" todir="${war.target.dir}"/>
 	</target>
