@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <mappings>
 <mapping physical="@src.dir@/railo-cfml" virtual="/railo-cfml"/>
-<mapping physical="@ext.mappings.dir@/mxunit" virtual="/mxunit"/>
 <mapping physical="@ext.mappings.dir@/org.coldbox/testbox/1.1.0" virtual="/testbox"/>
+<mapping physical="@ext.mappings.dir@/org.coldbox/testbox/1.1.0/system/testing/compat" virtual="/mxunit"/>
 <mapping physical="@src.dir@/tests" scmurl="https://github.com/getrailo/railo/tree/4.1" virtual="/railo-tests"/>
 <mapping physical="@src.dir@/tests/testcases" scmurl="https://github.com/getrailo/railo/tree/4.1" virtual="/testcases"/>
 </mappings>

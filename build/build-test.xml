@@ -37,8 +37,8 @@
 		<antcontrib:runtarget target="railo.war.config" />
 		<echo message="${mappings.file}" />
 		<echo file="${src.dir}/tests/HttpAntRunner.cfc"><![CDATA[<cfcomponent extends="mxunit.runner.HttpAntRunner"></cfcomponent>]]></echo>
-		<dependency groupId="org.mxunit" artifactId="core" version="2.1.3" mapping="/mxunit" />
-		<dependency groupId="org.coldbox" artifactId="testbox" version="1.1.0" mapping="/testbox" />
+		<dependency artifactId="testbox" groupId="org.coldbox" version="1.1.0" mapping="/testbox" />
+		<mapping physical="@ext.mappings.dir@/org.coldbox/testbox/1.1.0/system/testing/compat" virtual="/mxunit"/>
 		<mapping physical="@src.dir@/tests" virtual="/railo-tests" scmurl="${sc.railo.http}"/>
 		<mapping physical="@src.dir@/tests/testcases" virtual="/testcases" scmurl="${sc.railo.http}"/>
 		<railo-datasource name="railo_mirror" jdbcstring="jdbc:h2:${temp.dir}/h2dbs/railo-db/railo-db"/>
@@ -62,7 +62,7 @@
 				runner="http://${runwar.host}:${runwar.port}/tboxrunner.cfm?" outputdir="${dist.dir}/testresults/"/>
 			-->
 			<testbox-call path="${tests.dir}" componentPath="testcases" inspect="true"
-				runner="http://${runwar.host}:${runwar.port}/tboxrunner.cfm?" outputdir="${dist.dir}/testresults/"/>
+				runner="http://${runwar.host}:${runwar.port}/tboxrunner.cfm?railoversion=${railo.version}&amp;" outputdir="${dist.dir}/testresults/"/>
 		</server-run>
 	</target>
 	

@@ -1,5 +1,6 @@
 <cfsilent>
 <cfparam name="url.target" 		default="">
+<cfparam name="url.railoversion" default="4.2">
 <cfparam name="url.recurse" default="true">
 <cfparam name="url.labels"		default="">
 <cfparam name="url.reporter"	default="ANTJunit">
@@ -18,7 +19,10 @@ for( key in URL ){
 if( len( url.target ) ){
 	// directory or CFC, check by existence
 	try {
-		if( !directoryExists( expandPath( "/#replace( url.target, '.', '/', 'all' )#" ) ) ){
+		if( left(url.railoversion,3) EQ "4.1") {
+			// using testbox mxunit really, thus TestSuite().testSuite() and ANTJunit vs JUnitxml
+		  	results = new mxunit.framework.TestSuite().testSuite().addAll(url.target).run().getResultsOutput('ANTJunit');
+		} else if( !directoryExists( expandPath( "/#replace( url.target, '.', '/', 'all' )#" ) ) ){
 			results = testBox.run( bundles=url.target, reporter=url.reporter, labels=url.labels );
 		} else {
 			results = testBox.run( directory={ mapping=url.target, recurse=url.recurse }, reporter=url.reporter, labels=url.labels );
