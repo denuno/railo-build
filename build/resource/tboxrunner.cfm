@@ -5,6 +5,7 @@
 <cfparam name="url.labels"		default="">
 <cfparam name="url.reporter"	default="ANTJunit">
 <cfscript>
+request.webadminpassword="testtest";
 // create testbox
 if( directoryExists( expandPath("/coldbox/system/testing" ) ) ){
 	testBox = new coldbox.system.testing.TestBox();
