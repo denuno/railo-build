@@ -570,8 +570,8 @@
 		<element name="xml" implicit="true" optional="true" />
 		<sequential>
 			<antcontrib:var unset="true" name="@{property}" />
-			<tempfile property="__xml_file.temp" />
-			<echoxml file="${__xml_file.temp}" namespacePolicy="@{namespacePolicy}" prefix="args2props">
+			<tempfile property="__xml_file.temp" prefix="args2props" />
+			<echoxml file="${__xml_file.temp}" namespacePolicy="@{namespacePolicy}" >
 				<placeholderbrah>
 				<xml />
 				</placeholderbrah>
