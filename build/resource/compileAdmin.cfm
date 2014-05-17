@@ -1,30 +1,21 @@
 <cfsetting showdebugoutput="No" enablecfoutputonly="Yes">
-
 <cftry>
-
-	<cfadmin 
-		action="updateMapping"
-		type="web"
-		password="#url.password#"
-		archive=""
-		primary="physical"
-		trusted="false"
-		virtual="/railo-context-compiled"
-		physical="#url.admin_source#"
-		remoteClients="">
-	
-	<cfadmin 
-		action="createArchive"
-		type="web"
-		password="#url.password#"
-		file="#url.ra_dir#/railo-context.ra"
-		virtual="/railo-context-compiled"
-		secure="true"
-		append="false"
-		remoteClients="">
-	<cfcatch type="Any">
-		<cfoutput>Mapping not created. Error occured. (#cfcatch.message#)</cfoutput>
-		<cfabort>
-	</cfcatch>
+	<cfset virtualPath = "/railo-context-compiled">
+	<cfadmin action="updateMapping" type="web" password="#url.password#"
+	        virtual="#virtualPath#"
+	        physical="#url.admin_source#"
+	        primary="physical"
+	        trusted="false"
+	        archive="">
+	<cfadmin action="createArchive" type="web" password="#url.password#"
+	        virtual="#virtualPath#"
+	        file="#url.admin_source#/railo-context.ra"
+	        addCFMLFiles="false"
+	        addNonCFMLFiles="false"
+	        append="false">
+<cfcatch type="Any">
+	<cfoutput>Mapping not created. Error occured. (#cfcatch.message#)</cfoutput>
+	<cfabort>
+</cfcatch>
 </cftry>
 <cfoutput>Railo Admin compiled...</cfoutput>

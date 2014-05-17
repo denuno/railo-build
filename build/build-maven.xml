@@ -3,7 +3,7 @@
    	<!-- 
    	<property name="mvn.type" value="snapshot" />
    	-->
-	<property name="railo.deps.exclude" value="railo-loader.jar, javax.servlet.jar, org.mortbay.jetty.jar, ojdbc14.jar" />
+	<property name="railo.deps.exclude" value="railo-loader.jar, javax.servlet.jar, org.mortbay.jetty.jar" />
 	<property name="railo.deps.optional" value="ojdbc14.jar, microsoft-mssqlserver.jar, h2.jar, microsoft-sqljdbc.jar, mysql-connector-java-bin.jar, postgresql.jar" />
 
 <property name="mvn.type" value="release" />

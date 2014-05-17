@@ -194,6 +194,13 @@
 		</antcontrib:if>
 		<echo>Message from Railo: ${build-core.railo.compile_message}</echo>
     	<echo>Admin compiled to: ${build-core.build.dir}/classes/resource/context/railo-context.ra</echo>
+		<copy todir="${build-core.build.dir}/classes/railo/runtime/cache/eh">
+			<fileset file="${build-core.src.dir}/railo/runtime/cache/eh/ehcache.xml" />
+		</copy>
+    	<!-- is this zip needed? -->
+		<copy todir="${build-core.build.dir}/classes/railo/transformer/bytecode/statement">
+			<fileset file="${build-core.src.dir}/railo/transformer/bytecode/statement/java.zip" />
+		</copy>
 		<!-- TODO: figure out languages between railo-cfml/admin/resources/language and core/admin/resources/language -->
     	<copy todir="${build-core.build.dir}/classes/resource/context/admin/resources/language" overwrite="true">
 			<fileset dir="${build-core.railo.admin_source_abs}/admin/resources/language"/>
@@ -202,12 +209,15 @@
 		<copy todir="${build-core.build.dir}/classes/resource">
 			<fileset dir="${build-core.src.dir}/resource" />
 		</copy>
-		<copy todir="${build-core.build.dir}/classes/resource/context/admin">
+<!--
+from the ra file since 4.2
+    	<copy todir="${build-core.build.dir}/classes/resource/context/admin">
 			<fileset dir="${build-core.railo.admin_source_abs}/admin"/>
 		</copy>
 		<copy todir="${build-core.build.dir}/classes/resource/context/res">
 			<fileset dir="${src.dir}/railo-cfml/railo-admin/res" />
 		</copy>
+-->
 		<copy todir="${build-core.build.dir}/classes/resource/context/templates">
 			<fileset dir="${build-core.railo.admin_source_abs}/templates"/>
 		</copy>
@@ -236,6 +246,7 @@
 			    <attribute name="Class-Path" value="../../railo.jar; ${rc.manifest.classpath}"/>
 		    </manifest>    	
 			<fileset dir="${build-core.build.dir}/classes"/>
+    		<fileset file="${build-core.src.dir}/License.txt"/>
 		</jar>
     </target>
 		
