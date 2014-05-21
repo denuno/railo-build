@@ -84,7 +84,7 @@
 	<jar path="mysql-connector-java-bin.jar" version="5.1.25" comment="" hash="24a6d6cab39d9fd970e0ee00bd2f9e7c"/>
 	<jar path="mysql-connector-java-bin.jar" version="5.1.20" comment="" hash="a910cc2459211c6649316a969920df5d"/>
 	<jar path="objectweb-asm-all.jar" version="4.0" comment="" hash="ae41c404d45636ce3aaf91c87bba82ac"/>
-	<jar path="ojdbc14.jar" version="" comment="" hash="c7c09896ad999e8d8dfb2e1235832d55"/>
+	<jar path="ojdbc14.jar" version="10.1.0.5.0" comment="" hash="c7c09896ad999e8d8dfb2e1235832d55"/>
 	<jar path="openamf-astranslator.jar" version="1.5.8" comment="only used for backward compatibility" hash="c47290d836a7fa1c7c1629d33db7b105"/>
 	<jar path="openamf.jar" version="1.5.8" comment="only used for backward compatibility" hash="499ec60e34b392094315c5fd2ff0691e"/>
 	<jar path="org.mortbay.jetty.jar" version="" comment=""/>
