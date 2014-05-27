@@ -182,6 +182,8 @@
 			<property name="build-core.railo.url" value="http://${server.host}:${runwar.port}/compileAdmin.cfm" />
 			<echo>trying to get ${build-core.railo.url}?password=${build-core.railo.password}&amp;admin_source=${admincfml.location}&amp;ra_dir=${admincfml.ra}</echo>
 			<get src="${build-core.railo.url}?password=${build-core.railo.password}&amp;admin_source=${admincfml.location}&amp;ra_dir=${admincfml.ra}" verbose="on" dest="${temp.dir}/generate.html"/>
+			<echo>trying to generate admin search index</echo>
+			<get src="http://${server.host}:${runwar.port}/railo-cfml/railo-admin/admin/web.cfm?action=admin.search&amp;reindex=1" verbose="on" dest="${temp.dir}/generate.html"/>
 		</server-run>
     	<loadfile property="build-core.railo.compile_message" srcFile="${temp.dir}/generate.html" />
 		<antcontrib:propertyregex override="yes" property="build-core.generate.error" input="${build-core.railo.compile_message}" regexp=".*rror(.+).*" select="\1" />

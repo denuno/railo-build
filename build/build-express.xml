@@ -21,11 +21,6 @@
         <zip destfile="${railobuild.dist.dir}/railo-express/webroot/WEB-INF/lib/runwar.jar" update="true">
         	<zipfileset file="${temp.dir}/railo.png" fullpath="runwar/icon.png" />
         </zip>
-        <!--  create no asm jetty runner -->
-    	<jar jarfile="${railobuild.dist.dir}/railo-express/webroot/WEB-INF/lib/${jetty-runner.jar}">
-	        <zipfileset src="${cfdistro.basedir}/lib/${jetty-runner.jar}" excludes="org/objectweb/**" />
-	    </jar>
-
 		<copy todir="${railobuild.dist.dir}/railo-express/webroot/WEB-INF/lib">
 			<fileset dir="${src.dir}/railo-java/libs" excludes="${railo.libs.zip.excludes}" />
 		</copy>

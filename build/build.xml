@@ -19,9 +19,6 @@
 	<echo message="${todays.date}"/>
 
 	<property name="railo.build.bump" value="" description="one of [major|minor|build|revision] or empty to not bump number." />
-	<property name="railo.build.level" value="os"/>
-	<property name="railo.build.state" value="source-build"/>
-	<property name="railo.build.name" value="awesomecoffee"/>
 	<property name="railo.javac.compiler" value="1.6"/>
 	<property name="railobuild.dist.dir" value="../dist"/>
 
@@ -240,18 +237,27 @@ ${git.results}</echo>
 	
 	<macrodef name="set-build-info">
 		<sequential>
-			<property file="${src.dir}/railo-java/railo-core/src/railo/runtime/Info.ini" prefix="railoini"/>
-			<property name="railo.build.name-explanation" value="${railoini.name-explanation}"/>
-			<version-splitter property="railo.build.version" version="${railoini.number}" bump="${railo.build.bump}"/>
+			<property file="${src.dir}/railo-java/railo-core/src/railo/runtime/Info.ini" prefix="railo.build"/>
+			<version-splitter property="railo.build.version" version="${railo.build.number}" bump="${railo.build.bump}"/>
 			<mkdir dir="${build-core.build.dir}/classes/railo/runtime/" />
+			<antcontrib:if>
+				<equals arg1="${build.type}" arg2="release" />
+				<then/>
+				<else>
+					<antcontrib:var name="railo.build.release-date" value="${todays.date}"/>
+					<antcontrib:var name="railo.build.name" value="SNAPSHOT (${build.commithash})"/>
+					<antcontrib:var name="railo.build.name-explanation" value="https://github.com/getrailo/railo/commit/${build.commithash}"/>
+				</else>
+			</antcontrib:if>
+
 			<antcontrib:inifile source="${src.dir}/railo-java/railo-core/src/railo/runtime/Info.ini" 
 				dest="${build-core.build.dir}/classes/railo/runtime/Info.ini">
-				   <set section="version" property="release-date" value="${todays.date}" />
+				   <set section="version" property="release-date" value="${railo.build.release-date}" />
 				   <set section="version" property="number" value="${railo.build.version.long}" />
 				   <set section="version" property="level" value="${railo.build.level}" />
 				   <set section="version" property="state" value="${railo.build.state}" />
-				   <set section="version" property="name" value="Nightly (${build.commithash})" />
-				   <set section="version" property="name-explanation" value="https://github.com/denuno/railo/commit/${build.commithash}" />
+				   <set section="version" property="name" value="${railo.build.name}" />
+				   <set section="version" property="name-explanation" value="${railo.build.name-explanation}" />
 			</antcontrib:inifile>
 		</sequential>
 	</macrodef>
