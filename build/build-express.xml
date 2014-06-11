@@ -159,22 +159,7 @@ exec $JAVA_EXE -javaagent:webroot/WEB-INF/lib/railo-inst.jar -jar railo-winstone
 		</copy>
 		<copy file="${railobuild.dist.dir}/jar/railo-${railo.build.version.long}.jar" tofile="${war.target.dir}/WEB-INF/lib/railo.jar" />
 
-    	<!-- jump through hoops for asm4... we could just delete jetty-annotations and lib/annotations/org.objectweb too -->
-		<taskdef-dependency name="jarjar" classname="com.tonicsystems.jarjar.JarJarTask" artifactId="jarjar-1-4" groupId="cfdistro.lib" version="1.0.0.0" />
-
     	<antcontrib:runtarget target="jetty.install" />
-        <jarjar jarfile="${jetty.dir}/lib/jetty-annotationsasm1.jar">
-            <zipgroupfileset dir="${jetty.dir}/lib/" includes="jetty-annotations-*.jar,annotations/org.objectweb*.jar" />
-            <rule pattern="org.objectweb.**" result="org.objectwebasm.@1"/>
-        </jarjar>
-    	<jar jarfile="${jetty.dir}/lib/jetty-annotationsasm.jar">
-	        <zipfileset src="${jetty.dir}/lib/jetty-annotationsasm1.jar" excludes="META-INF/*.SF" />
-	    </jar>
-    	<delete>
-    		<fileset dir="${jetty.dir}/lib/" includes="jetty-annotations-*.jar,jetty-annotationsasm1.jar,annotations/org.objectweb*.jar"/>
-		</delete>
-    	<move file="${jetty.dir}/lib/jetty-annotationsasm.jar" tofile="${jetty.dir}/lib/jetty-annotations-${jetty.version.long}.jar" />
-
     	<move todir="${jetty.dir}/webroot">
     		<fileset dir="${war.target.dir}" excludes="WEB-INF/**" />
     	</move>
