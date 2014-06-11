@@ -41,8 +41,8 @@
 		<mapping physical="@ext.mappings.dir@/org.coldbox/testbox/1.1.0/system/testing/compat" virtual="/mxunit"/>
 		<mapping physical="@src.dir@/tests" virtual="/railo-tests" scmurl="@sc.railo.http@"/>
 		<mapping physical="@src.dir@/tests/testcases" virtual="/testcases" scmurl="@sc.railo.http@"/>
-		<railo-datasource name="railo_mirror" jdbcstring="jdbc:h2:${temp.dir}/h2dbs/railo-db/railo-db"/>
-		<railo-datasource name="mysql" jdbcstring="jdbc:mysql://127.0.0.1:3306/railotest"/>
+		<railo-datasource name="railo_mirror" jdbcstring="jdbc:h2:${temp.dir}/h2dbs/railo-db/railo-db" />
+		<railo-datasource name="mysql" jdbcstring="jdbc:mysql://127.0.0.1:3306/railotest" username="railotest" password="${dsn.railo-releng.mysql.password}"/>
         <sql onerror="continue"
             driver="org.gjt.mm.mysql.Driver"
             url="jdbc:mysql://127.0.0.1:3306"
@@ -52,7 +52,7 @@
                 CREATE DATABASE railotest;
                 <classpath><path refid="data.lib.path"/></classpath>
         </sql>
-		<railo-datasource name="postgre" jdbcstring="jdbc:postgresql://127.0.0.1:5432/railotest"/>
+		<railo-datasource name="postgre" jdbcstring="jdbc:postgresql://127.0.0.1:5432/railotest" username="railotest" password="${dsn.railo-releng.postgre.password}"/>
         <sql onerror="continue"
             driver="org.postgresql.Driver" autocommit="true"
             url="jdbc:postgresql://127.0.0.1:5432/template1"
