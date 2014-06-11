@@ -42,6 +42,26 @@
 		<mapping physical="@src.dir@/tests" virtual="/railo-tests" scmurl="@sc.railo.http@"/>
 		<mapping physical="@src.dir@/tests/testcases" virtual="/testcases" scmurl="@sc.railo.http@"/>
 		<railo-datasource name="railo_mirror" jdbcstring="jdbc:h2:${temp.dir}/h2dbs/railo-db/railo-db"/>
+		<railo-datasource name="mysql" jdbcstring="jdbc:mysql://127.0.0.1:3306/railotest"/>
+        <sql onerror="continue"
+            driver="org.gjt.mm.mysql.Driver"
+            url="jdbc:mysql://127.0.0.1:3306"
+            userid="${dsn.railo-releng.mysql.username}"
+            password="${dsn.railo-releng.mysql.password}">
+                DROP DATABASE IF EXISTS railotest;
+                CREATE DATABASE railotest;
+                <classpath><path refid="data.lib.path"/></classpath>
+        </sql>
+		<railo-datasource name="postgre" jdbcstring="jdbc:postgresql://127.0.0.1:5432/railotest"/>
+        <sql onerror="continue"
+            driver="org.postgresql.Driver" autocommit="true"
+            url="jdbc:postgresql://127.0.0.1:5432/template1"
+            userid="${dsn.railo-releng.postgre.username}"
+            password="${dsn.railo-releng.postgre.password}">
+                DROP DATABASE IF EXISTS railotest;
+                CREATE DATABASE railotest;
+                <classpath><path refid="data.lib.path"/></classpath>
+        </sql>
 		<railo-cache name="jira2623" storage="true" default-type="default-object" custom="${cache.props}" class="railo.runtime.cache.eh.EHCache"/>
 		<copy file="${basedir}/resource/tboxrunner.cfm" todir="${war.target.dir}"/>
 		<copy file="${basedir}/resource/valueEquals.cfm" todir="${railo.web.config.dir}/customtags"/>
